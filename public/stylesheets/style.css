@@ -1,0 +1,27 @@
+body {
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+.underline-input {
+  border: none;
+  border-bottom: 2px solid #000;
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+  outline: none;
+  font-size: 16px;
+  padding: 8px 4px;
+}
+
+.underline-input:focus {
+  border-color: #00B7FF;
+  box-shadow: none;
+}
+
+::placeholder {
+  color: #999;
+}
