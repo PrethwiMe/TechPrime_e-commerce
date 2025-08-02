@@ -9,7 +9,10 @@ router.get('/',userController.renderSignupPage);
 //signUP
 router.post('/signupData',userController.handleSignup)
 //resend otp
+//router.get('/resend-otp',)
 
+//loginpage with session
+router.get('/login',userController.renderLoginPage)
 
 module.exports = router;
   

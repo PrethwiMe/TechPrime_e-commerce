@@ -1,0 +1,24 @@
+.login-image {
+  max-width: 90%;
+  height: auto;
+  margin-top: 50px;
+}
+
+.login-form {
+  max-width: 400px;
+  margin: auto;
+}
+
+form input:focus {
+  box-shadow: none;
+  border-color: black;
+}
+
+.btn-dark {
+  background-color: black;
+  border: none;
+}
+
+.btn-outline-dark img {
+  vertical-align: middle;
+}

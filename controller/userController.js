@@ -8,9 +8,18 @@ const insertData=require('../model/userModel')
 const sendMail = require('../utils/mailSend')
 
 
+exports.renderLoginPage = (req,res) => {
+  try {
+    res.render('user-pages/login')
+  } catch (error) {
+    console.log(error)
+    res.render('error')
+  }
+}
 exports.renderSignupPage = (req, res) => {
   res.render('user-pages/signup',{error:null}); 
 };
+
 
 
 exports.handleSignup = async (req, res) => {
@@ -75,4 +84,8 @@ exports.handleSignup = async (req, res) => {
     return res.status(500).render('error', { error: 'Server error. Please try again.' });
   }
 };
+
+exports.resendOtp = (req,res) => {
+
+}
 

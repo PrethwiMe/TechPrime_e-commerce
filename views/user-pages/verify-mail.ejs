@@ -9,19 +9,25 @@
 
   <form action="/veryfyOTP" method="POST" style="display: flex; gap: 10px; margin-bottom: 30px;">
     <input 
-      type="number" 
+      type="text" 
       name="otp" 
       placeholder="Enter your OTP" 
       required 
       style="flex: 1; padding: 12px; border: none; border-bottom: 1px solid #ccc; font-size: 16px;"
     >
-    <a href="/resend-otp"><button type="submit" name="resend" value="1" style="background: black; color: white; border: none; padding: 12px 20px; cursor: pointer;">
-      Resend OTP
-    </button></a>
-  </form>
-  
 
-  <div style="display: flex; justify-content: space-between;">
+    <button 
+      type="button" 
+      id="resendOtpBtn"
+      style="background: black; color: white; border: none; padding: 12px 20px; cursor: pointer;"
+    >
+      Resend OTP
+    </button>
+  </form>
+
+  <span id="resendStatus" style="margin-top: -20px; display: block; font-size: 14px;"></span>
+
+  <div style="display: flex; justify-content: space-between; margin-top: 1%;">
     <a href="/login" style="color: black; text-decoration: none;">Back to Login</a>
     <button 
       type="submit" 
@@ -37,4 +43,33 @@
     <input type="hidden" name="email" value="">
   </form>
 </div>
+
+<script>
+  document.getElementById('resendOtpBtn').addEventListener('click', async () => {
+    const statusSpan = document.getElementById('resendStatus');
+    statusSpan.style.color = 'black';
+    statusSpan.textContent = 'Sending...';
+
+    try {
+      const response = await fetch('/resend-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        statusSpan.style.color = 'green';
+        statusSpan.textContent = '✅ OTP resent successfully!';
+      } else {
+        statusSpan.style.color = 'red';
+        statusSpan.textContent = '❌ ' + (result.error || 'Failed to resend OTP.');
+      }
+    } catch (err) {
+      statusSpan.style.color = 'red';
+      statusSpan.textContent = '❌ Server error';
+    }
+  });
+</script>
+
 <%- include('partials/footer')  %>

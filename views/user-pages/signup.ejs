@@ -1,8 +1,7 @@
 <%- include('partials/header') %>
-<link rel="stylesheet" href="/stylesheets/style.css">
+<link rel="stylesheet" href="/stylesheets/userLogin.css">
 
-
-<div class="container-fluid py-5 px-5">
+<div class="container-fluid py-3 px-5">
   <div class="row d-flex align-items-center">
     <div class="col-lg-6 mb-4">
       <img src="/images/image.png" alt="Rocket" class="img-fluid rounded-4 shadow">
@@ -14,31 +13,37 @@
 
       <form action="/signupData" method="POST">
         <div class="row">
-          <div class="col">
-            <input type="text" name="firstName" class="form-control underline-input mb-3" placeholder="First Name" required>
+          <div class="col mb-3">
+            <input type="text" name="firstName" class="form-control border-0 border-bottom rounded-0" placeholder="First Name" required>
           </div>
-          <div class="col">
-            <input type="text" name="lastName" class="form-control underline-input mb-3" placeholder="Last Name" required>
+          <div class="col mb-3">
+            <input type="text" name="lastName" class="form-control border-0 border-bottom rounded-0" placeholder="Last Name" required>
           </div>
         </div>
 
-        <input type="text" name="phone" class="form-control underline-input mb-3" placeholder="Phone" required>
-        <input type="email" name="email" class="form-control underline-input mb-3" placeholder="Email" required>
-        <input type="password" name="password" class="form-control underline-input mb-3" placeholder="Password" required>
-        <input type="password" name="confirmPassword" class="form-control underline-input mb-3" placeholder="Confirm Password" required>
-        <input type="text" name="referralCode" class="form-control underline-input mb-4" placeholder="Enter referral code (optional)">
-       <% if (error && error.length > 0) { %>
-  <p style="color: red;"><%= error %></p>
-<% } %>
-        <button type="submit" class="btn btn-dark w-100 mb-3 py-2 mt-3">Create Account</button>
+        <input type="text" name="phone" class="form-control border-0 border-bottom rounded-0 mb-3" placeholder="Phone" required>
+        <input type="email" name="email" class="form-control border-0 border-bottom rounded-0 mb-3" placeholder="Email" required>
+        <input type="password" name="password" class="form-control border-0 border-bottom rounded-0 mb-3" placeholder="Password" required>
+        <input type="password" name="confirmPassword" class="form-control border-0 border-bottom rounded-0 mb-3" placeholder="Confirm Password" required>
+        <input type="text" name="referralCode" class="form-control border-0 border-bottom rounded-0 mb-4" placeholder="Enter referral code (optional)">
 
-        <button type="button" class="btn btn-outline-secondary w-100 mb-3 py-2 d-flex align-items-center justify-content-center gap-2">
-          <img src="https://img.icons8.com/color/24/000000/google-logo.png" />
-          Sign up with Google
-        </button>
+        <% if (error && error.length > 0) { %>
+          <p style="color: red;"><%= error %></p>
+        <% } %>
+
+        <div class="d-grid mb-3">
+          <button type="submit" class="btn btn-dark py-2">Create Account</button>
+        </div>
+
+        <div class="d-grid mb-3">
+          <button type="button" class="btn btn-outline-dark d-flex align-items-center justify-content-center gap-2 py-2">
+            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" width="20" alt="Google Icon">
+            Sign up with Google
+          </button>
+        </div>
 
         <div class="text-center">
-          Already have an account? <a href="/login" class="text-decoration-underline">Log in</a>
+          Already have an account? <a href="/login" class="text-decoration-none fw-semibold">Log in</a>
         </div>
       </form>
     </div>
