@@ -6,5 +6,7 @@ const adminController=require('../controller/admincontroller')
 router.get('/', adminController.sentAdminPage);
 
 router.post('/getLoginData',adminController.loginfunction)
+// dashBoard
+router.get('/dashboard',adminController.dashBoardHandle)
 
 module.exports = router;

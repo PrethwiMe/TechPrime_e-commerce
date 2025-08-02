@@ -1,0 +1,66 @@
+<!-- Sidebar -->
+ <link rel="stylesheet" href="/stylesheets/sidebar.css">
+<div class="d-flex flex-column flex-shrink-0 p-3 bg-dark text-white vh-100" style="width: 250px;">
+  <a href="/admin/dashboard" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+    <span class="fs-4 fw-bold">TechPrime Admin</span>
+  </a>
+  <hr>
+
+  <ul class="nav nav-pills flex-column mb-auto">
+    <li class="nav-item">
+      <a href="/admin/dashboard" class="nav-link text-white sidebar-link">
+        <i class="bi bi-speedometer2 me-2"></i> Dashboard
+      </a>
+    </li>
+    <li>
+      <a href="/admin/users" class="nav-link text-white sidebar-link">
+        <i class="bi bi-people me-2"></i> Users
+      </a>
+    </li>
+    <li>
+      <a href="/admin/products" class="nav-link text-white sidebar-link">
+        <i class="bi bi-box-seam me-2"></i> Products
+      </a>
+    </li>
+    <li>
+      <a href="/admin/orders" class="nav-link text-white sidebar-link">
+        <i class="bi bi-receipt me-2"></i> Orders
+      </a>
+    </li>
+    <li>
+      <a href="/admin/categories" class="nav-link text-white sidebar-link">
+        <i class="bi bi-tags me-2"></i> Categories
+      </a>
+    </li>
+    <li>
+      <a href="/admin/coupons" class="nav-link text-white sidebar-link">
+        <i class="bi bi-ticket-detailed me-2"></i> Coupons
+      </a>
+    </li>
+    <li>
+      <a href="/admin/banners" class="nav-link text-white sidebar-link">
+        <i class="bi bi-image me-2"></i> Banners
+      </a>
+    </li>
+    <li>
+      <a href="/admin/settings" class="nav-link text-white sidebar-link">
+        <i class="bi bi-gear me-2"></i> Settings
+      </a>
+    </li>
+  </ul>
+
+  <hr>
+  <div class="dropdown">
+    <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="adminDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+      <img src="/images/admin-avatar.png" alt="admin" width="32" height="32" class="rounded-circle me-2">
+      <strong>Admin</strong>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="adminDropdown">
+      <li><a class="dropdown-item" href="/admin/profile">Profile</a></li>
+      <li><a class="dropdown-item" href="/admin/settings">Settings</a></li>
+      <li><hr class="dropdown-divider"></li>
+      <li><a class="dropdown-item text-danger" href="/admin/logout">Logout</a></li>
+    </ul>
+  </div>
+</div>
+

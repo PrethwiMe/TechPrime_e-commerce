@@ -4,10 +4,10 @@ const saltRounds = 10;
 const myPlaintextPassword = 's0/\/\P4$$w0rD';
 const someOtherPlaintextPassword = 'not_bacon';
 //import model
-const insertData=require('../model/userModel')
+const dataBaseCall=require('../model/userModel')
 const sendMail = require('../utils/mailSend')
 
-
+//login
 exports.renderLoginPage = (req,res) => {
   try {
     res.render('user-pages/login')
@@ -16,11 +16,41 @@ exports.renderLoginPage = (req,res) => {
     res.render('error')
   }
 }
-exports.renderSignupPage = (req, res) => {
-  res.render('user-pages/signup',{error:null}); 
+
+exports.loginAccess = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.render('user-pages/login', { error: 'Email and password are required.' });
+    }
+
+    const user = await dataBaseCall.fetchUser(email);
+
+    if (!user) {
+      return res.render('user-pages/login', { error: 'User not found.' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.render('user-pages/login', { error: 'Invalid email or password.' });
+    }
+
+    // Success: Redirect to dashboard or homepage
+    return res.send("ok da mowne")
+
+  } catch (error) {
+    console.error('Login error:', error);
+    return res.render('user-pages/login', { error: 'Server error. Please try again.' });
+  }
 };
 
 
+
+//signup
+exports.renderSignupPage = (req, res) => {
+  res.render('user-pages/signup',{error:null}); 
+};
 
 exports.handleSignup = async (req, res) => {
   try {
@@ -70,7 +100,7 @@ exports.handleSignup = async (req, res) => {
          }
          
     }
- let result = await insertData.insertUser(data)
+ let result = await dataBaseCall.insertUser(data)
    if (result) {
      const otp = Math.floor(100000 + Math.random() * 900000);
     let msg = await sendMail(email,otp)
@@ -88,4 +118,4 @@ exports.handleSignup = async (req, res) => {
 exports.resendOtp = (req,res) => {
 
 }
-
+//top needed to send that is pending

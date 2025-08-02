@@ -15,3 +15,15 @@ exports.insertUser = async (userdata) => {
     }
 
 }
+
+exports.fetchUser = async (email) => {
+    try {
+        const db = getDB();
+
+        return await db.collection(dbVariables.userCollection).findOne({email})
+        
+    } catch (error) {
+        console.log(error)
+    }
+
+}

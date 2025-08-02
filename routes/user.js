@@ -13,6 +13,7 @@ router.post('/signupData',userController.handleSignup)
 
 //loginpage with session
 router.get('/login',userController.renderLoginPage)
+router.post('/login-req',userController.loginAccess)
 
 module.exports = router;
   

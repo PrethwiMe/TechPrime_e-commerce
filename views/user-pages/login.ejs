@@ -15,7 +15,12 @@
         <h2 class="fw-bold mb-2">Log in</h2>
         <p class="mb-4">Enter your details below</p>
 
-        <form action="/login" method="POST">
+        <!-- 🔴 Error Message -->
+        <% if (typeof error !== 'undefined' && error) { %>
+          <div class="alert alert-danger"><%= error %></div>
+        <% } %>
+
+        <form action="/login-req" method="POST">
           <div class="mb-3">
             <input type="email" name="email" class="form-control border-0 border-bottom rounded-0" placeholder="Email" required>
           </div>

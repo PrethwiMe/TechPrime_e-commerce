@@ -15,26 +15,32 @@ Object.keys(require.cache).forEach(function (key) {
 });
 
 exports.sentAdminPage = (req, res) => {
-  res.render('admin-pages/login',{error:null})
+  res.render('admin-pages/login',{error:null, success:false})
 }
 
 exports.loginfunction = async (req, res) => {
   try {
-    console.log("called body");
+    
     const { email, password } = req.body;
-    let result = await adminmodel.adminLogin(email)
-    if (!result) {
-      res.render('admin-pages/login',{error:"invalid data"})
+    let data = await adminmodel.adminLogin(email)
+    console.log(data);
+    
+    if (!data) {
+    return  res.render('admin-pages/login',{error:"You are Not authorised....!!"})
     }
     //decrypt password
-    bcrypt.compare(password, result.password, function(err, result) {
+    bcrypt.compare(password, data.password, function(err, result) {
+          console.log(result);
+
     if (err) {
        console.error(err);
-        return res.status(500).render('error', { error: 'Server error during password comparison' });
+       return res.render('admin-pages/login',{error:"somthing wromg"})
     }
     if (result) {
-      res.send("access granted")
+   return res.render("admin-pages/login", { success: true });
     }
+
+     res.render("admin-pages/login", { error: "Invalid credentials", success: false });
 });
 
   } catch (error) {
@@ -44,3 +50,12 @@ exports.loginfunction = async (req, res) => {
   }
 
 };
+
+exports.dashBoardHandle = (req,res) => {
+  console.log("call dash board😁");
+  try {
+    res.render('admin-pages/adminDashBoard')
+  } catch (error) {
+    res.send(error)
+  }
+}
