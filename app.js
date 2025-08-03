@@ -5,6 +5,8 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var expressLayouts = require('express-ejs-layouts');
 const { connectDB } = require('./config/mongodb');
+const session = require('express-session');
+require('dotenv').config();
 
 var app = express()
 
@@ -27,6 +29,25 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Prevent caching across all pages
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  next();
+});
+
+
+app.use(session({
+  secret: process.env.SESSION_ID,         // 🔒 Replace with strong random string
+  resave: false,                 // Don't save session if unmodified
+  saveUninitialized: false,      // Don't create session until something stored
+  cookie: {
+    maxAge: 1000 * 60 * 5,
+    httpOnly: true               // Prevents client-side JS from accessing cookie
+  }
+}));
+//develo[er cache]
 if (process.env.NODE_ENV !== 'production') {
   app.use((req, res, next) => {
     Object.keys(require.cache).forEach(function (id) {

@@ -1,12 +1,17 @@
 var express = require('express');
 var router = express.Router();
 const adminController=require('../controller/admincontroller')
+const sessionHandle = require('../middleware/adminMiddleWare')
 
 /* GET admin base route */
-router.get('/', adminController.sentAdminPage);
+router.get('/', sessionHandle.isUserLoggedIn ,adminController.sentAdminPage);
 
 router.post('/getLoginData',adminController.loginfunction)
 // dashBoard
-router.get('/dashboard',adminController.dashBoardHandle)
+router.get('/dashboard', sessionHandle.adminConfirmed ,adminController.dashBoardHandle);
+//logout
+router.get('/logout',adminController.handleLogout);
+//users-list
+router.get('/users',sessionHandle.adminConfirmed,adminController.displayUsers)
 
 module.exports = router;

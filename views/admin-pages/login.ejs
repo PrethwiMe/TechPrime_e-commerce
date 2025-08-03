@@ -17,14 +17,14 @@
      
     </div>
   </nav>
-   <hr>
+   
 
 
 <!-- Custom admin login CSS (FIXED PATH) -->
 <link rel="stylesheet" href="/stylesheets/adminLogin.css">
 
 <!-- Main Content -->
-<div class="admin-bg d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+<div class="admin-bg d-flex align-items-center justify-content-center" style="min-height: 100vh;">
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-12 col-md-8 col-lg-5">
@@ -71,35 +71,3 @@
     </div>
   </div>
 </div>
-
-<!-- Success Modal -->
-<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4 shadow">
-      <div class="modal-header border-0">
-        <h5 class="modal-title text-success" id="successModalLabel">🎉 Login Successful</h5>
-      </div>
-      <div class="modal-body text-center">
-        <p>You have logged in successfully.</p>
-      </div>
-      <div class="modal-footer border-0 justify-content-center">
-        <button type="button" class="btn btn-success px-4" id="continueBtn">OK</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<% if (success) { %>
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const modal = new bootstrap.Modal(document.getElementById('successModal'));
-      modal.show();
-      document.getElementById('continueBtn').addEventListener('click', () => {
-        window.location.href = "/admin/dashboard";
-      });
-    });
-  </script>
-<% } %>
-
-
