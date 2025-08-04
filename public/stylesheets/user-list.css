@@ -33,3 +33,12 @@
 .page-link:hover {
   background-color: #f1d2e5;
 }
+@media (max-width: 768px) {
+  .min-vh-100 {
+    min-height: auto !important;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+  }
+}

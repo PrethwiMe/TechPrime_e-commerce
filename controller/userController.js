@@ -93,7 +93,7 @@ exports.handleSignup = async (req, res) => {
          phone, 
          password:hashedPassword,
          role:"user",
-         isActive:false,
+         isActive:true,
          createdAt:new Date(),
          address:{
             

@@ -13,5 +13,6 @@ router.get('/dashboard', sessionHandle.adminConfirmed ,adminController.dashBoard
 router.get('/logout',adminController.handleLogout);
 //users-list
 router.get('/users',sessionHandle.adminConfirmed,adminController.displayUsers)
-
+//Disable or enable user
+router.post('/users/:id/toggle',adminController.controleUser)
 module.exports = router;
