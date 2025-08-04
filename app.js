@@ -41,12 +41,12 @@ app.use((req, res, next) => {
 
 
 app.use(session({
-  secret: process.env.SESSION_ID,         // 🔒 Replace with strong random string
-  resave: false,                 // Don't save session if unmodified
-  saveUninitialized: false,      // Don't create session until something stored
+  secret: process.env.SESSION_ID,         
+  resave: false,                
+  saveUninitialized: false,      
   cookie: {
     maxAge: 1000 * 60 * 5,
-    httpOnly: true               // Prevents client-side JS from accessing cookie
+    httpOnly: true               
   }
 }));
 //develo[er cache]

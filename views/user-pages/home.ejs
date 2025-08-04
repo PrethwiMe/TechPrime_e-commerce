@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TechCart - Home</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    .category-btn {
+      padding: 10px 20px;
+      font-weight: bold;
+      background-color: #000;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      margin: 5px;
+    }
+    .category-btn:hover {
+      background-color: #333;
+    }
+    .product-card img {
+      height: 180px;
+      object-fit: contain;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .product-card {
+      padding: 10px;
+    }
+    .price {
+      font-weight: bold;
+    }
+    .old-price {
+      text-decoration: line-through;
+      color: gray;
+    }
+    .star {
+      color: orange;
+    }
+  </style>
+</head>
+<body>
+    <%- include('partials/header') %>
+
+  <div class="container my-4">
+    <!-- Banner -->
+    <div class="mb-4">
+      <img src="https://www.google.com/imgres?q=banner%20e%20commerce&imgurl=https%3A%2F%2Fimg.pikbest.com%2Forigin%2F10%2F01%2F82%2F867pIkbEsTAIq.png!sw800&imgrefurl=https%3A%2F%2Fpikbest.com%2Ftemplates%2Fsale-banner-template-for-e-commerce-flash-theme_10018286.html&docid=YZLT2NK2cjMTzM&tbnid=BRY4VUB0A3d_QM&vet=12ahUKEwiwnPLnzfCOAxV4S2cHHZ5QJhsQM3oECBUQAA..i&w=800&h=348&hcb=2&ved=2ahUKEwiwnPLnzfCOAxV4S2cHHZ5QJhsQM3oECBUQAA" class="w-100 rounded" alt="Banner" />
+    </div>
+
+    <!-- Flash Sales -->
+    <div class="mb-4">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="section-title">Flash Sales</div>
+        <a href="#" class="btn btn-dark btn-sm">View All Products</a>
+      </div>
+      <div class="row">
+        <% const flashSales = [
+          {
+     img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
+            title: 'HP Intel Core i5 13th Gen',
+            price: '₹56,990',
+            oldPrice: '₹70,841'
+          },
+          {
+           img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
+            title: 'Hp Omen AMD Ryzen 7',
+            price: '₹95,990',
+            oldPrice: '₹1,23,652'
+          },
+          {
+     img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
+            title: 'DELL 15 AMD Ryzen 5',
+            price: '₹40,990',
+            oldPrice: '₹55,135'
+          },
+          {
+           img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
+            title: 'HP Pavilion 14 X360',
+            price: '₹79,990',
+            oldPrice: '₹97,267'
+          }
+        ]; %>
+
+        <% flashSales.forEach(product => { %>
+          <div class="col-6 col-sm-4 col-md-3 product-card">
+            <div class="card h-100 text-center">
+              <img src="<%= product.img %>" class="card-img-top" alt="Product" />
+              <div class="card-body">
+                <h6 class="card-title"><%= product.title %></h6>
+                <div class="price text-danger"><%= product.price %> <span class="old-price ms-2"><%= product.oldPrice %></span></div>
+                <div class="star">★★★★★</div>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+
+    <!-- Categories -->
+    <div class="mb-4">
+      <div class="section-title">Categories</div>
+      <div class="d-flex flex-wrap">
+        <% ['hp', 'samsung', 'Dell', 'Lenovo'].forEach(cat => { %>
+          <button class="category-btn text-capitalize"><%= cat %></button>
+        <% }); %>
+      </div>
+    </div>
+
+    <!-- New Arrival -->
+    <div class="mb-4">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="section-title">New Arrival</div>
+          <small class="text-muted">Featured</small>
+        </div>
+        <a href="#" class="btn btn-dark btn-sm">View All</a>
+      </div>
+      <div class="row">
+        <% const newArrivals = [
+          {
+ img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
+            title: 'Samsung Galaxy Book4',
+            price: '₹75,990',
+            oldPrice: '₹1,03,499'
+          },
+          {
+            img: 'https://images.unsplash.com/photo-1603791440384-56cd371ee9a7',
+            title: 'Lenovo chromebook',
+            price: '₹65,390',
+            oldPrice: '₹76,990'
+          },
+          {
+            img: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8',
+            title: 'HP 15R (2025) Intel Core i3',
+            price: '₹3,499',
+            oldPrice: '₹4,999'
+          },
+          {
+            img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
+            title: 'DELL XPS Qualcomm Snapdragon',
+            price: '₹2,01,650',
+            oldPrice: '₹3,44,999'
+          }
+        ]; %>
+
+        <% newArrivals.forEach(product => { %>
+          <div class="col-6 col-sm-4 col-md-3 product-card">
+            <div class="card h-100 text-center">
+              <img src="<%= product.img %>" class="card-img-top" alt="Product" />
+              <div class="card-body">
+                <h6 class="card-title"><%= product.title %></h6>
+                <div class="price text-danger"><%= product.price %> <span class="old-price ms-2"><%= product.oldPrice %></span></div>
+                <div class="star">★★★★★</div>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+
+    <!-- Best Selling -->
+    <div class="mb-5">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="section-title">Best Selling Products</div>
+          <small class="text-muted">This Month</small>
+        </div>
+        <a href="#" class="btn btn-dark btn-sm">View All</a>
+      </div>
+      <div class="row">
+        <% const bestSellers = [
+          {
+       img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
+            title: 'HP omen Intel Core i9',
+            price: '₹2,24,990',
+            oldPrice: '₹3,25,000'
+          },
+          {
+ img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
+            title: 'Samsung Galaxy Book4 Pro Evo',
+            price: '₹1,38,990',
+            oldPrice: '₹1,58,899'
+          },
+          {
+            img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
+            title: 'DELL XPS Snapdragon X',
+            price: '₹2,01,650',
+            oldPrice: '₹3,44,999'
+          },
+          {
+            img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
+            title: 'Lenovo Intel Core i7 8th Gen',
+            price: '₹3,599',
+            oldPrice: '₹8,390'
+          }
+        ]; %>
+
+        <% bestSellers.forEach(product => { %>
+          <div class="col-6 col-sm-4 col-md-3 product-card">
+            <div class="card h-100 text-center">
+              <img src="<%= product.img %>" class="card-img-top" alt="Product" />
+              <div class="card-body">
+                <h6 class="card-title"><%= product.title %></h6>
+                <div class="price text-danger"><%= product.price %> <span class="old-price ms-2"><%= product.oldPrice %></span></div>
+                <div class="star">★★★★★</div>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

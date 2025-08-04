@@ -73,7 +73,7 @@ exports.handleLogout = function (req, res) {
       console.log('Session destroy error:', err);
       return res.status(500).send('Could not log out');
     }
-    res.clearCookie('connect.sid'); // Default session cookie name
+    res.clearCookie('connect.sid');
     res.redirect('/admin');
   });
 }

@@ -25,7 +25,7 @@
         <table class="table table-hover table-bordered align-middle text-center">
           <thead class="table-dark">
             <tr>
-              <th>#</th>
+              <th>SL NO:</th>
               <th>Name</th>
               <th>Email</th>
               <th>Phone</th>
@@ -53,20 +53,16 @@
                 <span class="badge bg-danger">Inactive</span>
                 <% } else {%>
                 <span class="badge bg-secondary">pending</span>
-                  <% } %>
+                <% } %>
               </td>
               <td><%= new Date(user.createdAt).toLocaleDateString('en-IN') %></td>
-             <td>
-  <form method="POST" action="/admin/users/<%= user._id %>/toggle" class="toggle-form">
-    <button 
-      type="submit"
-      class="btn btn-sm <%= user.isActive ? 'btn-danger' : 'btn-success' %> toggle-btn"
-      data-user-id="<%= user._id %>"
-      data-current-status="<%= user.isActive %>">
-      <%= user.isActive ? 'Disable' : 'Enable' %>
-    </button>
-  </form>
-</td>
+              <td>
+                <form method="POST" action="/admin/users/<%= user._id %>/toggle" class="toggle-form">
+                  <button type="submit" class="btn btn-sm <%= user.isActive ? 'btn-danger' : 'btn-success' %> toggle-btn" data-user-id="<%= user._id %>" data-current-status="<%= user.isActive %>">
+                    <%= user.isActive ? 'Disable' : 'Enable' %>
+                  </button>
+                </form>
+              </td>
 
             </tr>
             <% }) %>
@@ -102,41 +98,43 @@
 
 <script>
   document.querySelectorAll('.toggle-form').forEach(form => {
-    form.addEventListener('submit', async function (e) {
-      e.preventDefault(); // prevent full page reload
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
 
-      const button = form.querySelector('.toggle-btn');
-      const userId = button.dataset.userId;
-      const currentStatus = button.dataset.currentStatus === 'true';
-      const url = form.action;
+    const button = form.querySelector('.toggle-btn');
+    const userId = button.dataset.userId;
+    const currentStatus = button.dataset.currentStatus === 'true';
+    const actionText = currentStatus ? 'disable' : 'enable';
 
-      try {
-        const res = await fetch(url, {
-          method: 'POST'
-        });
+    const confirmed = confirm(`Are you sure you want to ${actionText} this user?`);
+    if (!confirmed) return;
 
-        if (res.ok) {
-          // Toggle status in UI
-          const newStatus = !currentStatus;
-          button.dataset.currentStatus = newStatus;
+    const url = form.action;
 
-          // Update button
-          button.textContent = newStatus ? 'Disable' : 'Enable';
-          button.classList.toggle('btn-success', !newStatus);
-          button.classList.toggle('btn-danger', newStatus);
+    try {
+      const res = await fetch(url, {
+        method: 'POST'
+      });
 
-          // Update badge
-          const badgeCell = form.closest('tr').querySelector('td:nth-child(5)');
-          badgeCell.innerHTML = newStatus
-            ? '<span class="badge bg-success">Active</span>'
-            : '<span class="badge bg-danger">Inactive</span>';
-        } else {
-          alert('Something went wrong while toggling user.');
-        }
-      } catch (err) {
-        console.error(err);
-        alert('Failed to toggle user.');
+      if (res.ok) {
+        const newStatus = !currentStatus;
+        button.dataset.currentStatus = newStatus;
+        button.textContent = newStatus ? 'Disable' : 'Enable';
+        button.classList.toggle('btn-success', !newStatus);
+        button.classList.toggle('btn-danger', newStatus);
+
+        const badgeCell = form.closest('tr').querySelector('td:nth-child(5)');
+        badgeCell.innerHTML = newStatus
+          ? '<span class="badge bg-success">Active</span>'
+          : '<span class="badge bg-danger">Inactive</span>';
+      } else {
+        alert('Something went wrong while toggling user.');
       }
-    });
+    } catch (err) {
+      console.error(err);
+      alert('Failed to toggle user.');
+    }
   });
+});
+
 </script>

@@ -14,6 +14,10 @@ router.post('/signupData',userController.handleSignup)
 //loginpage with session
 router.get('/login',userController.renderLoginPage)
 router.post('/login-req',userController.loginAccess)
+//home
+router.get('/home',(req,res)=>{
+    res.render('user-pages/home.ejs')
+})
 
 module.exports = router;
   
