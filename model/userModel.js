@@ -23,7 +23,16 @@ exports.fetchUser = async (email) => {
         return await db.collection(dbVariables.userCollection).findOne({email})
         
     } catch (error) {
-        console.log(error)
+        console.log(error);
     }
+
+}
+
+exports.resendotpData = (mail,otp) => {
+
+    const db = getDB();
+    let forOtp= db.collection(dbVariables.userCollection).updateOne({email:mail},{ $set: { otp: otp, otpCreated: new Date() } })
+    return forOtp
+
 
 }

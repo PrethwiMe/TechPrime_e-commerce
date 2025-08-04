@@ -9,6 +9,7 @@ router.get('/',userController.renderSignupPage);
 //signUP
 router.post('/signupData',userController.handleSignup)
 //resend otp
+router.post('/resend-otp',userController.resendOtp)
 //router.get('/resend-otp',)
 
 //loginpage with session

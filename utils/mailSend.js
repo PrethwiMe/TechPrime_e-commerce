@@ -1,14 +1,11 @@
 require('dotenv').config();
-
-// utils/mailer.js
 const nodemailer = require('nodemailer');
 
-// Transporter using Gmail (or your SMTP)
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.OWNER_MAIL,     // your email
-    pass: process.env.OWNER_PASS,        // ⚠️ Gmail app password (not normal login)
+    user: process.env.OWNER_MAIL,   
+    pass: process.env.OWNER_PASS,      
   },
 });
 
@@ -31,7 +28,7 @@ async function sendVerificationMail(toEmail, code) {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log('✅ Verification email sent to', toEmail);
+    console.log('Verification email sent to', toEmail);
     return true;
   } catch (error) {
     console.error('❌ Error sending email:', error);

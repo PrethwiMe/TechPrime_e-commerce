@@ -1,4 +1,7 @@
 <%- include('partials/header')  %>
+<link rel="stylesheet" href="/stylesheets/vrifyUser.css">
+
+
 <div class="forgot-password-container" style="max-width: 600px; margin: 100px auto; padding: 40px;">
   <h2 style="font-size: 28px; font-weight: 600; margin-bottom: 10px;">Enter OTP ?</h2>
   <p style="margin-bottom: 30px;">Mail Sent to your registered email</p>
@@ -16,9 +19,9 @@
       style="flex: 1; padding: 12px; border: none; border-bottom: 1px solid #ccc; font-size: 16px;"
     >
 
-    <button 
-      type="button" 
+    <button type="button" 
       id="resendOtpBtn"
+      data-email="<%= userMail %>" 
       style="background: black; color: white; border: none; padding: 12px 20px; cursor: pointer;"
     >
       Resend OTP
@@ -40,20 +43,23 @@
 
   <!-- Hidden form to handle verify -->
   <form id="verifyForm" action="/verify-email" method="POST" style="display: none;">
-    <input type="hidden" name="email" value="">
+    <input type="hidden" name="email" value="<%= userMail %>">
   </form>
 </div>
 
 <script>
   document.getElementById('resendOtpBtn').addEventListener('click', async () => {
     const statusSpan = document.getElementById('resendStatus');
+    const email = document.getElementById('resendOtpBtn').dataset.email;
+
     statusSpan.style.color = 'black';
     statusSpan.textContent = 'Sending...';
 
     try {
       const response = await fetch('/resend-otp', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })  // Send the email to the backend
       });
 
       const result = await response.json();

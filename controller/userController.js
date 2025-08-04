@@ -71,7 +71,7 @@ exports.handleSignup = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, saltRounds);
-
+    const otp = Math.floor(100000 + Math.random() * 900000);
     let data = {
       firstName,
       lastName,
@@ -81,14 +81,16 @@ exports.handleSignup = async (req, res) => {
       role: "user",
       isActive: true,
       createdAt: new Date(),
+      otp,
+      otpCreated:new Date(),
       address: {}
     };
 
     let result = await dataBaseCall.insertUser(data);
     if (result) {
-      const otp = Math.floor(100000 + Math.random() * 900000);
+      
       let msg = await sendMail(email, otp);
-      return res.render('user-pages/verify-mail', { error: null });
+      return res.render('user-pages/verify-mail', { error: null, userMail:email });
     }
 
     res.send("please try after some time");
@@ -98,6 +100,19 @@ exports.handleSignup = async (req, res) => {
   }
 };
 
-exports.resendOtp = (req, res) => {
+exports.resendOtp =async (req, res) => {
+try {
+  let mail= req.body.email
+  const otp = Math.floor(100000 + Math.random() * 900000);
+  console.log("call reached here.......😍");
 
+ let data = await dataBaseCall.resendotpData(mail,otp)
+ let msg = await sendMail(mail, otp);
+ console.log(data);
+ console.log(msg);
+    return res.json({ success: true });  
+} catch (error) {
+   console.log(error);
+    return res.status(500).json({ success: false, error: 'Server error' });
+}
 };
