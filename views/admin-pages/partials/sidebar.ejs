@@ -1,41 +1,24 @@
-<!-- Sidebar Toggle Button (Mobile only) -->
-<button class="btn btn-outline-dark d-md-none m-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
-  <i class="bi bi-list"></i>
-</button>
-
-<!-- Sidebar Offcanvas for mobile, static for desktop -->
-<div class="offcanvas-md offcanvas-start text-bg-dark vh-100 d-flex flex-column p-3" id="mobileSidebar" tabindex="-1" data-bs-backdrop="false" style="width: 250px;">
-  <a href="/admin/dashboard" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-    <span class="fs-4 fw-bold">TechPrime Admin</span>
-  </a>
-  <hr />
-
-  <ul class="nav nav-pills flex-column mb-auto">
-    <li><a href="/admin/dashboard" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
-    <li><a href="/admin/users" class="nav-link text-white"><i class="bi bi-people me-2"></i> Users</a></li>
-    <li><a href="/admin/products" class="nav-link text-white"><i class="bi bi-box-seam me-2"></i> Products</a></li>
-    <li><a href="/admin/orders" class="nav-link text-white"><i class="bi bi-receipt me-2"></i> Orders</a></li>
-    <li><a href="/admin/categories" class="nav-link text-white"><i class="bi bi-tags me-2"></i> Categories</a></li>
-    <li><a href="/admin/coupons" class="nav-link text-white"><i class="bi bi-ticket-detailed me-2"></i> Coupons</a></li>
-    <li><a href="/admin/banners" class="nav-link text-white"><i class="bi bi-image me-2"></i> Banners</a></li>
-    <li><a href="/admin/settings" class="nav-link text-white"><i class="bi bi-gear me-2"></i> Settings</a></li>
-  </ul>
-
-  <hr />
-  <div class="dropdown">
-    <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="adminDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-      <i class="bi bi-shield-lock me-2"></i> <strong>Admin</strong>
-    </a>
-    <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="adminDropdown">
-      <li><a class="dropdown-item" href="/admin/profile">Profile</a></li>
-      <li><a class="dropdown-item" href="/admin/settings">Settings</a></li>
-      <li><hr class="dropdown-divider"></li>
-      <li><a class="dropdown-item text-danger" href="/admin/logout">Logout</a></li>
-    </ul>
-  </div>
-</div>
-
-<!-- Required styles and icons -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<!-- Sidebar -->
 <link rel="stylesheet" href="/stylesheets/sidebar.css">
 
+<div class="bg-dark text-white p-3 d-flex flex-column justify-content-between" style="width: 250px; min-height: 100vh;">
+  <div>
+    <a href="/admin/dashboard" class="text-white text-decoration-none mb-3 fs-5 fw-bold d-block">
+      TechPrime Admin
+    </a>
+
+    <ul class="nav nav-pills flex-column mb-auto">
+      <li><a href="/admin/dashboard" class="sidebar-link"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
+      <li><a href="/admin/users" class="sidebar-link"><i class="bi bi-people me-2"></i> Users</a></li>
+      <li><a href="/admin/products" class="sidebar-link"><i class="bi bi-box-seam me-2"></i> Products</a></li>
+      <li><a href="/admin/orders" class="sidebar-link"><i class="bi bi-receipt me-2"></i> Orders</a></li>
+      <li><a href="/admin/view-categories" class="sidebar-link"><i class="bi bi-tags me-2"></i> Categories</a></li>
+      <li><a href="/admin/coupons" class="sidebar-link"><i class="bi bi-ticket-detailed me-2"></i> Coupons</a></li>
+      <li><a href="/admin/banners" class="sidebar-link"><i class="bi bi-image me-2"></i> Banners</a></li>
+      <li><a href="/admin/settings" class="sidebar-link"><i class="bi bi-gear me-2"></i> Settings</a></li>
+    </ul>
+  </div>
+
+  <!-- Admin Dropdown -->
+  
+</div>

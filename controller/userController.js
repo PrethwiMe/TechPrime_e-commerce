@@ -5,6 +5,10 @@ const someOtherPlaintextPassword = 'not_bacon';
 const dataBaseCall = require('../model/userModel');
 const sendMail = require('../utils/mailSend');
 
+exports.loadHome = (req,res) => {
+    res.render('user-pages/home.ejs',{user: req.session.user || null})
+}
+
 exports.renderLoginPage = (req, res) => {
   try {
     res.render('user-pages/login');
@@ -43,11 +47,11 @@ exports.loginAccess = async (req, res) => {
 exports.renderSignupPage = (req, res) => {
   res.render('user-pages/signup', { error: null });
 };
-
 exports.handleSignup = async (req, res) => {
   try {
     const { firstName, lastName, email, phone, password, confirmPassword, referralCode } = req.body;
 
+    // Basic validation
     if (!firstName || !email || !phone || !password || !confirmPassword) {
       return res.render('user-pages/signup', { error: 'All fields except referral code are required.' });
     }
@@ -70,30 +74,39 @@ exports.handleSignup = async (req, res) => {
       return res.render('user-pages/signup', { error: 'Passwords do not match.' });
     }
 
+    // 🔐 Check if email already exists
+    const existingUser = await dataBaseCall.fetchUser(email); // You need to define this DB call
+    if (existingUser) {
+      return res.render('user-pages/signup', { error: 'Email is already registered. Please log in or use another email.' });
+    }
+
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     const otp = Math.floor(100000 + Math.random() * 900000);
-    let data = {
+
+    const newUser = {
       firstName,
       lastName,
       email,
       phone,
       password: hashedPassword,
       role: "user",
-      isActive: true,
+      isActive: false,
       createdAt: new Date(),
       otp,
-      otpCreated:new Date(),
+      otpCreated: new Date(),
+      referralCode,
       address: {}
     };
 
-    let result = await dataBaseCall.insertUser(data);
+    const result = await dataBaseCall.insertUser(newUser);
+
     if (result) {
-      
-      let msg = await sendMail(email, otp);
-      return res.render('user-pages/verify-mail', { error: null, userMail:email });
+      console.log("OTP....!!", otp);
+      await sendMail(email, otp);
+      return res.render('user-pages/verify-mail', { error: null, userMail: email });
     }
 
-    res.send("please try after some time");
+    res.send("Please try again later.");
   } catch (err) {
     console.error(err);
     return res.status(500).render('error', { error: 'Server error. Please try again.' });
@@ -104,7 +117,7 @@ exports.resendOtp =async (req, res) => {
 try {
   let mail= req.body.email
   const otp = Math.floor(100000 + Math.random() * 900000);
-  console.log("call reached here.......😍");
+  console.log(461394);
 
  let data = await dataBaseCall.resendotpData(mail,otp)
  let msg = await sendMail(mail, otp);
@@ -116,3 +129,24 @@ try {
     return res.status(500).json({ success: false, error: 'Server error' });
 }
 };
+
+exports.verifyUserOtp = async (req,res) => {
+  //otp from front end
+  const {email , otp} = req.body
+  //otp from db
+  let result = await dataBaseCall.userVerify(email)
+  console.log(result);
+  console.log("user enterd", otp);
+  let numOtp = parseInt(otp)
+  
+  if (result.otp == numOtp) {
+    console.log("inside if");
+    await dataBaseCall.userActive(email)
+  return res.json({ success: true, message: "Success." });
+  }
+  
+   return res.json({ success: false, message: "Invalid OTP." });
+
+
+  
+}

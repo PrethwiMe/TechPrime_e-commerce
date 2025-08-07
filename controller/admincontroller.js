@@ -1,11 +1,10 @@
 const { getDB } = require('../config/mongodb')
-const adminmodel = require('../model/adminModel')
+const adminModel = require('../model/adminModel')
 //hasing modules
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const myPlaintextPassword = 's0/\/\P4$$w0rD';
 const someOtherPlaintextPassword = 'not_bacon';
-const adminModel = require('../model/adminModel');
 const paginate = require('../utils/paginate');
 
 
@@ -24,7 +23,7 @@ exports.loginfunction = async (req, res) => {
   try {
 
     const { email, password } = req.body;
-    let data = await adminmodel.adminLogin(email)
+    let data = await adminModel.adminLogin(email)
     console.log(data);
 
     if (!data) {

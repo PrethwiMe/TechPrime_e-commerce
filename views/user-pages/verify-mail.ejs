@@ -1,53 +1,54 @@
-<%- include('partials/header')  %>
+<%- include('partials/header') %>
 <link rel="stylesheet" href="/stylesheets/vrifyUser.css">
 
-
 <div class="forgot-password-container" style="max-width: 600px; margin: 100px auto; padding: 40px;">
-  <h2 style="font-size: 28px; font-weight: 600; margin-bottom: 10px;">Enter OTP ?</h2>
-  <p style="margin-bottom: 30px;">Mail Sent to your registered email</p>
+  <h2 style="font-size: 28px; font-weight: 600; margin-bottom: 10px;">Enter OTP</h2>
+  <p style="margin-bottom: 30px;">Mail sent to your registered email</p>
 
   <% if (error) { %>
     <div style="color: red; margin-bottom: 20px;"><%= error %></div>
   <% } %>
 
-  <form action="/veryfyOTP" method="POST" style="display: flex; gap: 10px; margin-bottom: 30px;">
+  <!-- Main form that sends email + OTP to /verify-email -->
+  <form id="verifyForm" style="display: flex; gap: 10px; margin-bottom: 30px; flex-direction: column;">
+    <input type="hidden" id="email" value="<%= userMail %>">
+
     <input 
       type="text" 
-      name="otp" 
+      id="otp"
       placeholder="Enter your OTP" 
       required 
-      style="flex: 1; padding: 12px; border: none; border-bottom: 1px solid #ccc; font-size: 16px;"
+      style="padding: 12px; border: none; border-bottom: 1px solid #ccc; font-size: 16px;"
     >
 
-    <button type="button" 
+    <button 
+      type="submit" 
+      style="background: black; color: white; border: none; padding: 12px 30px; cursor: pointer;"
+    >
+      Verify Email
+    </button>
+  </form>
+
+  <p id="message" style="margin-bottom: 10px; font-size: 14px; margin-top: 8px;"></p>
+
+  <span id="resendStatus" style="margin-top: -20px; display: block; font-size: 14px;"></span>
+
+  <div style="display: flex; justify-content: space-between; margin-top: 1%;">
+    <a href="/login" style="color: black; text-decoration: none;">Back to Login</a>
+
+    <button 
+      type="button" 
       id="resendOtpBtn"
       data-email="<%= userMail %>" 
       style="background: black; color: white; border: none; padding: 12px 20px; cursor: pointer;"
     >
       Resend OTP
     </button>
-  </form>
-
-  <span id="resendStatus" style="margin-top: -20px; display: block; font-size: 14px;"></span>
-
-  <div style="display: flex; justify-content: space-between; margin-top: 1%;">
-    <a href="/login" style="color: black; text-decoration: none;">Back to Login</a>
-    <button 
-      type="submit" 
-      form="verifyForm" 
-      style="background: black; color: white; border: none; padding: 12px 30px; cursor: pointer;"
-    >
-      Verify Email
-    </button>
   </div>
-
-  <!-- Hidden form to handle verify -->
-  <form id="verifyForm" action="/verify-email" method="POST" style="display: none;">
-    <input type="hidden" name="email" value="<%= userMail %>">
-  </form>
 </div>
 
 <script>
+  // Handle Resend OTP button
   document.getElementById('resendOtpBtn').addEventListener('click', async () => {
     const statusSpan = document.getElementById('resendStatus');
     const email = document.getElementById('resendOtpBtn').dataset.email;
@@ -59,7 +60,7 @@
       const response = await fetch('/resend-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })  // Send the email to the backend
+        body: JSON.stringify({ email })
       });
 
       const result = await response.json();
@@ -76,6 +77,38 @@
       statusSpan.textContent = '❌ Server error';
     }
   });
+
+  // Handle OTP form submission via AJAX
+  document.getElementById("verifyForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const email = document.getElementById("email").value;
+    const otp = document.getElementById("otp").value;
+
+    fetch("/verify-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email: email, otp: otp })
+    })
+    .then(response => response.json())
+    .then(data => {
+      const msg = document.getElementById("message");
+      msg.textContent = data.message;
+      msg.style.color = data.success ? "green" : "red";
+
+      if (data.success) {
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 1500);
+      }
+    })
+    .catch(error => {
+      console.error("Error:", error);
+      document.getElementById("message").textContent = "Something went wrong.";
+    });
+  });
 </script>
 
-<%- include('partials/footer')  %>
+<%- include('partials/footer') %>

@@ -1,6 +1,16 @@
-body {
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+
+
+html, body {
+  height: 100%;
+  margin: 0;
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+
 }
+
+.sidebar {
+  min-height: 100vh;
+}
+
 
 a {
   color: #00B7FF;

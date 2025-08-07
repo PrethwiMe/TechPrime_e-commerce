@@ -33,6 +33,19 @@ exports.resendotpData = (mail,otp) => {
     const db = getDB();
     let forOtp= db.collection(dbVariables.userCollection).updateOne({email:mail},{ $set: { otp: otp, otpCreated: new Date() } })
     return forOtp
-
-
 }
+
+exports.userVerify = async (mail) =>{
+    const db =await getDB()
+    const user = await db.collection(dbVariables.userCollection).findOne({email:mail})
+    return user;
+}
+
+exports.userActive = async (mail) =>{
+    const db = await getDB();
+    const user = await db.collection(dbVariables.userCollection).updateOne({email:mail},{$set:{isActive:true}})
+    return user
+}
+
+
+//.updateOne({email:mail},{$set:{isActive:true}})

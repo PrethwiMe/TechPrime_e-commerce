@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet" />
+    <style>
+        .d-flex {
+            display: flex !important;
+        }
+        .flex-grow-1 {
+            flex-grow: 1 !important;
+        }
+        .flex-column {
+            flex-direction: column !important;
+        }
+        .p-4 {
+            padding: 1.5rem !important;
+        }
+        .container-fluid {
+            width: 100%;
+            padding-right: var(--bs-gutter-x, 0.75rem);
+            padding-left: var(--bs-gutter-x, 0.75rem);
+            margin-right: auto;
+            margin-left: auto;
+        }
+        .text-end {
+            text-align: right !important;
+        }
+        #cropModal .modal-body {
+            position: relative;
+            height: calc(100% - 120px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        #imageToCrop {
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="d-flex" style="min-height: 100vh;">
+    <%- include('partials/sidebar') %>
+    <div class="flex-grow-1 d-flex flex-column">
+        <%- include('partials/topBar') %>
+        <div class="container-fluid p-4 flex-grow-1">
+            <h2 class="mb-4 fw-bold">Add Product</h2>
+            <form id="productForm" action="/admin/add-product" method="POST" enctype="multipart/form-data">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Product Name</label>
+                        <input type="text" name="name" class="form-control" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Company Details</label>
+                        <input type="text" name="companyDetails" class="form-control" required />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control" rows="3" required></textarea>
+                </div>
+                <label class="form-label">Upload Product Images (Min: 3)</label>
+                <input type="file" id="imageUploader" class="form-control" accept="image/*" />
+                <small class="text-muted">You will crop each image before upload</small>
+                <div class="d-flex flex-wrap gap-3 mt-3" id="imagePreviewContainer"></div>
+                <div id="cropped-images"></div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Original Price</label>
+                        <input type="number" name="originalPrice" class="form-control" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Category</label>
+                        <select name="catagoriesId" class="form-select" required>
+                            <% categories.forEach(cat => { %>
+                            <option value="<%= cat._id %>"><%= cat.name %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Package Items</label>
+                        <input type="text" name="packageItems" class="form-control" />
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Operating System</label>
+                        <input type="text" name="OS" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Dimensions</label>
+                        <input type="text" name="dimension" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Series</label>
+                        <input type="text" name="series" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Active Status</label>
+                        <select name="isActive" class="form-select">
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <hr class="my-4" />
+                <h4 class="fw-bold">Variant Details</h4>
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Processor</label>
+                        <input type="text" name="variant[processor]" class="form-control" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">RAM</label>
+                        <input type="text" name="variant[ram]" class="form-control" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Storage</label>
+                        <input type="text" name="variant[storage]" class="form-control" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Graphics</label>
+                        <input type="text" name="variant[graphics]" class="form-control" required />
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <label class="form-label">Color</label>
+                        <input type="text" name="variant[color]" class="form-control" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Display</label>
+                        <input type="text" name="variant[display]" class="form-control" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Price</label>
+                        <input type="number" name="variant[price]" class="form-control" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Stock</label>
+                        <input type="number" name="variant[stock]" class="form-control" required />
+                    </div>
+                </div>
+                <div class="text-end">
+                    <button type="submit" class="btn btn-success px-4">Add Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="cropModal" tabindex="-1" aria-labelledby="cropModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 95vw; height: 95vh; max-height: 95vh;">
+        <div class="modal-content" style="height: 100%;">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cropModalLabel">Crop Image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <img id="imageToCrop" alt="Crop" style="height: auto; max-height: 100%; width: auto; max-width: 100%;" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="cropBtn">Crop</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+    const uploader = document.getElementById('imageUploader');
+    const previewContainer = document.getElementById('imagePreviewContainer');
+    const croppedImagesContainer = document.getElementById('cropped-images');
+    const imageToCrop = document.getElementById('imageToCrop');
+    const cropModal = new bootstrap.Modal(document.getElementById('cropModal'));
+    let cropper;
+    let currentFile;
+
+    uploader.addEventListener('change', (e) => {
+        if (!e.target.files[0]) return;
+        currentFile = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = () => {
+            imageToCrop.src = reader.result;
+            cropModal.show();
+        };
+        reader.readAsDataURL(currentFile);
+    });
+
+    cropModal._element.addEventListener('shown.bs.modal', () => {
+        if (cropper) cropper.destroy();
+        cropper = new Cropper(imageToCrop, {
+            viewMode: 1,
+            autoCropArea: 1,
+            responsive: true,
+            dragMode: 'move',
+            background: false,
+            guides: true,
+            cropBoxResizable: true,
+            movable: true,
+            zoomable: true,
+        });
+    });
+
+    document.getElementById('cropBtn').addEventListener('click', () => {
+        if (!cropper) return;
+        cropper.getCroppedCanvas().toBlob(blob => {
+            const preview = document.createElement('img');
+            preview.src = URL.createObjectURL(blob);
+            preview.className = 'rounded border m-2';
+            preview.style.width = '150px';
+            preview.style.height = '150px';
+            preview.style.objectFit = 'cover';
+            previewContainer.appendChild(preview);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'images';
+                hiddenInput.value = reader.result;
+                croppedImagesContainer.appendChild(hiddenInput);
+                cropper.destroy();
+                cropModal.hide();
+                uploader.value = '';
+            };
+            reader.readAsDataURL(blob);
+        }, 'image/jpeg');
+    });
+
+    document.getElementById('productForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const base64Inputs = croppedImagesContainer.querySelectorAll('input[name="images"]');
+        if (base64Inputs.length < 3) {
+            alert("Please crop and upload at least 3 images.");
+            return;
+        }
+        const formData = new FormData();
+        formData.append('name', form.name.value);
+        formData.append('companyDetails', form.companyDetails.value);
+        formData.append('description', form.description.value);
+        formData.append('originalPrice', form.originalPrice.value);
+        formData.append('catagoriesId', form.catagoriesId.value);
+        formData.append('packageItems', form.packageItems.value);
+        formData.append('OS', form.OS.value);
+        formData.append('dimension', form.dimension.value);
+        formData.append('series', form.series.value);
+        formData.append('isActive', form.isActive.value);
+        formData.append('variant[processor]', form['variant[processor]'].value);
+        formData.append('variant[ram]', form['variant[ram]'].value);
+        formData.append('variant[storage]', form['variant[storage]'].value);
+        formData.append('variant[graphics]', form['variant[graphics]'].value);
+        formData.append('variant[color]', form['variant[color]'].value);
+        formData.append('variant[display]', form['variant[display]'].value);
+        formData.append('variant[price]', form['variant[price]'].value);
+        formData.append('variant[stock]', form['variant[stock]'].value);
+        let count = 0;
+        for (let input of base64Inputs) {
+            const base64 = input.value;
+            const blob = await (await fetch(base64)).blob();
+            formData.append('images', blob, `image${++count}.jpg`);
+        }
+        try {
+            const res = await fetch(form.action, {
+                method: 'POST',
+                body: formData
+            });
+            if (res.ok) {
+                window.location.href = "/admin/products";
+            } else {
+                const error = await res.text();
+                alert(`Upload failed: ${error}`);
+            }
+        } catch (err) {
+            alert("Upload error: " + err.message);
+        }
+    });
+</script>
+</body>
+</html>

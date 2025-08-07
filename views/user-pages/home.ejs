@@ -43,12 +43,12 @@
   </style>
 </head>
 <body>
-    <%- include('partials/header') %>
+  <%- include('partials/header') %>
 
   <div class="container my-4">
     <!-- Banner -->
     <div class="mb-4">
-      <img src="https://www.google.com/imgres?q=banner%20e%20commerce&imgurl=https%3A%2F%2Fimg.pikbest.com%2Forigin%2F10%2F01%2F82%2F867pIkbEsTAIq.png!sw800&imgrefurl=https%3A%2F%2Fpikbest.com%2Ftemplates%2Fsale-banner-template-for-e-commerce-flash-theme_10018286.html&docid=YZLT2NK2cjMTzM&tbnid=BRY4VUB0A3d_QM&vet=12ahUKEwiwnPLnzfCOAxV4S2cHHZ5QJhsQM3oECBUQAA..i&w=800&h=348&hcb=2&ved=2ahUKEwiwnPLnzfCOAxV4S2cHHZ5QJhsQM3oECBUQAA" class="w-100 rounded" alt="Banner" />
+      <img src="https://img.pikbest.com/origin/10/01/82/867pIkbEsTAIq.png!sw800" class="w-100 rounded clickable-item" alt="Banner" />
     </div>
 
     <!-- Flash Sales -->
@@ -60,25 +60,25 @@
       <div class="row">
         <% const flashSales = [
           {
-     img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
+            img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
             title: 'HP Intel Core i5 13th Gen',
             price: '₹56,990',
             oldPrice: '₹70,841'
           },
           {
-           img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
+            img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
             title: 'Hp Omen AMD Ryzen 7',
             price: '₹95,990',
             oldPrice: '₹1,23,652'
           },
           {
-     img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
+            img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
             title: 'DELL 15 AMD Ryzen 5',
             price: '₹40,990',
             oldPrice: '₹55,135'
           },
           {
-           img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
+            img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
             title: 'HP Pavilion 14 X360',
             price: '₹79,990',
             oldPrice: '₹97,267'
@@ -87,10 +87,10 @@
 
         <% flashSales.forEach(product => { %>
           <div class="col-6 col-sm-4 col-md-3 product-card">
-            <div class="card h-100 text-center">
-              <img src="<%= product.img %>" class="card-img-top" alt="Product" />
+            <div class="card h-100 text-center clickable-item">
+              <img src="<%= product.img %>" class="card-img-top clickable-item" alt="Product" />
               <div class="card-body">
-                <h6 class="card-title"><%= product.title %></h6>
+                <h6 class="card-title clickable-item"><%= product.title %></h6>
                 <div class="price text-danger"><%= product.price %> <span class="old-price ms-2"><%= product.oldPrice %></span></div>
                 <div class="star">★★★★★</div>
               </div>
@@ -105,7 +105,7 @@
       <div class="section-title">Categories</div>
       <div class="d-flex flex-wrap">
         <% ['hp', 'samsung', 'Dell', 'Lenovo'].forEach(cat => { %>
-          <button class="category-btn text-capitalize"><%= cat %></button>
+          <button class="category-btn text-capitalize clickable-item"><%= cat %></button>
         <% }); %>
       </div>
     </div>
@@ -122,7 +122,7 @@
       <div class="row">
         <% const newArrivals = [
           {
- img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
+            img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
             title: 'Samsung Galaxy Book4',
             price: '₹75,990',
             oldPrice: '₹1,03,499'
@@ -149,8 +149,8 @@
 
         <% newArrivals.forEach(product => { %>
           <div class="col-6 col-sm-4 col-md-3 product-card">
-            <div class="card h-100 text-center">
-              <img src="<%= product.img %>" class="card-img-top" alt="Product" />
+            <div class="card h-100 text-center clickable-item">
+              <img src="<%= product.img %>" class="card-img-top clickable-item" alt="Product" />
               <div class="card-body">
                 <h6 class="card-title"><%= product.title %></h6>
                 <div class="price text-danger"><%= product.price %> <span class="old-price ms-2"><%= product.oldPrice %></span></div>
@@ -174,13 +174,13 @@
       <div class="row">
         <% const bestSellers = [
           {
-       img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
+            img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
             title: 'HP omen Intel Core i9',
             price: '₹2,24,990',
             oldPrice: '₹3,25,000'
           },
           {
- img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
+            img: 'https://images.unsplash.com/photo-1559163499-413811fb2344',
             title: 'Samsung Galaxy Book4 Pro Evo',
             price: '₹1,38,990',
             oldPrice: '₹1,58,899'
@@ -201,8 +201,8 @@
 
         <% bestSellers.forEach(product => { %>
           <div class="col-6 col-sm-4 col-md-3 product-card">
-            <div class="card h-100 text-center">
-              <img src="<%= product.img %>" class="card-img-top" alt="Product" />
+            <div class="card h-100 text-center clickable-item">
+              <img src="<%= product.img %>" class="card-img-top clickable-item" alt="Product" />
               <div class="card-body">
                 <h6 class="card-title"><%= product.title %></h6>
                 <div class="price text-danger"><%= product.price %> <span class="old-price ms-2"><%= product.oldPrice %></span></div>
@@ -216,5 +216,24 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- 🔐 Guest click redirect script -->
+  <script>
+   const userLoggedIn = "<%= user ? 'true' : 'false' %>" === "true";
+    if (!userLoggedIn) {
+      document.addEventListener('DOMContentLoaded', () => {
+        const clickableSelectors = ['a', 'button', 'img', '.clickable-item', '[data-clickable]'];
+
+        clickableSelectors.forEach(selector => {
+          document.querySelectorAll(selector).forEach(el => {
+            el.addEventListener('click', (e) => {
+              e.preventDefault();
+              window.location.href = '/login';
+            });
+          });
+        });
+      });
+    }
+  </script>
 </body>
 </html>
