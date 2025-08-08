@@ -1,0 +1,143 @@
+<div class="d-flex">
+  <!-- Sidebar on the left -->
+  <%- include('partials/sidebar') %>
+
+  <!-- Main Content on the right -->
+  <div class="flex-grow-1 bg-white text-dark" style="min-height: 100vh;">
+
+    <!-- Topbar inside content area -->
+    <div class=" border-bottom shadow-sm">
+      <%- include('partials/topbar') %>
+    </div>
+
+    <!-- Page Content -->
+    <div class="p-4">
+      <!-- Header with Search and Add Button -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold mb-0">Products</h3>
+        <div class="d-flex gap-3 align-items-center">
+          <form method="GET" action="/admin/products" class="d-flex" role="search">
+            <div class="input-group">
+              <input
+                type="text"
+                name="search"
+                class="form-control"
+                placeholder="Search by name or brand..."
+                value="<%= typeof search !== 'undefined' ? search : '' %>"
+              />
+              <button type="submit" class="btn btn-outline-primary">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+          </form>
+          <a href="/admin/add-products" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Add Product
+          </a>
+        </div>
+      </div>
+
+      <!-- Product Table -->
+      <div class="table-responsive rounded shadow">
+        <table class="table table-bordered table-hover align-middle text-center">
+          <thead class="table-dark">
+            <tr class="">
+              <th>Image</th>
+              <th>Name</th>
+              <th>Brand</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% data.forEach((product) => { 
+                const variant = varients.find(v => v.productId.toString() === product._id.toString());
+            %>
+              <tr>
+                <td>
+                  <% if (product.images && product.images.length) { %>
+                    <img src="<%= product.images[0] %>" class="img-thumbnail" width="70" height="70" style="object-fit: cover;" />
+                  <% } else { %>
+                    <span class="text-muted">No Image</span>
+                  <% } %>
+                </td>
+                <td><%= product.name %></td>
+                <td><%= product.companyDetails %></td>
+                <td>
+                  <% if (variant) { %>
+                    ₹ <%= variant.price.toLocaleString() %>
+                  <% } else { %>
+                    <span class="text-muted">N/A</span>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (variant) { %>
+                    <%= variant.stock %>
+                  <% } else { %>
+                    <span class="text-muted">N/A</span>
+                  <% } %>
+                </td>
+                <td>
+                  <div class="form-check form-switch form-switch-lg d-inline-flex align-items-center justify-content-center">
+                    <input
+                      class="form-check-input status-toggle big-toggle"
+                      type="checkbox"
+                      data-id="<%= product._id %>"
+                      <%= product.isActive ? 'checked' : '' %>
+                    />
+                  </div>
+                </td>
+                <td>
+                  <a href="/admin/products/edit/<%= product._id %>" class="btn btn-sm btn-outline-primary me-2" title="Edit Product">
+                    <i class="bi bi-gear"></i>
+                  </a>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toggle Script -->
+<script>
+  document.querySelectorAll('.status-toggle').forEach(toggle => {
+    toggle.addEventListener('change', async function () {
+      const productId = this.dataset.id;
+      const isActive = this.checked;
+
+      try {
+        const res = await fetch(`/admin/products/toggle-status/${productId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ isActive })
+        });
+
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || 'Toggle failed');
+      } catch (err) {
+        alert('Something went wrong!');
+        this.checked = !this.checked; // revert UI
+      }
+    });
+  });
+</script>
+
+<!-- Custom Styles -->
+<style>
+  .form-switch.form-switch-lg .form-check-input {
+    width: 3rem;
+    height: 1.5rem;
+  }
+  .form-switch.form-switch-lg .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+  }
+  .big-toggle {
+    transform: scale(1.5);
+    cursor: pointer;
+  }
+</style>

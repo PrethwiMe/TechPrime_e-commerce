@@ -12,10 +12,11 @@ exports.renderAddProduct = async (req, res) => {
   }
 };
 
+//adding product
 exports.handleAddProduct = async (req, res) => {
   try {
     if (!req.files || req.files.length !== 3) {
-      return res.status(400).send('Please upload exactly 4 images.');
+      return res.status(400).send('Please upload exactly 3 images.');
     }
 
     const {
@@ -45,11 +46,11 @@ exports.handleAddProduct = async (req, res) => {
       OS,
       dimension,
       series,
-      isActive: isActive === 'true'
+      isActive: isActive === 'true',
+      createdAt:new Date()
     };
-
-    const result = await productModel.insertProduct(productData);
-    const productId = result.insertedId;
+    const productResult = await productModel.insertProduct(productData);
+    const productId = productResult.insertedId;
 
     const variantData = {
       productId,
@@ -63,10 +64,12 @@ exports.handleAddProduct = async (req, res) => {
       stock: parseInt(variant.stock)
     };
 
+    const variantResult = await productModel.insertVariant(variantData);
+    const variantId = variantResult.insertedId;
 
-    await productModel.insertVariant(variantData);
+    await productModel.updateProductVariantId(productId, variantId);
 
-    res.send(`✅ Product & Variant added successfully! Product ID: ${productId}`);
+    res.send(`✅ Product & Variant added successfully!\nProduct ID: ${productId}\nVariant ID: ${variantId}`);
   } catch (err) {
     console.error('Product Upload Error:', err);
     res.status(500).send('Internal Server Error');
@@ -131,3 +134,34 @@ exports.controleCategories = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+//diplay products
+exports.displayProducts = async (req,res) =>{
+  try {
+    let data = await productModel.showProducts()
+  let varients = await productModel.showVarients()    
+    res.render('admin-pages/allproducts',{data,varients})
+    
+  } catch (error) {
+    console.log(error);
+    
+  }
+}
+//product enable or disable tiggle
+exports.productStatus = async(req,res) => {
+let id=req.params.productId
+const{isActive} = req.body;
+
+  try {
+    const result = await productModel.toggleProduct(id, isActive);
+
+    if (result.modifiedCount === 1) {
+      res.json({ success: true, message: 'Status updated' });
+    } else {
+      res.json({ success: false, message: 'No changes made' });
+    }
+  } catch (error) {
+    console.error('Toggle error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+
+}

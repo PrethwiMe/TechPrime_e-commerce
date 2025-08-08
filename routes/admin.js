@@ -29,4 +29,8 @@ router.post('/categories/add', productController.addCategories)
 router.get('/view-categories',productController.viewCatagories)
 //category controll
 router.post('/categories/switch/:id',productController.controleCategories)
+//view products
+router.get('/products',productController.displayProducts)
+//enable or disable
+router.patch('/products/toggle-status/:productId',productController.productStatus)
 module.exports = router;

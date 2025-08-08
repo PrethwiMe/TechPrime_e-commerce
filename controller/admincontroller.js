@@ -120,3 +120,4 @@ exports.controleUser =async (req,res) => {
   let userData =await adminModel.userControll(userId)
   res.redirect('/admin/users')
 }
+
