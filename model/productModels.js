@@ -66,13 +66,26 @@ exports.statusOfCategory = async (categoryId) => {
   return updateResult;
 };
 
-//all products
-exports.showProducts = async(data) => {
+// all products with pagination
+exports.showProducts = async ({ skip = 0, limit = 5, search = "" }) => {
   const db = getDB();
-  const collection =await db.collection(dbVariables.productCollection).find().sort({createdAt:-1}).toArray();
+
+  let query = {};
+  if (search && search.trim() !== "") {
+    query = { name: { $regex: search, $options: "i" } };
+  }
+
+  const collection = await db
+    .collection(dbVariables.productCollection)
+    .find(query)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .toArray();
 
   return collection;
-}
+};
+
 
 exports.showVarients = async(data) => {
   const db = getDB();
@@ -87,3 +100,73 @@ exports.toggleProduct = async (id,state) => {
   const collection =await db.collection(dbVariables.productCollection).updateOne({_id:new ObjectId(id)},{$set:{isActive:state}})
   return collection;
 }
+
+//search product
+exports.viewSearchData = async (data) => {
+const search = data.trim();
+let query = {};
+
+if (search) {
+  if (!isNaN(search)) {
+    query = {
+      $or: [
+        { name: { $regex: search, $options: "i" } },
+        { companyDetails: { $regex: search, $options: "i" } },
+        { originalPrice: Number(search) }
+      ]
+    };
+  } else {
+    query = {
+      $or: [
+        { name: { $regex: search, $options: "i" } },
+        { companyDetails: { $regex: search, $options: "i" } }
+      ]
+    };
+  }
+}
+
+const db = getDB()
+
+const products = await db.collection(dbVariables.productCollection).find(query).toArray();
+return products;
+}
+
+exports.showEditProduct = async (data) => {
+
+  const db = await getDB();
+  const productData = await db.collection(dbVariables.productCollection).findOne({_id: new ObjectId(data)})
+  return productData
+
+
+}
+
+exports.showVarients = async (data) => {
+  const db = await getDB();
+  const productData = await db.collection(dbVariables.variantCollection).findOne({_id: new ObjectId(data)})
+  return productData
+
+}
+
+exports.showCate = async (data) => {
+  const db = await getDB();
+  const productData = await db.collection(dbVariables.categoriesCollection).find().toArray()
+  return productData
+
+}
+
+
+exports.updateProduct = async (productId, updateData) => {
+  const db = getDB();
+  return db.collection(dbVariables.productCollection).updateOne(
+    { _id: new ObjectId(productId) },
+    { $set: updateData }
+  );
+};
+
+exports.updateVariantByProductId = async (productId, variantData) => {
+  const db = getDB();
+  return db.collection(dbVariables.variantCollection).updateOne(
+    { productId: new ObjectId(productId) },
+    { $set: variantData }
+  );
+};

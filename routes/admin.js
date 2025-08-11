@@ -33,4 +33,12 @@ router.post('/categories/switch/:id',productController.controleCategories)
 router.get('/products',productController.displayProducts)
 //enable or disable
 router.patch('/products/toggle-status/:productId',productController.productStatus)
+//product search
+router.get('/products/search',productController.productSearch)
+//edit products page render
+router.get('/products/edit/:productId',productController.editProductPage)
+//edit products
+router.post('/edit-product/:productId', upload.array('images', 3), productController.handleEditProduct);
+
+
 module.exports = router;

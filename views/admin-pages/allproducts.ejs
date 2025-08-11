@@ -4,9 +4,8 @@
 
   <!-- Main Content on the right -->
   <div class="flex-grow-1 bg-white text-dark" style="min-height: 100vh;">
-
     <!-- Topbar inside content area -->
-    <div class=" border-bottom shadow-sm">
+    <div class="border-bottom shadow-sm">
       <%- include('partials/topbar') %>
     </div>
 
@@ -16,13 +15,14 @@
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="fw-bold mb-0">Products</h3>
         <div class="d-flex gap-3 align-items-center">
-          <form method="GET" action="/admin/products" class="d-flex" role="search">
+          <form id="searchForm" class="d-flex" method="GET" action="/admin/products" role="search">
             <div class="input-group">
               <input
                 type="text"
+                id="searchInput"
                 name="search"
                 class="form-control"
-                placeholder="Search by name or brand..."
+                placeholder="Search by name or brand or price..."
                 value="<%= typeof search !== 'undefined' ? search : '' %>"
               />
               <button type="submit" class="btn btn-outline-primary">
@@ -30,6 +30,9 @@
               </button>
             </div>
           </form>
+
+          <button id="clearSearchBtn" class="btn btn-outline-secondary">Clear</button>
+
           <a href="/admin/add-products" class="btn btn-primary">
             <i class="bi bi-plus-lg"></i> Add Product
           </a>
@@ -40,93 +43,124 @@
       <div class="table-responsive rounded shadow">
         <table class="table table-bordered table-hover align-middle text-center">
           <thead class="table-dark">
-            <tr class="">
+            <tr>
               <th>Image</th>
               <th>Name</th>
               <th>Brand</th>
               <th>Price</th>
-              <th>Stock</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <% data.forEach((product) => { 
-                const variant = varients.find(v => v.productId.toString() === product._id.toString());
-            %>
+            <% if (data.length === 0) { %>
               <tr>
-                <td>
-                  <% if (product.images && product.images.length) { %>
-                    <img src="<%= product.images[0] %>" class="img-thumbnail" width="70" height="70" style="object-fit: cover;" />
-                  <% } else { %>
-                    <span class="text-muted">No Image</span>
-                  <% } %>
-                </td>
-                <td><%= product.name %></td>
-                <td><%= product.companyDetails %></td>
-                <td>
-                  <% if (variant) { %>
-                    ₹ <%= variant.price.toLocaleString() %>
-                  <% } else { %>
-                    <span class="text-muted">N/A</span>
-                  <% } %>
-                </td>
-                <td>
-                  <% if (variant) { %>
-                    <%= variant.stock %>
-                  <% } else { %>
-                    <span class="text-muted">N/A</span>
-                  <% } %>
-                </td>
-                <td>
-                  <div class="form-check form-switch form-switch-lg d-inline-flex align-items-center justify-content-center">
-                    <input
-                      class="form-check-input status-toggle big-toggle"
-                      type="checkbox"
-                      data-id="<%= product._id %>"
-                      <%= product.isActive ? 'checked' : '' %>
-                    />
-                  </div>
-                </td>
-                <td>
-                  <a href="/admin/products/edit/<%= product._id %>" class="btn btn-sm btn-outline-primary me-2" title="Edit Product">
-                    <i class="bi bi-gear"></i>
-                  </a>
-                </td>
+                <td colspan="6" class="text-muted">No products found.</td>
               </tr>
-            <% }) %>
+            <% } else { %>
+              <% data.forEach((product) => { %>
+                <tr>
+                  <td>
+                    <% if (product.images && product.images.length) { %>
+                      <img src="<%= product.images[0] %>" class="img-thumbnail" width="70" height="70" style="object-fit: cover;" />
+                    <% } else { %>
+                      <span class="text-muted">No Image</span>
+                    <% } %>
+                  </td>
+                  <td><%= product.name %></td>
+                  <td><%= product.companyDetails %></td>
+                  <td>
+                    <% if (product.originalPrice) { %>
+                      ₹ <%= product.originalPrice.toLocaleString() %>
+                    <% } else { %>
+                      <span class="text-muted">N/A</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <div class="form-check form-switch form-switch-lg d-inline-flex align-items-center justify-content-center">
+                      <input
+                        class="form-check-input status-toggle big-toggle"
+                        type="checkbox"
+                        data-id="<%= product._id %>"
+                        <%= product.isActive ? 'checked' : '' %>
+                      />
+                    </div>
+                  </td>
+                  <td>
+                    <a href="/admin/products/edit/<%= product._id %>" class="btn btn-sm btn-outline-primary me-2" title="Edit Product">
+                      <i class="bi bi-gear"></i>
+                    </a>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } %>
           </tbody>
         </table>
       </div>
+
+      <!-- Pagination -->
+      <% if (totalPages > 1) { %>
+        <nav class="mt-4">
+          <ul class="pagination justify-content-center">
+            <% if (page > 1) { %>
+              <li class="page-item">
+                <a class="page-link" href="?page=<%= page - 1 %>&search=<%= search %>">Previous</a>
+              </li>
+            <% } %>
+
+            <% for (let i = 1; i <= totalPages; i++) { %>
+              <li class="page-item <%= page === i ? 'active' : '' %>">
+                <a class="page-link" href="?page=<%= i %>&search=<%= search %>"><%= i %></a>
+              </li>
+            <% } %>
+
+            <% if (page < totalPages) { %>
+              <li class="page-item">
+                <a class="page-link" href="?page=<%= page + 1 %>&search=<%= search %>">Next</a>
+              </li>
+            <% } %>
+          </ul>
+        </nav>
+      <% } %>
     </div>
   </div>
 </div>
 
-<!-- Toggle Script -->
 <script>
-  document.querySelectorAll('.status-toggle').forEach(toggle => {
-    toggle.addEventListener('change', async function () {
-      const productId = this.dataset.id;
-      const isActive = this.checked;
-
-      try {
-        const res = await fetch(`/admin/products/toggle-status/${productId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ isActive })
-        });
-
-        const data = await res.json();
-        if (!data.success) throw new Error(data.message || 'Toggle failed');
-      } catch (err) {
-        alert('Something went wrong!');
-        this.checked = !this.checked; // revert UI
-      }
-    });
+  // Clear search
+  document.getElementById('clearSearchBtn')?.addEventListener('click', function (e) {
+    e.preventDefault();
+    window.location.href = '/admin/products';
   });
+
+  // Toggle status
+  function attachToggleListeners() {
+    document.querySelectorAll('.status-toggle').forEach(toggle => {
+      if (toggle._listener) toggle.removeEventListener('change', toggle._listener);
+
+      const listener = async function () {
+        const productId = this.dataset.id;
+        const isActive = this.checked;
+        try {
+          const res = await fetch(`/admin/products/toggle-status/${productId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isActive })
+          });
+          const data = await res.json();
+          if (!data.success) throw new Error(data.message || 'Toggle failed');
+        } catch (err) {
+          alert('Error updating status');
+          this.checked = !this.checked;
+        }
+      };
+      toggle.addEventListener('change', listener);
+      toggle._listener = listener;
+    });
+  }
+  attachToggleListeners();
 </script>
 
-<!-- Custom Styles -->
 <style>
   .form-switch.form-switch-lg .form-check-input {
     width: 3rem;
