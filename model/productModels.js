@@ -146,14 +146,13 @@ exports.showVarients = async (data) => {
   return productData
 
 }
-
-exports.showCate = async (data) => {
+//categories
+exports.showCate = async () => {
   const db = await getDB();
   const productData = await db.collection(dbVariables.categoriesCollection).find().toArray()
   return productData
 
 }
-
 
 exports.updateProduct = async (productId, updateData) => {
   const db = getDB();
@@ -170,3 +169,18 @@ exports.updateVariantByProductId = async (productId, variantData) => {
     { $set: variantData }
   );
 };
+
+exports.showEditCategory = async (categoryId) =>{
+
+  const db = await getDB();
+  const category = await db
+    .collection(dbVariables.categoriesCollection)
+    .findOne({ _id: new ObjectId(categoryId) })
+    return category
+}
+
+exports.updateCategory = (data) => {
+  const db = getDB();
+  const statusOF = db.collection(dbVariables.categoriesCollection).updateOne({_id: new ObjectId(data._id)},{$set:{name:data.name,description : data.description}})
+  return statusOF
+}

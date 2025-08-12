@@ -6,6 +6,7 @@ const { search } = require('../routes/admin');
 const { getDB } = require('../config/mongodb');
 const dbVariables = require('../config/databse');
 const paginate = require('../utils/paginate');
+const { error } = require('console');
 // add product
 exports.renderAddProduct = async (req, res) => {
   try {
@@ -123,44 +124,43 @@ exports.handleAddProduct = async (req, res) => {
 
 
 exports.renderAddCategories = (req, res) => {
-  res.render('admin-pages/categories')
+  res.render('admin-pages/categories',{error:null})
 }
 //add catagories
 exports.addCategories = async (req, res) => {
-  const  {
-    name,
-    description,
-    status
+  const { name, description, status } = req.body;
+  const isActive = req.body.isActive === 'on';
 
-  }=req.body
-const isActive = req.body.isActive === 'on' ? true : false;
-
+  if (!name || name.trim() === '') {
+   return res.render('admin-pages/categories',{error:"Category name is required"})
+  }
+  if (!description || description.trim() === '') {
+    return res.render('admin-pages/categories',{error:"Description is required"})
+  }
 
   let data = {
-    name,
-    description,
+    name: name.trim(),
+    description: description.trim(),
     isActive,
-    createdAt:new Date
-  }
-  
-  try {
-    let result = await productModel.insetCategories(data)
-    if (result) {
-      res.redirect('/admin/view-categories')
-    }
+    createdAt: new Date()
+  };
 
+  try {
+    let result = await productModel.insetCategories(data);
+    if (result) {
+      res.redirect('/admin/view-categories');
+    }
   } catch (error) {
     console.log(error);
-    res.send(error)
-
+    res.send(error);
   }
+};
 
-}
 //view categories
 exports.viewCatagories = async (req, res) => {
   let categories = await productModel.getAllCategories()
 
-  res.render('admin-pages/viewCategories.ejs', { categories })
+  res.render('admin-pages/viewCategories.ejs', { categories})
 }
 //controll categories
 exports.controleCategories = async (req, res) => {
@@ -272,7 +272,7 @@ res.render('admin-pages/editProduct',{result,variantData,categories})
 
 
 }
-
+//edit products
 exports.handleEditProduct = async (req, res) => {
   try {
     const productId = req.params.productId;
@@ -292,7 +292,6 @@ exports.handleEditProduct = async (req, res) => {
       existingImages
     } = req.body;
 
-    // Validation similar to addProduct handler...
     if (!name?.trim()) return res.status(400).json({ error: 'Product name is required.' });
     console.log("1");
     if (!companyDetails?.trim()) return res.status(400).json({ error: 'Company details are required.' });
@@ -342,6 +341,10 @@ exports.handleEditProduct = async (req, res) => {
 
     const allImages = [...imagesToKeep, ...newImagePaths];
 
+     if (allImages.length < 3) {
+      return res.status(400).json({ error: 'At least 3 images are required for a product.' });
+    }
+
     const productData = {
       name,
       companyDetails,
@@ -357,7 +360,6 @@ exports.handleEditProduct = async (req, res) => {
     };
 
    let d= await productModel.updateProduct(productId, productData);
-console.log(d);
 
     const variantData = {
       processor: variant.processor,
@@ -375,5 +377,64 @@ console.log(d);
   } catch (err) {
     console.error('Update Product Error:', err);
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+//edit categories vieew
+exports.editCategories = async (req, res) => {
+  console.log(req.params.Id);
+
+  try {
+    let data = await productModel.showEditCategory(req.params.Id);
+
+    if (!data) {
+      return res.redirect('/admin/view-categories'); // if category not found
+    }
+
+    res.render('admin-pages/editCategory.ejs', { 
+      data, 
+      error: null 
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.redirect('/admin/view-categories');
+  }
+};
+
+exports.editDataCategories = async (req, res) => {
+  console.log(req.body);
+
+  const { name, description, _id } = req.body;
+
+  // Basic validation
+  if (!name || name.trim() === '') {
+    let data = await productModel.showEditCategory(_id);
+    return res.render('admin-pages/editCategory.ejs', { 
+      data, 
+      error: 'Category name is required' 
+    });
+  }
+
+  if (!description || description.trim() === '') {
+    let data = await productModel.showEditCategory(_id);
+    return res.render('admin-pages/editCategory.ejs', { 
+      data, 
+      error: 'Category description is required' 
+    });
+  }
+
+  try {
+    let changeCategory = await productModel.updateCategory(req.body);
+    console.log(changeCategory);
+    res.redirect('/admin/view-categories');
+
+  } catch (err) {
+    console.error(err);
+    let data = await productModel.showEditCategory(_id);
+    res.render('admin-pages/editCategory.ejs', { 
+      data, 
+      error: 'Server error while updating category' 
+    });
   }
 };

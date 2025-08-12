@@ -74,7 +74,7 @@ exports.handleSignup = async (req, res) => {
       return res.render('user-pages/signup', { error: 'Passwords do not match.' });
     }
 
-    // 🔐 Check if email already exists
+    //  Check if email already exists
     const existingUser = await dataBaseCall.fetchUser(email); // You need to define this DB call
     if (existingUser) {
       return res.render('user-pages/signup', { error: 'Email is already registered. Please log in or use another email.' });

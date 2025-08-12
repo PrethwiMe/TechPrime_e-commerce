@@ -106,7 +106,7 @@
                 name="name"
                 class="form-control"
                 value="<%= result.name %>"
-                required
+                
               />
             </div>
             <div class="col-md-6">
@@ -116,7 +116,7 @@
                 name="companyDetails"
                 class="form-control"
                 value="<%= result.companyDetails %>"
-                required
+                
               />
             </div>
           </div>
@@ -127,7 +127,7 @@
               name="description"
               class="form-control"
               rows="3"
-              required
+              
             ><%= result.description %></textarea>
           </div>
 
@@ -181,14 +181,14 @@
                 name="originalPrice"
                 class="form-control"
                 value="<%= result.originalPrice %>"
-                required
+                
                 step="0.01"
                 min="0"
               />
             </div>
             <div class="col-md-4">
               <label class="form-label">Category</label>
-              <select name="catagoriesId" class="form-select" required>
+              <select name="catagoriesId" class="form-select" >
                 <% categories.forEach((cat) => { %>
                 <option
                   value="<%= cat._id %>"
@@ -208,7 +208,7 @@
                 name="packageItems"
                 class="form-control"
                 value="<%= result.packageItems %>"
-                required
+                
               />
             </div>
           </div>
@@ -221,7 +221,7 @@
                 name="OS"
                 class="form-control"
                 value="<%= result.OS %>"
-                required
+                
               />
             </div>
             <div class="col-md-3">
@@ -231,7 +231,7 @@
                 name="dimension"
                 class="form-control"
                 value="<%= result.dimension %>"
-                required
+                
               />
             </div>
             <div class="col-md-3">
@@ -241,12 +241,12 @@
                 name="series"
                 class="form-control"
                 value="<%= result.series %>"
-                required
+                
               />
             </div>
             <div class="col-md-3">
               <label class="form-label">Active Status</label>
-              <select name="isActive" class="form-select" required>
+              <select name="isActive" class="form-select" >
                 <option value="true" <%= result.isActive ? "selected" : "" %>>
                   Active
                 </option>
@@ -267,7 +267,7 @@
                 name="variant[processor]"
                 class="form-control"
                 value="<%= variantData.processor %>"
-                required
+                
               />
             </div>
             <div class="col-md-3">
@@ -277,7 +277,7 @@
                 name="variant[ram]"
                 class="form-control"
                 value="<%= variantData.ram %>"
-                required
+                
               />
             </div>
             <div class="col-md-3">
@@ -287,7 +287,7 @@
                 name="variant[storage]"
                 class="form-control"
                 value="<%= variantData.storage %>"
-                required
+                
               />
             </div>
             <div class="col-md-3">
@@ -297,7 +297,7 @@
                 name="variant[graphics]"
                 class="form-control"
                 value="<%= variantData.graphics %>"
-                required
+                
               />
             </div>
           </div>
@@ -309,7 +309,7 @@
                 name="variant[color]"
                 class="form-control"
                 value="<%= variantData.color %>"
-                required
+                
               />
             </div>
             <div class="col-md-3">
@@ -319,7 +319,7 @@
                 name="variant[display]"
                 class="form-control"
                 value="<%= variantData.display %>"
-                required
+                
               />
             </div>
             <div class="col-md-3">
@@ -329,7 +329,7 @@
                 name="variant[price]"
                 class="form-control"
                 value="<%= variantData.price %>"
-                required
+                
                 step="0.01"
                 min="0"
               />
@@ -341,7 +341,7 @@
                 name="variant[stock]"
                 class="form-control"
                 value="<%= variantData.stock %>"
-                required
+                
                 min="0"
               />
             </div>
