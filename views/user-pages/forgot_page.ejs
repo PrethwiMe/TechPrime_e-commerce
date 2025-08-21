@@ -1,0 +1,37 @@
+<%- include('partials/header') %>
+
+
+  <!-- Forgot Password Form -->
+  <div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card shadow-sm p-4" style="max-width: 400px; width: 100%;">
+      <h4 class="fw-bold text-center mb-3">Forgot Password</h4>
+      <p class="text-muted small text-center mb-4">
+        Enter your registered email address and we’ll send you a link to reset your password.
+      </p>
+
+      <form action="/forgot-password" method="POST">
+        <!-- Email -->
+        <div class="mb-3">
+          <label for="email" class="form-label fw-medium">Email Address</label>
+          <input type="email" id="email" name="email" class="form-control" placeholder="you@example.com" >
+        </div>
+        <% if (error) {%>
+          
+          <p class="text-danger mt-3" ><%-error %></p>
+        <%  } %>
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-dark w-100">Send Reset OTP</button>
+
+        <!-- Back to Login -->
+        <div class="text-center mt-3">
+          <a href="/login" class="text-decoration-none">
+            <i class="bi bi-arrow-left"></i> Back to Login
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
