@@ -416,14 +416,6 @@ let result = await productModel.viewProducts(data)
 let products = await productModel.viewAllProducts() 
 //category
 let categories = await productModel.getAllCategories()
-console.log(result[0]);
-
-console.log(products);
-console.log(result);
-console.log(categories);
-
-
-
 
     res.render("user-pages/productDetails.ejs", {categories ,product: result[0],products: products,query: req.query.q || ""});
 } catch (error) {
