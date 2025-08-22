@@ -1,0 +1,8 @@
+module.exports={
+     dbName : 'techprime_db',
+     userCollection : "userCollection",
+     adminCollection:"adminData",
+     productCollection:"productCollection",
+     variantCollection:"variants",
+     categoriesCollection:"categories"
+}

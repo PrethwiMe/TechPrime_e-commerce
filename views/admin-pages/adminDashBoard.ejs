@@ -1,0 +1,49 @@
+<div class="d-flex">
+  <!-- Sidebar (left) -->
+  <%- include('partials/sidebar') %>
+
+  <!-- Main content area (right) -->
+  <div class="flex-grow-1">
+    <!-- Topbar -->
+    <%- include('partials/topBar') %>
+
+    <!-- Page content -->
+    <div class="p-4">
+      <link rel="stylesheet" href="/stylesheets/adminDashboard.css" />
+      <h2 class="dashboard-title">Dashboard</h2>
+
+      <div class="dashboard-metrics">
+        <div class="metric-box">
+          <h4>Total Users</h4>
+          <p>10,583</p>
+        </div>
+        <div class="metric-box">
+          <h4>Total Orders</h4>
+          <p>8,538</p>
+        </div>
+        <div class="metric-box">
+          <h4>Total Sales</h4>
+          <p>₹65,805</p>
+        </div>
+        <div class="metric-box">
+          <h4>Total Pending</h4>
+          <p>3,552</p>
+        </div>
+      </div>
+
+      <div class="dashboard-chart">
+        <div class="chart-header">
+          <h5>Sales Details</h5>
+          <select>
+            <option>October</option>
+            <option>November</option>
+            <option>December</option>
+          </select>
+        </div>
+        <div class="chart-area">
+          <img src="/images/fakechart.png" alt="Sales Graph" />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

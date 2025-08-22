@@ -1,0 +1,17 @@
+.sidebar-link {
+  transition: all 0.2s ease-in-out;
+  border-radius: 8px;
+  padding: 10px 15px;
+  color: #cfd2dc;
+  display: block;
+  text-decoration: none; /* 🔥 REMOVE UNDERLINE */
+}
+
+.sidebar-link:hover,
+.sidebar-link:focus,
+.sidebar-link:visited {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  transform: scale(1.05);
+  text-decoration: none; /* 🔥 ENSURE NO UNDERLINE ON HOVER */
+}

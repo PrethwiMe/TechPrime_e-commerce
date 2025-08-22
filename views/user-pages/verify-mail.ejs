@@ -1,0 +1,182 @@
+<%- include('partials/header') %>
+<link rel="stylesheet" href="/stylesheets/vrifyUser.css">
+
+<style>
+  body {
+    background-color: #f8f9fa;
+    font-family: Arial, sans-serif;
+  }
+
+  .otp-container {
+    max-width: 500px;
+    margin: 80px auto;
+    background: white;
+    padding: 40px 35px;
+    border-radius: 12px;
+    box-shadow: 0px 4px 18px rgba(0, 0, 0, 0.06);
+  }
+
+  .otp-container h2 {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #222;
+  }
+
+  .otp-container p {
+    color: #555;
+    margin-bottom: 25px;
+  }
+
+  .otp-container input {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s;
+  }
+
+  .otp-container input:focus {
+    border-color: #000;
+  }
+
+  .otp-container button {
+    background: black;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .otp-container button:hover {
+    background: #333;
+  }
+
+  .otp-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+  }
+
+  .otp-actions a {
+    text-decoration: none;
+    color: #000;
+    font-size: 14px;
+    transition: color 0.2s;
+  }
+
+  .otp-actions a:hover {
+    color: #555;
+  }
+
+  #message,
+  #resendStatus {
+    font-size: 14px;
+    margin-top: 8px;
+  }
+</style>
+
+<div class="otp-container">
+  <h2>Verify Your Email</h2>
+  <p>We've sent an OTP to your registered email address.</p>
+
+  <% if (error) { %>
+    <div style="color: red; margin-bottom: 20px;"><%= error %></div>
+  <% } %>
+
+  <!-- OTP Form -->
+  <form id="verifyForm">
+    <input type="hidden" id="email" value="<%= userMail %>">
+    <input 
+      type="text" 
+      id="otp"
+      placeholder="Enter your OTP" 
+      
+    >
+    <button class="mt-2" type="submit">Verify Email</button>
+  </form>
+
+  <p id="message"></p>
+  <span id="resendStatus"></span>
+
+  <div class="otp-actions">
+    <a href="/login">Back to Login</a>
+    <button 
+      type="button" 
+      id="resendOtpBtn"
+      data-email="<%= userMail %>"
+    >
+      Resend OTP
+    </button>
+  </div>
+</div>
+
+<script>
+  // Resend OTP handler
+  document.getElementById('resendOtpBtn').addEventListener('click', async () => {
+    const statusSpan = document.getElementById('resendStatus');
+    const email = document.getElementById('resendOtpBtn').dataset.email;
+
+    statusSpan.style.color = 'black';
+    statusSpan.textContent = 'Sending...';
+
+    try {
+      const response = await fetch('/resend-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        statusSpan.style.color = 'green';
+        statusSpan.textContent = '✅ OTP resent successfully!';
+      } else {
+        statusSpan.style.color = 'red';
+        statusSpan.textContent = '❌ ' + (result.error || 'Failed to resend OTP.');
+      }
+    } catch {
+      statusSpan.style.color = 'red';
+      statusSpan.textContent = '❌ Server error';
+    }
+  });
+
+  // OTP verification handler
+  document.getElementById("verifyForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const email = document.getElementById("email").value;
+    const otp = document.getElementById("otp").value;
+
+    fetch("/verify-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, otp })
+    })
+    .then(res => res.json())
+    .then(data => {
+      const msg = document.getElementById("message");
+      msg.textContent = data.message;
+      msg.style.color = data.success ? "green" : "red";
+
+      if (data.success) {
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 1500);
+      }
+    })
+    .catch(() => {
+      document.getElementById("message").textContent = "Something went wrong.";
+      document.getElementById("message").style.color = "red";
+    });
+  });
+</script>
+
+<%- include('partials/footer') %>

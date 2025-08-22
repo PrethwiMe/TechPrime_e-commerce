@@ -1,0 +1,44 @@
+.table-header {
+  background-color: #d48fc4; /* pink */
+}
+
+.table-body tr:nth-child(even) {
+  background-color: #d9f2d9; /* light green */
+}
+
+.table-body tr:nth-child(odd) {
+  background-color: #e7f7e7; /* lighter green */
+}
+
+.table-body tr:hover {
+  background-color: #c1e2c1; /* hover green */
+  transition: 0.2s ease-in-out;
+}
+
+.btn-danger, .btn-success {
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 14px;
+}
+
+.page-item.active .page-link {
+  background-color: #d48fc4;
+  border-color: #d48fc4;
+  color: white;
+}
+
+.page-link {
+  color: #d48fc4;
+}
+.page-link:hover {
+  background-color: #f1d2e5;
+}
+@media (max-width: 768px) {
+  .min-vh-100 {
+    min-height: auto !important;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+  }
+}
