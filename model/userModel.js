@@ -1,0 +1,90 @@
+
+// mongo data 
+const dbVariables = require('../config/databse')
+const { getDB } = require('../config/mongodb')
+const { ObjectId } = require('mongodb');
+
+exports.insertUser = async (userdata) => {
+
+    try {
+        const db = getDB();
+        let insertData = db.collection(dbVariables.userCollection).insertOne(userdata)
+        return insertData
+    } catch (error) {
+        console.error(error);
+        return res.status(500).render('error', { error: 'Server error. Please try again.' });
+    }
+
+}
+//find one user
+exports.fetchUser = async (email) => {
+  try {
+    const db = getDB();
+    let data = await db
+      .collection(dbVariables.userCollection)
+      .findOne(
+        { email: email, isActive: true }, 
+        { projection: { password: 1, firstName: 1, email: 1, phone: 1, role: 1 } } 
+      );
+    return data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+exports.resendotpData = (mail,otp) => {
+
+    const db = getDB();
+    let forOtp= db.collection(dbVariables.userCollection).updateOne({email:mail},{ $set: { otp: otp, otpCreated: new Date() } })
+    return forOtp
+}
+
+exports.userVerify = async (mail) =>{
+    const db =await getDB()
+    const user = await db.collection(dbVariables.userCollection).findOne({email:mail})
+    return user;
+}
+
+exports.userActive = async (mail) =>{
+    const db = await getDB();
+    const user = await db.collection(dbVariables.userCollection).updateOne({email:mail},{$set:{isActive:true}})
+    return user
+}
+//update forgot password
+exports.updatePassword = async (mail,hashedPassword) => {
+    const db = getDB();
+    const user = db.collection(dbVariables.userCollection).updateOne({email:mail},{$set:{password:hashedPassword}})
+    return user;
+}
+
+exports.addToCartdb = async (id,productID) => {
+  const db = await getDB();
+
+  const check =await db.collection(dbVariables.cartCollection).findOne({userId: id});
+console.log("product alredy there")
+console.log(check);
+
+  if (check) {
+    
+  }else{
+
+   let data = {
+  userId: id,  // 👈 userId is outside, at root level
+  items: [
+    {
+      productId: productID,
+      quantity: 1
+    }
+  ]
+};
+  const update = await db.collection(dbVariables.cartCollection).insertOne({userId:id}, data)
+  return update
+  }
+
+}
+
+
+
+
+
+

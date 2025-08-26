@@ -1,0 +1,21 @@
+<nav class="navbar navbar-dark bg-dark shadow-sm px-4" style="height: 60px;">
+  <div class="container-fluid d-flex justify-content-between">
+    <span class="navbar-brand mb-0 h5">Admin Dashboard</span>
+
+    <div class="dropdown">
+      <a href="#" class="text-white dropdown-toggle" id="adminDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none; font-weight: 500; transition: all 0.3s ease; display: inline-block;" onmouseover="this.style.transform='scale(1.05)'; this.style.color='#0dcaf0';" onmouseout="this.style.transform='scale(1)'; this.style.color='white';">
+        <i class="bi bi-shield-lock me-1"></i> Admin
+      </a>
+
+
+      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow" aria-labelledby="adminDropdown">
+        <li><a class="dropdown-item" href="/admin/profile">Profile</a></li>
+        <li><a class="dropdown-item" href="/admin/settings">Settings</a></li>
+        <li>
+          <hr class="dropdown-divider">
+        </li>
+        <li><a class="dropdown-item text-danger" href="/admin/logout">Logout</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>

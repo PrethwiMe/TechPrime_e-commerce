@@ -1,0 +1,140 @@
+<div class="d-flex">
+  <!-- Sidebar -->
+  <%- include('partials/sidebar') %>
+
+  <!-- Main content -->
+  <div class="flex-grow-1">
+    <!-- Topbar -->
+    <%- include('partials/topBar') %>
+
+    <!-- Page content -->
+    <div class="container-fluid p-4">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold">User Management</h3>
+        <form class="d-flex" method="get" action="">
+          <input type="text" name="search" class="form-control me-2" placeholder="Search by name or phone" value="<%= search %>" />
+          <button class="btn btn-primary me-2" type="submit">Search</button>
+          <% if (search) { %>
+          <a href="#" class="btn btn-outline-secondary" id="clearSearchBtn">Clear</a>
+          <% } %>
+        </form>
+      </div>
+
+      <!-- Table -->
+      <div class="table-responsive rounded shadow">
+        <table class="table table-hover table-bordered align-middle text-center">
+          <thead class="table-dark">
+            <tr>
+              <th>SL NO:</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Status</th>
+              <th>Created At</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (users.length === 0) { %>
+            <tr>
+              <td colspan="7" class="text-muted">No users found.</td>
+            </tr>
+            <% } else { %>
+            <% users.forEach((user, index) => { %>
+            <tr>
+              <td><%= index + 1 + (currentPage - 1) * 10 %></td>
+              <td><%= user.firstName %> <%= user.lastName %></td>
+              <td><%= user.email %></td>
+              <td><%= user.phone %></td>
+              <td>
+                <% if (user.isActive === true) { %>
+                <span class="badge bg-success">Active</span>
+                <% } else if(user.isActive === false) { %>
+                <span class="badge bg-danger">Inactive</span>
+                <% } else {%>
+                <span class="badge bg-secondary">pending</span>
+                <% } %>
+              </td>
+              <td><%= new Date(user.createdAt).toLocaleDateString('en-IN') %></td>
+              <td>
+                <form method="POST" action="/admin/users/<%= user._id %>/toggle" class="toggle-form">
+                  <button type="submit" class="btn btn-sm <%= user.isActive ? 'btn-danger' : 'btn-success' %> toggle-btn" data-user-id="<%= user._id %>" data-current-status="<%= user.isActive %>">
+                    <%= user.isActive ? 'Disable' : 'Enable' %>
+                  </button>
+                </form>
+              </td>
+
+            </tr>
+            <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <nav class="mt-4">
+        <ul class="pagination justify-content-center flex-wrap">
+          <% for (let i = 1; i <= totalPages; i++) { %>
+          <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+            <a class="page-link" href="?page=<%= i %>&search=<%= search %>"><%= i %></a>
+          </li>
+          <% } %>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<!-- Clear button script -->
+<script>
+  document.getElementById('clearSearchBtn')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    const url = new URL(window.location.href);
+    url.searchParams.delete('search');
+    url.searchParams.set('page', 1);
+    window.location.replace(url.toString());
+  });
+</script>
+
+<script>
+  document.querySelectorAll('.toggle-form').forEach(form => {
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const button = form.querySelector('.toggle-btn');
+    const userId = button.dataset.userId;
+    const currentStatus = button.dataset.currentStatus === 'true';
+    const actionText = currentStatus ? 'disable' : 'enable';
+
+    const confirmed = confirm(`Are you sure you want to ${actionText} this user?`);
+    if (!confirmed) return;
+
+    const url = form.action;
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST'
+      });
+
+      if (res.ok) {
+        const newStatus = !currentStatus;
+        button.dataset.currentStatus = newStatus;
+        button.textContent = newStatus ? 'Disable' : 'Enable';
+        button.classList.toggle('btn-success', !newStatus);
+        button.classList.toggle('btn-danger', newStatus);
+
+        const badgeCell = form.closest('tr').querySelector('td:nth-child(5)');
+        badgeCell.innerHTML = newStatus
+          ? '<span class="badge bg-success">Active</span>'
+          : '<span class="badge bg-danger">Inactive</span>';
+      } else {
+        alert('Something went wrong while toggling user.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to toggle user.');
+    }
+  });
+});
+
+</script>

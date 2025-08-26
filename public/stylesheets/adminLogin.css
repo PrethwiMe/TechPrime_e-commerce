@@ -1,0 +1,65 @@
+body {
+  background-color: #7c4343; /* Dark background */
+  color: #ffffff; /* Default text color */
+}
+
+.admin-bg {
+  background-color: #2a2929;
+  min-height: 100vh;
+}
+
+.card {
+  border-radius: 1rem;
+  background-color: #1f1f1f; /* Dark card background */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  color: #ffffff; /* Card text color */
+}
+
+.btn-primary {
+  background-color: #0d6efd; /* Bootstrap dark blue */
+  border: none;
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  background-color: #0b5ed7;
+}
+
+.form-control {
+  background-color: #2a2a2a; /* Darker input background */
+  color: #ffffff;
+  border: 1px solid #444;
+  font-size: 1rem;
+  padding: 0.75rem 1rem;
+}
+
+.form-control::placeholder {
+  color: #cccccc;
+}
+
+.form-label {
+  color: #ffffff;
+}
+
+/* Modal Styling */
+.modal-content {
+  background-color: #1f1f1f;
+  color: #ffffff;
+}
+
+.modal-title.text-success {
+  color: #28a745 !important;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border: none;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+}
+
+.text-danger {
+  color: #ff6b6b !important;
+}

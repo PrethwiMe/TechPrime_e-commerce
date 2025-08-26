@@ -1,0 +1,43 @@
+{
+  "name": "techprime",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www",
+    "dev": "nodemon ./bin/www"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "dotenv": "^17.2.1",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-ejs-layouts": "^2.5.1",
+    "express-session": "^1.18.2",
+    "http-errors": "~1.6.3",
+    "mongodb": "^6.18.0",
+    "mongoose": "^8.16.5",
+    "morgan": "^1.10.1",
+    "multer": "^2.0.2",
+    "nodemailer": "^7.0.5",
+    "nodemon": "^3.1.10",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0"
+  },
+  "description": "",
+  "main": "app.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PrethwiMe/TechPrime_e-commerce.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/PrethwiMe/TechPrime_e-commerce/issues"
+  },
+  "homepage": "https://github.com/PrethwiMe/TechPrime_e-commerce#readme"
+}

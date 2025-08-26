@@ -1,0 +1,38 @@
+<% data.forEach((product) => { %>
+<tr>
+  <td>
+    <% if (product.images && product.images.length) { %>
+      <img src="<%= product.images[0] %>" class="img-thumbnail" width="70" height="70" style="object-fit: cover;" />
+    <% } else { %>
+      <span class="text-muted">No Image</span>
+    <% } %>
+  </td>
+  <td><%= product.name %></td>
+  <td><%= product.companyDetails %></td>
+  <td>
+    <% if (product.originalPrice) { %>
+      ₹ <%= product.originalPrice.toLocaleString() %>
+    <% } else { %>
+      <span class="text-muted">N/A</span>
+    <% } %>
+  </td>
+  <td>
+    <span class="text-muted">N/A</span> <!-- Stock not shown -->
+  </td>
+  <td>
+    <div class="form-check form-switch form-switch-lg d-inline-flex align-items-center justify-content-center">
+      <input
+        class="form-check-input status-toggle big-toggle"
+        type="checkbox"
+        data-id="<%= product._id %>"
+        <%= product.isActive ? 'checked' : '' %>
+      />
+    </div>
+  </td>
+  <td>
+    <a href="/admin/products/edit/<%= product._id %>" class="btn btn-sm btn-outline-primary me-2" title="Edit Product">
+      <i class="bi bi-gear"></i>
+    </a>
+  </td>
+</tr>
+<% }) %>

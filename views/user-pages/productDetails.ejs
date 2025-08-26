@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= product.name %> | TechCart</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background-color: #121212;
+      color: #eaeaea;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    /* --- IMAGE GALLERY --- */
+    .main-img {
+      width: 100%;
+      height: 420px;
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.4);
+      margin-bottom: 20px;
+      background: #fff;
+      padding: 10px;
+    }
+    .thumbs img {
+      height: 85px;
+      object-fit: contain;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-right: 12px;
+      transition: all 0.3s ease;
+      background: #fff;
+      padding: 5px;
+    }
+    .thumbs img:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    }
+
+    /* --- ZOOM (keeps original layout) --- */
+    .zoom-container {
+      position: relative;
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.4);
+      margin-bottom: 20px;
+      background: #fff;
+      padding: 10px;
+      height: 420px;
+    }
+    .zoom-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transition: opacity 0.15s ease;
+      border-radius: 8px;
+      background: #fff;
+    }
+    .zoom-container:hover img {
+      opacity: 0;
+    }
+    .zoom-container:hover {
+      background-repeat: no-repeat;
+      background-size: 200% 200%;
+      cursor: zoom-in;
+    }
+
+    /* --- SCROLL SLIDER --- */
+    .scroll-container {
+      display: flex;
+      gap: 20px;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      padding-bottom: 15px;
+      margin-bottom: 25px;
+    }
+    .scroll-container::-webkit-scrollbar { display: none; }
+
+    .slide-card {
+      min-width: 220px;
+      flex: 0 0 auto;
+      border-radius: 12px;
+      background: #fff;
+      color: #000;
+      text-align: center;
+      padding: 18px;
+      border: 1px solid #ddd;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .slide-card img {
+      height: 150px;
+      object-fit: contain;
+      margin-bottom: 12px;
+      transition: transform 0.3s ease;
+    }
+    .slide-card p { font-weight: 600; margin-bottom: 5px; }
+    .slide-card span { color: #666; font-weight: 700; }
+    .slide-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25), 0 0 10px rgba(100,150,255,0.3);
+      border-color: #ccc;
+    }
+    .slide-card:hover img { transform: scale(1.07); }
+
+    /* --- BUTTONS --- */
+    .btn-dark-custom {
+      background-color: #000;
+      color: #fff;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-weight: 500;
+      border: 1px solid #333;
+      transition: all 0.3s ease;
+    }
+    .btn-dark-custom:hover {
+      background-color: #fff;
+      color: #000;
+      border: 1px solid #000;
+      transform: translateY(-2px);
+    }
+    .btn-light-custom {
+      background-color: #fff;
+      color: #000;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-weight: 500;
+      border: 1px solid #ccc;
+      transition: all 0.3s ease;
+    }
+    .btn-light-custom:hover {
+      background-color: #000;
+      color: #fff;
+      border: 1px solid #000;
+      transform: translateY(-2px);
+    }
+
+    /* --- VARIANT CARDS --- */
+    .variant-card {
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 15px;
+      background: #fff;
+      color: #000;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .variant-card:hover {
+      border-color: #4682b4;
+      box-shadow: 0 6px 20px rgba(70,130,180,0.25);
+      transform: translateY(-3px);
+    }
+    .variant-card.active {
+      border-color: #4682b4;
+      box-shadow: 0 6px 20px rgba(70,130,180,0.35);
+    }
+
+    /* --- SECTION TITLE --- */
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      border-left: 5px solid #4682b4;
+      padding-left: 12px;
+      margin-bottom: 20px;
+    }
+    <style>
+  .review-card {
+    background: #1e1e1e;
+    color: #eee;
+    transition: all 0.3s ease;
+  }
+  .review-card.expanded {
+    background: #2e2e50; /* Change color when expanded */
+    color: #fff;
+  }
+  .read-more {
+    color: #4682b4;
+    cursor: pointer;
+    font-weight: 500;
+  }
+    .breadcrumb {
+    background: transparent;
+    margin-bottom: 1rem;
+  }
+  .breadcrumb-item a {
+    color: #16aed4;
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+  .breadcrumb-item a:hover {
+    color: #fff;
+  }
+  .breadcrumb-item.active {
+    color: #2b16c9;
+    font-weight: 600;
+  }
+</style>
+
+
+  
+  
+</head>
+<body>
+  <%- include('partials/header') %>
+<nav aria-label="breadcrumb" class="mt-4 mb-4">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Home</a></li>
+    <li class="breadcrumb-item"><a href="/search">All Products</a></li>
+    <li class="breadcrumb-item active" aria-current="page"><%= product.name %></li>
+  </ol>
+</nav>
+  <div class="container my-5">
+    <div class="row g-5">
+      <!-- Product Gallery -->
+      <div class="col-lg-6">
+        <div id="zoomContainer" class="zoom-container">
+          <img src="<%= product.images && product.images.length ? product.images[0] : '' %>" id="mainImage" alt="<%= product.name %>" />
+        </div>
+
+        <div class="d-flex thumbs">
+          <% (product.images || []).forEach(img => { %>
+            <img src="<%= img %>" alt="thumb" onclick="setMainImage(this.src)" />
+          <% }) %>
+        </div>
+      </div>
+
+      <!-- Product Info -->
+      <div class="col-lg-6">
+        <h2 class="fw-bold"><%= product.name %></h2>
+        <p class="text-secondary"><%= product.companyDetails %> | Series: <%= product.series %></p>
+
+        <div class="d-flex align-items-baseline gap-3 mb-3">
+          <h4 class="mb-0">
+            <small class="text-muted"><del>₹<%= product.originalPrice %></del></small>
+          </h4>
+          <h3 class="fw-bold mb-0" id="currentPrice">₹</h3>
+          <span class="badge bg-success" id="stockBadge"></span>
+        </div>
+
+        <p><%= product.description %></p>
+
+        <div class="d-flex gap-3 mb-4">
+          <button class="btn-dark-custom">Add to Cart</button>
+          <button class="btn-light-custom">❤ Wishlist</button>
+        </div>
+
+        <!-- Variants -->
+        <h5 class="fw-bold mb-3">Available Variants</h5>
+        <div id="variantsWrap">
+          <% (product.combProduct || []).forEach((variant, idx) => { %>
+            <div class="variant-card" data-variant-index="<%= idx %>">
+              <p class="fw-semibold mb-1"><%= variant.processor %></p>
+              <small>RAM: <%= variant.ram %> | Storage: <%= variant.storage %> | GPU: <%= variant.graphics %></small>
+              <div class="d-flex justify-content-between align-items-center mt-2">
+                <span class="fw-bold">₹<%= variant.price %></span>
+                <span class="badge bg-secondary"><%= variant.stock %> in stock</span>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Specifications -->
+    <div class="tab-pane fade show active mt-4" id="specs">
+      <div class="section-title">Specifications</div>
+      <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle shadow-sm rounded">
+          <tbody id="specTableBody">
+            <tr>
+              <th scope="row" class="w-25">Processor</th>
+              <td id="tdProcessor">—</td>
+            </tr>
+            <tr>
+              <th scope="row">RAM</th>
+              <td id="tdRam">—</td>
+            </tr>
+            <tr>
+              <th scope="row">Storage</th>
+              <td id="tdStorage">—</td>
+            </tr>
+            <tr>
+              <th scope="row">Graphics</th>
+              <td id="tdGraphics">—</td>
+            </tr>
+            <tr>
+              <th scope="row">Display</th>
+              <td id="tdDisplay">—</td>
+            </tr>
+            <tr>
+              <th scope="row">Color</th>
+              <td id="tdColor">—</td>
+            </tr>
+
+            <tr>
+              <th scope="row">Operating System</th>
+              <td><%= product.OS %></td>
+            </tr>
+            <tr>
+              <th scope="row">Dimension</th>
+              <td><%= product.dimension %></td>
+            </tr>
+            <tr>
+              <th scope="row">Series</th>
+              <td><%= product.series %></td>
+            </tr>
+            <tr>
+              <th scope="row">Included Items</th>
+              <td><%= product.packageItems %></td>
+            </tr>
+            <tr>
+              <th scope="row">Created At</th>
+              <td><%= new Date(product.createdAt).toDateString() %></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Flash Sale Section -->
+    <div class="mt-5">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="section-title">Flash Sales</div>
+        <a href="/search" class="btn-dark-custom btn-sm">View All Products</a>
+      </div>
+      <div class="scroll-container">
+        <% (products || []).forEach(p => { %>
+          <div class="slide-card">
+            <a href="/all-product/product-details/<%= p._id %>" class="text-decoration-none">
+              <img src="<%= (p.images && p.images[0]) || '' %>" alt="<%= p.name %>" />
+              <p class="fw-semibold"><%= p.name %></p>
+              <span class="fw-bold">₹<%= p.originalPrice %></span>
+            </a>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+<!-- Reviews Section -->
+<div class="mt-5">
+  <div class="section-title">Customer Reviews</div>
+  <div class="mb-4">
+    <% const dummyReviews = [
+        { name: "Alice", rating: 5, comment: "Amazing product! Highly recommend. The build quality is excellent and the performance is top notch. I have been using it for a few weeks and I'm extremely satisfied with the purchase." },
+        { name: "Bob", rating: 4, comment: "Good quality but delivery took time. Overall the experience is positive, but the delay was frustrating." },
+        { name: "Charlie", rating: 5, comment: "Exceeded my expectations! The display is stunning and the battery lasts long. Perfect for gaming and work." },
+    ]; %>
+
+    <% dummyReviews.forEach((r, idx) => { %>
+      <div class="review-card p-3 mb-3 rounded shadow-sm" data-index="<%= idx %>">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <strong><%= r.name %></strong>
+          <span>
+            <% for(let i=0;i<r.rating;i++){ %>⭐<% } %>
+          </span>
+        </div>
+        <p class="review-text mb-1">
+          <%= r.comment.split(' ').slice(0, 3).join(' ') %>...
+        </p>
+        <a href="javascript:void(0)" class="read-more">Read more</a>
+      </div>
+    <% }); %>
+  </div>
+</div>
+
+
+  <%- include('partials/footer') %>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const reviewCards = document.querySelectorAll('.review-card');
+  const dummyReviews = <%- JSON.stringify(dummyReviews) %>;
+
+  reviewCards.forEach(card => {
+    const readMore = card.querySelector('.read-more');
+    const reviewText = card.querySelector('.review-text');
+    if(readMore && reviewText){
+      const fullText = dummyReviews[card.dataset.index].comment;
+
+      readMore.addEventListener('click', () => {
+        const expanded = card.classList.toggle('expanded');
+        if(expanded){
+          reviewText.textContent = fullText;
+          readMore.textContent = 'Show less';
+        } else {
+          reviewText.textContent = fullText.split(' ').slice(0,3).join(' ') + '...';
+          readMore.textContent = 'Read more';
+        }
+      });
+    }
+  });
+});
+</script>
+
+  <script>
+    // Safe frontend object
+    window.PRODUCT = <%- JSON.stringify(product || {}) %>;
+
+    const variantsWrap = document.getElementById('variantsWrap');
+    const priceEl = document.getElementById('currentPrice');
+    const stockBadgeEl = document.getElementById('stockBadge');
+    const tdProcessor = document.getElementById('tdProcessor');
+    const tdRam = document.getElementById('tdRam');
+    const tdStorage = document.getElementById('tdStorage');
+    const tdGraphics = document.getElementById('tdGraphics');
+    const tdDisplay = document.getElementById('tdDisplay');
+    const tdColor = document.getElementById('tdColor');
+
+    function selectVariant(index) {
+      const variants = PRODUCT.combProduct || [];
+      if (!variants.length) return;
+      const i = Math.max(0, Math.min(index, variants.length - 1));
+      const v = variants[i];
+
+      // UI active
+      [...variantsWrap.querySelectorAll('.variant-card')].forEach(c => c.classList.remove('active'));
+      const activeCard = variantsWrap.querySelector(`.variant-card[data-variant-index="${i}"]`);
+      if (activeCard) activeCard.classList.add('active');
+
+      // Price & stock
+      if (priceEl) priceEl.textContent = '₹' + (v.price ?? '');
+      if (stockBadgeEl) stockBadgeEl.textContent = (v.stock ?? 0) + ' in stock';
+
+      // Specs
+      if (tdProcessor) tdProcessor.textContent = v.processor ?? '—';
+      if (tdRam) tdRam.textContent = v.ram ?? '—';
+      if (tdStorage) tdStorage.textContent = v.storage ?? '—';
+      if (tdGraphics) tdGraphics.textContent = v.graphics ?? '—';
+      if (tdDisplay) tdDisplay.textContent = v.display ?? '—';
+      if (tdColor) tdColor.textContent = v.color ?? '—';
+    }
+
+    function bindVariantClicks() {
+      if (!variantsWrap) return;
+      variantsWrap.addEventListener('click', e => {
+        const card = e.target.closest('.variant-card');
+        if (!card) return;
+        const idx = Number(card.getAttribute('data-variant-index'));
+        if (!Number.isNaN(idx)) selectVariant(idx);
+      });
+    }
+
+    // Image zoom + thumbnails
+    const zoomContainer = document.getElementById('zoomContainer');
+    const mainImage = document.getElementById('mainImage');
+
+    function setZoomBackground(src) {
+      zoomContainer.style.backgroundImage = src ? `url('${src}')` : 'none';
+    }
+
+    function setMainImage(src) {
+      if (!src) return;
+      mainImage.src = src;
+      setZoomBackground(src);
+    }
+
+    mainImage?.addEventListener('load', () => setZoomBackground(mainImage.src));
+    zoomContainer?.addEventListener('mousemove', e => {
+      const rect = zoomContainer.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      zoomContainer.style.backgroundPosition = x + '% ' + y + '%';
+    });
+
+    // Init on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      if (PRODUCT.images && PRODUCT.images.length) setMainImage(PRODUCT.images[0]);
+      if (PRODUCT.combProduct && PRODUCT.combProduct.length) selectVariant(0);
+      bindVariantClicks();
+    });
+  </script>
+</body>
+</html>
