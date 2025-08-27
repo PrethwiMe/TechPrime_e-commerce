@@ -98,7 +98,12 @@ app.use(function(err, req, res, next) {
 
 // Middleware: block fields with more than 100 characters
 app.use((req, res, next) => {
+  if (req.path.startsWith('/auth/google/callback')) {
+    return next();
+  }
+
   if (req.body && typeof req.body === "object") {
+    console.log(req.body);
     for (const [key, value] of Object.entries(req.body)) {
       if (typeof value === "string" && value.length > 100) {
         return res.status(400).json({ 

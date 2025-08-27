@@ -93,6 +93,8 @@
           <a class="sort-link" data-sort="newest">Newest First</a>
           <a class="sort-link" data-sort="low-high">Price Low - High</a>
           <a class="sort-link" data-sort="high-low">Price High - Low</a>
+            <a class="sort-link" data-sort="a-z">Name A - Z</a>
+  <a class="sort-link" data-sort="z-a">Name Z - A</a>
         </div>
 
         <div class="product-grid" id="product-grid"></div>
@@ -113,6 +115,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const maxPrice = document.getElementById("maxPrice");
   const applyPriceBtn = document.getElementById("applyPriceFilter");
 
+  // 🔑 add reference to search box in header (if exists)
+  const searchBox = document.getElementById("searchBox");
+
   let filters = {
     sort: "popularity",
     categories: [],
@@ -120,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
     maxPrice: null,
     page: 1,
     limit: 6,
-    searchKey: "<%= query || '' %>"
+    searchKey: "<%= query || '' %>" // initial value from server render
   };
 
   // ===== Render products =====
@@ -184,6 +189,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== Fetch products (POST) =====
   async function fetchProducts() {
     try {
+      // 🔑 always update searchKey dynamically from search box (if available)
+      if (searchBox) {
+        filters.searchKey = searchBox.value.trim();
+      }
+
+      console.log("Frontend filters before fetch:", filters);
+
       const res = await fetch("/search/data", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

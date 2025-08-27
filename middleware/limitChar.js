@@ -1,5 +1,10 @@
 // middleware/limitTextLength.js
 module.exports = (req, res, next) => {
+
+    if (req.path.startsWith("/auth/google")) {
+    return next();
+  }
+
   for (let key in req.body) {
     if (typeof req.body[key] === "string" && req.body[key].length > 50) {
       return res.render("charError", {

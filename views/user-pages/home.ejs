@@ -67,7 +67,6 @@
                 <span>₹<%= product.originalPrice %></span>
               </div>
               <div class="d-flex justify-content-between">
-                <!-- Add data-id for JS -->
                 <button class="btn-dark-custom add-to-cart" data-id="<%= product._id %>">Add to Cart</button>
                 <button class="btn-dark-custom add-to-wishlist" data-id="<%= product._id %>">&#9829;</button>
               </div>
@@ -150,7 +149,7 @@
                 <span>₹<%= product.originalPrice %></span>
               </div>
               <div class="d-flex justify-content-between">
-                <button class="btn-dark-custom add-to-cart" data-id=>Add to Cart</button>
+                <button class="btn-dark-custom add-to-cart" data-id="<%= product._id %>">Add to Cart</button>
                 <button class="btn-dark-custom add-to-wishlist" data-id="<%= product._id %>">&#9829;</button>
               </div>
             </div>
@@ -163,8 +162,9 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  <!-- AJAX Script -->
+  <!-- AJAX + Swal -->
   <script>
     async function postData(url = "", data = {}) {
       const response = await fetch(url, {
@@ -180,8 +180,30 @@
       document.querySelectorAll(".add-to-cart").forEach(btn => {
         btn.addEventListener("click", async () => {
           const productId = btn.dataset.id;
-          const res = await postData("/cart/add", { productId });
-          alert(res.message || (res.success ? "Added to cart" : "Failed"));
+          try {
+            const res = await postData("/cart/add", { productId });
+            if (res.success) {
+              Swal.fire({
+                icon: "success",
+                title: "Added to Cart",
+                text: res.message || "Product added successfully!",
+                showConfirmButton: false,
+                timer: 1500
+              });
+            } else {
+              Swal.fire({
+                icon: "error",
+                title: "Failed",
+                text: res.message || "Could not add product to cart."
+              });
+            }
+          } catch (err) {
+            Swal.fire({
+              icon: "error",
+              title: "Oops...",
+              text: "Something went wrong!"
+            });
+          }
         });
       });
 
@@ -189,8 +211,30 @@
       document.querySelectorAll(".add-to-wishlist").forEach(btn => {
         btn.addEventListener("click", async () => {
           const productId = btn.dataset.id;
-          const res = await postData("/wishlist/add", { productId });
-          alert(res.message || (res.success ? "Added to wishlist" : "Failed"));
+          try {
+            const res = await postData("/wishlist/add", { productId });
+            if (res.success) {
+              Swal.fire({
+                icon: "success",
+                title: "Added to Wishlist",
+                text: res.message || "Product added successfully!",
+                showConfirmButton: false,
+                timer: 1500
+              });
+            } else {
+              Swal.fire({
+                icon: "error",
+                title: "Failed",
+                text: res.message || "Could not add product to wishlist."
+              });
+            }
+          } catch (err) {
+            Swal.fire({
+              icon: "error",
+              title: "Oops...",
+              text: "Something went wrong!"
+            });
+          }
         });
       });
     });

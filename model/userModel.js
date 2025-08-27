@@ -65,14 +65,16 @@ exports.addToCartdb = async (userId, productID) => {
     const productExists = userCart.items.some(item => {
       return item.productId.productId == productID.productId;
     });
+
     if (productExists) {
       // Increment quantity for existing product
       const result = await db.collection(dbVariables.cartCollection).updateOne(
         { userId, "items.productId": productID },
         { $inc: { "items.$.quantity": 1 } }
       );
-      console.log("✅ Product quantity incremented:", result);
-      return result;
+      return result.modifiedCount > 0
+        ? { success: true, message: "Quantity updated in cart" }
+        : { success: false, message: "Failed to update cart" };
     } else {
       // Add new product to items array
       const result = await db.collection(dbVariables.cartCollection).updateOne(
@@ -86,11 +88,12 @@ exports.addToCartdb = async (userId, productID) => {
           }
         }
       );
-      console.log("✅ New product added to cart:", result);
-      return result;
+      return result.modifiedCount > 0
+        ? { success: true, message: "Product added to cart" }
+        : { success: false, message: "Failed to add product to cart" };
     }
   } else {
-    // No cart exists, create new cart with the product
+    // Create new cart
     const newCart = {
       userId,
       items: [
@@ -102,6 +105,8 @@ exports.addToCartdb = async (userId, productID) => {
     };
     const insertResult = await db.collection(dbVariables.cartCollection).insertOne(newCart);
     console.log("🆕 New cart created:", insertResult);
-    return insertResult;
+    return insertResult.insertedId
+      ? { success: true, message: "New cart created and product added" }
+      : { success: false, message: "Failed to create new cart" };
   }
 };

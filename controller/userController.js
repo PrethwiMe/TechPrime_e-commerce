@@ -8,6 +8,7 @@ const sendMail = require('../utils/mailSend');
 const passport = require('../config/passport');
 const paginate = require('../utils/paginate');
 const { ObjectId } = require('mongodb');
+const joi = require('../utils/validation')
 
 exports.loadHome = async (req, res) => {
   try {
@@ -40,14 +41,14 @@ exports.loginAccess = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.render('user-pages/login', { error: 'Email and password are required.' });
+    const { error } = joi.loginValidation({ email, password });
+    if (error) {
+      return res.render('user-pages/login', { error: error.details[0].message });
     }
 
     const user = await userModel.fetchUser(email);
 
     console.log(user);
-    
 
     if (!user) {
       return res.render('user-pages/login', { error: 'User not found.' });
@@ -57,16 +58,16 @@ exports.loginAccess = async (req, res) => {
     if (!isMatch) {
       return res.render('user-pages/login', { error: 'Invalid email or password.' });
     }
+
     req.session.user = {
-      userId:user._id,
+      userId: user._id,
       firstName: user.firstName,
       email: user.email,
       phone: user.phone,
       role: user.role
-    }
+    };
 
-
-    return res.redirect('/')
+    return res.redirect('/');
   } catch (error) {
     console.error('Login error:', error);
     return res.render('user-pages/login', { error: 'Server error. Please try again.' });
@@ -80,31 +81,20 @@ exports.handleSignup = async (req, res) => {
   try {
     const { firstName, lastName, email, phone, password, confirmPassword, referralCode } = req.body;
 
-    // Basic validation
-    if (!firstName || !email || !phone || !password || !confirmPassword) {
-      return res.render('user-pages/signup', { error: 'All fields except referral code are required.' });
-    }
+    const { error } = joi.signupValidation({
+      name: firstName, // mapping to schema
+      email,
+      phone,
+      password,
+      confirmPassword
+    });
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.render('user-pages/signup', { error: 'Invalid email format.' });
-    }
-
-    const phoneRegex = /^[0-9]{10}$/;
-    if (!phoneRegex.test(phone)) {
-      return res.render('user-pages/signup', { error: 'Phone number must be 10 digits.' });
-    }
-
-    if (password.length < 6) {
-      return res.render('user-pages/signup', { error: 'Password must be at least 6 characters long.' });
-    }
-
-    if (password !== confirmPassword) {
-      return res.render('user-pages/signup', { error: 'Passwords do not match.' });
+    if (error) {
+      return res.render('user-pages/signup', { error: error.details[0].message });
     }
 
     //  Check if email already exists
-    const existingUser = await userModel.fetchUser(email); // You need to define this DB call
+    const existingUser = await userModel.fetchUser(email);
     if (existingUser) {
       return res.render('user-pages/signup', { error: 'Email is already registered. Please log in or use another email.' });
     }
@@ -334,11 +324,14 @@ exports.googleLogin = passport.authenticate('google', { scope: ['profile', 'emai
 exports.googleCallback = passport.authenticate('google', { failureRedirect: '/login' });
 
 // After successful Google login
-exports.googleSuccessRedirect = (req, res) => {
+exports.googleSuccessRedirect = async (req, res) => {
   if (!req.user) {
     return res.redirect('/login');
   }
-  res.render('user-pages/home', { user: req.user });
+   const data = await productModel.allProductsDisplay();
+    const products = data;
+    const categories = await productModel.getAllCategories();
+  res.render('user-pages/home', { user: req.user,products,categories });
 };
 
 // Logout
@@ -351,8 +344,12 @@ exports.logoutUser = (req, res) => {
 
 //  Search 
 exports.searchProduct = async (req, res) => {
+
+  const searchKey = req.query.searchKey || '';
+
+   console.log(searchKey);
   try {
-    let value = req.body.searchKey?.trim() || "";
+    let value = searchKey.trim() || "";
     console.log(value, "value");
 
     let limit = 4;
@@ -384,9 +381,9 @@ exports.searchProduct = async (req, res) => {
   }
 };
 
-
 //Sort + Search +Filter 
 exports.sortAndSearchProducts = async (req, res) => {
+  const searchKey = req.query.searchKey || '';
 
   try {
     const { sort, searchKey, minPrice, maxPrice, categories } = req.body;
@@ -395,12 +392,10 @@ exports.sortAndSearchProducts = async (req, res) => {
     if (searchKey && searchKey.trim() !== "") {
       query.name = { $regex: searchKey, $options: "i" };
     }
-    console.log(categories);
 
     if (categories && categories.length > 0) {
       query.catagoriesId = { $in: categories.map(c => c.trim()) };
     }
-
 
     if (minPrice || maxPrice) {
       query.originalPrice = {};
@@ -410,12 +405,13 @@ exports.sortAndSearchProducts = async (req, res) => {
 
     let products = await productModel.getFilteredProducts(query);
 
-    // Sorting
     if (sort === "low-high") products.sort((a, b) => a.originalPrice - b.originalPrice);
     if (sort === "high-low") products.sort((a, b) => b.originalPrice - a.originalPrice);
     if (sort === "newest") products = products.reverse();
 
-    // Pagination
+    if (sort === "a-z") products.sort((a, b) => a.name.localeCompare(b.name));
+    if (sort === "z-a") products.sort((a, b) => b.name.localeCompare(a.name));
+
     const page = Number(req.body.page) || 1;
     const limit = 4;
     const totalDocs = products.length;
@@ -466,6 +462,8 @@ const name = req.session.user.name
 
 
 const data =await userModel.addToCartdb(Id,productId,name)
+console.log(data);
+return res.json(data);
 
   
 }
