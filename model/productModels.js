@@ -213,9 +213,20 @@ function getSortQuery(sortType) {
 
 exports.allProductsDisplay = async () =>{
 
-  const db =await getDB().collection(dbVariables.productCollection);
-let  data = await db.find({isActive:true}).toArray()
-return data
+  const db =await getDB()
+
+    return await db.collection(dbVariables.productCollection).aggregate([
+    { $match: {isActive:true} },
+    {
+      $lookup: {
+        from: dbVariables.variantCollection,
+        localField: "variantIds",
+        foreignField: "_id",
+        as: "fullProduct"
+      }
+    }
+  ]).toArray();
+
 }
 
 //search

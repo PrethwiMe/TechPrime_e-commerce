@@ -57,7 +57,7 @@ exports.updatePassword = async (mail, hashedPassword) => {
   return user;
 }
 
-exports.addToCartdb = async (userId, productID) => {
+exports.addToCartdb = async (userId, productID,variantId) => {
   const db = await getDB();
 
   const userCart = await db.collection(dbVariables.cartCollection).findOne({ userId });
@@ -67,7 +67,6 @@ exports.addToCartdb = async (userId, productID) => {
     });
 
     if (productExists) {
-      // Increment quantity for existing product
       const result = await db.collection(dbVariables.cartCollection).updateOne(
         { userId, "items.productId": productID },
         { $inc: { "items.$.quantity": 1 } }
@@ -76,7 +75,6 @@ exports.addToCartdb = async (userId, productID) => {
         ? { success: true, message: "Quantity updated in cart" }
         : { success: false, message: "Failed to update cart" };
     } else {
-      // Add new product to items array
       const result = await db.collection(dbVariables.cartCollection).updateOne(
         { userId },
         {
@@ -93,18 +91,17 @@ exports.addToCartdb = async (userId, productID) => {
         : { success: false, message: "Failed to add product to cart" };
     }
   } else {
-    // Create new cart
     const newCart = {
       userId,
       items: [
         {
           productId: productID,
-          quantity: 1
+          quantity: 1,
+          variantId:variantId
         }
       ]
     };
     const insertResult = await db.collection(dbVariables.cartCollection).insertOne(newCart);
-    console.log("🆕 New cart created:", insertResult);
     return insertResult.insertedId
       ? { success: true, message: "New cart created and product added" }
       : { success: false, message: "Failed to create new cart" };

@@ -11,28 +11,152 @@
       background-color: #f8f9fa;
       font-family: 'Segoe UI', sans-serif;
     }
-    img { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-    img:hover { transform: scale(1.05); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); }
-    .category-btn { padding: 12px 24px; font-weight: 600; background-color: #000; color: white; border: none; border-radius: 10px; margin: 8px; transition: background-color 0.3s ease, transform 0.2s ease; }
-    .category-btn:hover { background-color: #333; transform: translateY(-2px); }
-    .product-card img { height: 220px; object-fit: contain; border-bottom: 1px solid #eee; padding: 15px; }
-    .product-card .card { margin: 0 15px 30px; transition: all 0.3s ease; border: none; border-radius: 12px; background-color: #fff; box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05); }
-    .product-card .card:hover { transform: translateY(-8px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); }
-    .product-card .card-body { padding: 1rem; }
-    .section-title { font-size: 1.7rem; font-weight: 700; margin-bottom: 1.5rem; border-left: 5px solid #000; padding-left: 12px; }
-    .price { font-weight: 700; font-size: 1.15rem; color: #000000; display: inline-block; }
-    .old-price { text-decoration: line-through; color: #888; margin-left: 8px; }
-    .card-title { font-size: 1rem; font-weight: 600; color: #222; line-height: 1.3; min-height: 38px; }
-    .btn-dark-custom { background-color: #1a1a1a; color: #fff; border: 1px solid #000; font-weight: 500; padding: 6px 14px; border-radius: 8px; font-size: 0.9rem; transition: all 0.3s ease; }
-    .btn-dark-custom:hover { background-color: #333; border-color: #111; transform: translateY(-2px); color: #fff; }
-    .scroll-container { display: flex; gap: 25px; overflow-x: auto; scroll-behavior: smooth; padding-bottom: 15px; padding-top: 10px; }
-    .scroll-container::-webkit-scrollbar { display: none; }
-    .scroll-container { -ms-overflow-style: none; scrollbar-width: none; }
-    .scroll-container .product-card { min-width: 25%; flex: 0 0 auto; }
-    .banner-img { border-radius: 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); margin-bottom: 40px; }
-    .section-container { margin-bottom: 60px; }
-    @media (max-width: 992px) { .scroll-container .product-card { min-width: 48%; } }
-    @media (max-width: 576px) { .scroll-container .product-card { min-width: 85%; } .product-card img { height: 180px; } }
+
+    img {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    img:hover {
+      transform: scale(1.05);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .category-btn {
+      padding: 12px 24px;
+      font-weight: 600;
+      background-color: #000;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      margin: 8px;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .category-btn:hover {
+      background-color: #333;
+      transform: translateY(-2px);
+    }
+
+    .product-card img {
+      height: 220px;
+      object-fit: contain;
+      border-bottom: 1px solid #eee;
+      padding: 15px;
+    }
+
+    .product-card .card {
+      margin: 0 15px 30px;
+      transition: all 0.3s ease;
+      border: none;
+      border-radius: 12px;
+      background-color: #fff;
+      box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .product-card .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-card .card-body {
+      padding: 1rem;
+    }
+
+    .section-title {
+      font-size: 1.7rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      border-left: 5px solid #000;
+      padding-left: 12px;
+    }
+
+    .price {
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: #000000;
+      display: inline-block;
+    }
+
+    .old-price {
+      text-decoration: line-through;
+      color: #888;
+      margin-left: 8px;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #222;
+      line-height: 1.3;
+      min-height: 38px;
+    }
+
+    .btn-dark-custom {
+      background-color: #1a1a1a;
+      color: #fff;
+      border: 1px solid #000;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    .btn-dark-custom:hover {
+      background-color: #333;
+      border-color: #111;
+      transform: translateY(-2px);
+      color: #fff;
+    }
+
+    .scroll-container {
+      display: flex;
+      gap: 25px;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      padding-bottom: 15px;
+      padding-top: 10px;
+    }
+
+    .scroll-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    .scroll-container {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .scroll-container .product-card {
+      min-width: 25%;
+      flex: 0 0 auto;
+    }
+
+    .banner-img {
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      margin-bottom: 40px;
+    }
+
+    .section-container {
+      margin-bottom: 60px;
+    }
+
+    @media (max-width: 992px) {
+      .scroll-container .product-card {
+        min-width: 48%;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .scroll-container .product-card {
+        min-width: 85%;
+      }
+
+      .product-card img {
+        height: 180px;
+      }
+    }
   </style>
 </head>
 
@@ -67,7 +191,7 @@
                 <span>₹<%= product.originalPrice %></span>
               </div>
               <div class="d-flex justify-content-between">
-                <button class="btn-dark-custom add-to-cart" data-id="<%= product._id %>">Add to Cart</button>
+                <button class="btn-dark-custom add-to-cart" data-id="<%= product._id %>" data-variant="<%= product.fullProduct[0]?._id %>">Add to Cart</button>
                 <button class="btn-dark-custom add-to-wishlist" data-id="<%= product._id %>">&#9829;</button>
               </div>
             </div>
@@ -82,11 +206,11 @@
       <div class="section-title mb-3">Categories</div>
       <div class="d-flex flex-wrap">
         <% if(categories && categories.length){ %>
-          <% categories.forEach(cat => { %>
-            <button class="category-btn text-capitalize"><%= cat.name %></button>
-          <% }); %>
+        <% categories.forEach(cat => { %>
+        <button class="category-btn text-capitalize"><%= cat.name %></button>
+        <% }); %>
         <% } else { %>
-          <p>No categories found</p>
+        <p>No categories found</p>
         <% } %>
       </div>
     </div>
@@ -115,7 +239,7 @@
                 <span>₹<%= product.originalPrice %></span>
               </div>
               <div class="d-flex justify-content-between">
-                <button class="btn-dark-custom add-to-cart" data-id="<%= product._id %>">Add to Cart</button>
+                <button class="btn-dark-custom add-to-cart" data-id="<%= product._id %>" data-variant="<%= product.fullProduct[0]?._id %>">Add to Cart</button>
                 <button class="btn-dark-custom add-to-wishlist" data-id="<%= product._id %>">&#9829;</button>
               </div>
             </div>
@@ -149,7 +273,7 @@
                 <span>₹<%= product.originalPrice %></span>
               </div>
               <div class="d-flex justify-content-between">
-                <button class="btn-dark-custom add-to-cart" data-id="<%= product._id %>">Add to Cart</button>
+                <button class="btn-dark-custom add-to-cart" data-id="<%= product._id %>" data-variant="<%= product.fullProduct[0]?._id %>" >Add to Cart</button>
                 <button class="btn-dark-custom add-to-wishlist" data-id="<%= product._id %>">&#9829;</button>
               </div>
             </div>
@@ -169,7 +293,9 @@
     async function postData(url = "", data = {}) {
       const response = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify(data),
       });
       return response.json();
@@ -180,16 +306,32 @@
       document.querySelectorAll(".add-to-cart").forEach(btn => {
         btn.addEventListener("click", async () => {
           const productId = btn.dataset.id;
+           const variantId = btn.dataset.variant; 
           try {
-            const res = await postData("/cart/add", { productId });
+            const res = await postData("/cart/add", { productId,variantId  });
+
             if (res.success) {
               Swal.fire({
                 icon: "success",
                 title: "Added to Cart",
                 text: res.message || "Product added successfully!",
-                showConfirmButton: false,
-                timer: 1500
+                confirmButtonText: "Go to Cart",
+                showCancelButton: true,
+                cancelButtonText: "Continue Shopping"
+              }).then((result) => {
+                if (result.isConfirmed) window.location.href = "/cart";
               });
+
+            } else if (res.loginRequired) {
+              Swal.fire({
+                icon: "warning",
+                title: "Login Required",
+                text: res.message || "Please login to continue.",
+                confirmButtonText: "Login"
+              }).then((result) => {
+                if (result.isConfirmed) window.location.href = "/login";
+              });
+
             } else {
               Swal.fire({
                 icon: "error",
@@ -198,11 +340,7 @@
               });
             }
           } catch (err) {
-            Swal.fire({
-              icon: "error",
-              title: "Oops...",
-              text: "Something went wrong!"
-            });
+            Swal.fire({ icon: "error", title: "Oops...", text: "Something went wrong!" });
           }
         });
       });
@@ -213,6 +351,7 @@
           const productId = btn.dataset.id;
           try {
             const res = await postData("/wishlist/add", { productId });
+
             if (res.success) {
               Swal.fire({
                 icon: "success",
@@ -221,20 +360,27 @@
                 showConfirmButton: false,
                 timer: 1500
               });
+            } else if (res.loginRequired) {
+            
             } else {
-              Swal.fire({
-                icon: "error",
-                title: "Failed",
-                text: res.message || "Could not add product to wishlist."
+            Swal.fire({
+                icon: "warning",
+                title: "Login Required",
+                text: res.message || "Please login to continue.",
+                confirmButtonText: "Login"
+              })  .catch((error) => {
+                 window.location.href = "/login";
               });
             }
           } catch (err) {
-            Swal.fire({
-              icon: "error",
-              title: "Oops...",
-              text: "Something went wrong!"
-            });
-          }
+      Swal.fire({
+                icon: "warning",
+                title: "Login Required",
+                text: res.message || "Please login to continue.",
+                confirmButtonText: "Login"
+              })  .catch((error) => {
+                 window.location.href = "/login";
+              });          }
         });
       });
     });

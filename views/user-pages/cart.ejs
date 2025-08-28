@@ -1,107 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Cart - TechCart</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    body { background: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
+    .cart-container { margin-top: 40px; }
+    
+    .cart-item {
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+    }
+    .cart-item:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+    .cart-item img { max-width: 140px; border-radius: 10px; transition: transform 0.3s ease; }
+    .cart-item img:hover { transform: scale(1.05); }
+    
+    .product-name { font-weight: 600; font-size: 1.05rem; margin-bottom: 4px; }
+    .product-details { font-size: 0.9rem; color: #666; }
+    .price { font-weight: 700; font-size: 1.1rem; color: #000; }
+    .discount { font-size: 0.85rem; color: #dc3545; margin-left: 8px; }
+
+    .quantity-input {
+      width: 60px;
+      text-align: center;
+      border-radius: 8px;
+    }
+    .btn-qty {
+      border: none;
+      background: #000;
+      color: #fff;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+    .btn-qty:hover { background: #333; transform: translateY(-2px); }
+
+    .btn-remove {
+      background: transparent;
+      border: none;
+      font-size: 1.2rem;
+      color: #dc3545;
+      transition: transform 0.2s ease;
+    }
+    .btn-remove:hover { transform: scale(1.2); color: #a71d2a; }
+
+    /* Summary Card */
+    .summary-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 25px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      position: sticky;
+      top: 90px;
+    }
+    .summary-card h5 { font-weight: 700; margin-bottom: 20px; }
+    .summary-card .summary-line {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 0.95rem;
+    }
+    .summary-card .total {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #000;
+      border-top: 1px solid #eee;
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+    .btn-checkout {
+      width: 100%;
+      background: #000;
+      color: #fff;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+    .btn-checkout:hover { background: #333; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
   <%- include('partials/header') %>
 
-
-<div class="container my-5">
-  <!-- Breadcrumb -->
-  <div class="mb-3">
-    <small><a href="/">Home</a> / <span>Cart</span></small>
-  </div>
-
-  <div class="row">
-    <!-- Cart Items -->
-    <div class="col-lg-8">
-      <% if (cartItems && cartItems.length > 0) { %>
-        <% cartItems.forEach(item => { %>
-          <div class="d-flex justify-content-between align-items-center border p-3 mb-3 rounded">
-            <div class="d-flex align-items-center">
-              <!-- Product Image -->
-              <img src="<%= item.product.images[0] %>" 
-                   alt="<%= item.product.name %>" 
-                   style="width:120px; height:100px; object-fit:cover; border-radius:8px; margin-right:15px;">
+  <div class="container cart-container">
+    <div class="row">
+      <!-- Cart Items -->
+      <div class="col-lg-8">
+        <h3 class="mb-4">Shopping Cart</h3>
+        <% if (data.items && data.items.length) { %>
+          <% data.items.forEach(item => { const product = item.productId; %>
+            <div class="cart-item d-flex align-items-center justify-content-between">
               <!-- Product Info -->
-              <div>
-                <h6 class="fw-bold mb-1"><%= item.product.name %></h6>
-                <p class="mb-1">Ram : <%= item.product.ram %> Storage : <%= item.product.storage %></p>
-                <span class="text-success">In Stock</span>
-                <div class="mt-2 d-flex align-items-center">
-                  <label class="me-2">Quantity :</label>
-                  <select class="form-select form-select-sm w-auto update-qty" 
-                          data-id="<%= item._id %>">
-                    <% for (let i = 1; i <= 10; i++) { %>
-                      <option value="<%= i %>" <%= i === item.quantity ? 'selected' : '' %>>
-                        <%= i.toString().padStart(2, '0') %>
-                      </option>
-                    <% } %>
-                  </select>
+              <div class="d-flex align-items-center">
+                <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="me-3"/>
+                <div>
+                  <div class="product-name"><%= product.name %></div>
+                  <div class="product-details"><%= product.companyDetails %> | <%= product.OS %></div>
+                  <div class="price">₹<%= product.originalPrice %></div>
                 </div>
               </div>
+
+              <!-- Quantity + Remove -->
+              <div class="d-flex align-items-center gap-2">
+                <button class="btn-qty decrease-qty" data-id="<%= product._id %>">-</button>
+                <input type="text" class="form-control quantity-input" value="<%= item.quantity %>" readonly>
+                <button class="btn-qty increase-qty" data-id="<%= product._id %>">+</button>
+                <button class="btn-remove remove-item" data-id="<%= product._id %>">&times;</button>
+              </div>
             </div>
+          <% }) %>
+        <% } else { %>
+          <p>Your cart is empty. <a href="/search">Shop now</a></p>
+        <% } %>
+      </div>
 
-            <!-- Price & Remove -->
-            <div class="text-end">
-              <p class="mb-1 fw-bold">Price ₹<%= item.product.finalPrice.toLocaleString() %></p>
-              <% if (item.product.discount) { %>
-                <p class="text-danger small mb-2"><%= item.product.discount %>% off</p>
-              <% } %>
-              <button class="btn btn-dark btn-sm remove-item" data-id="<%= item._id %>">Remove</button>
-            </div>
-          </div>
-        <% }) %>
-
-        <hr>
-        <div class="d-flex justify-content-end fw-bold">
-          Total : ₹<%= cartTotal.toLocaleString() %>
+      <!-- Summary -->
+      <div class="col-lg-4">
+        <div class="summary-card">
+          <h5>Order Summary</h5>
+          <div class="summary-line"><span>Subtotal</span> <span id="subtotal">₹0</span></div>
+          <div class="summary-line"><span>Discount</span> <span id="discount">₹0</span></div>
+          <div class="summary-line total"><span>Total</span> <span id="total">₹0</span></div>
+          <button class="btn-checkout mt-3">Proceed to Checkout</button>
         </div>
-      <% } else { %>
-        <div class="alert alert-info">Your cart is empty</div>
-      <% } %>
-    </div>
-
-    <!-- Cart Total -->
-    <div class="col-lg-4">
-      <div class="border rounded p-3 shadow-sm">
-        <h5 class="fw-bold mb-3">Cart Total</h5>
-        <div class="d-flex justify-content-between mb-2">
-          <span>Subtotal:</span>
-          <span>₹<%= cartTotal.toLocaleString() %></span>
-        </div>
-        <div class="d-flex justify-content-between mb-2">
-          <span>Shipping:</span>
-          <span class="text-success">Free</span>
-        </div>
-        <hr>
-        <div class="d-flex justify-content-between fw-bold mb-3">
-          <span>Total:</span>
-          <span>₹<%= cartTotal.toLocaleString() %></span>
-        </div>
-        <a href="/checkout" class="btn btn-danger w-100">Proceed to checkout</a>
       </div>
     </div>
   </div>
-</div>
 
-<%- include('../partials/footer') %>
-
-<script>
-  // Update quantity
-  document.querySelectorAll('.update-qty').forEach(select => {
-    select.addEventListener('change', function() {
-      const id = this.dataset.id;
-      const qty = this.value;
-      fetch(`/cart/update/${id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quantity: qty })
-      }).then(() => location.reload());
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    // Example JS: quantity updates & remove
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll(".increase-qty").forEach(btn => {
+        btn.addEventListener("click", () => {
+          let input = btn.previousElementSibling;
+          input.value = parseInt(input.value) + 1;
+          // TODO: send update to backend with fetch("/cart/update", {productId, quantity})
+        });
+      });
+      document.querySelectorAll(".decrease-qty").forEach(btn => {
+        btn.addEventListener("click", () => {
+          let input = btn.nextElementSibling;
+          if (parseInt(input.value) > 1) input.value = parseInt(input.value) - 1;
+          // TODO: send update
+        });
+      });
+      document.querySelectorAll(".remove-item").forEach(btn => {
+        btn.addEventListener("click", () => {
+          Swal.fire({
+            title: "Remove Item?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, remove it!"
+          }).then(res => {
+            if (res.isConfirmed) {
+              btn.closest(".cart-item").remove();
+            }
+          });
+        });
+      });
     });
-  });
-
-  // Remove item
-  document.querySelectorAll('.remove-item').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const id = this.dataset.id;
-      fetch(`/cart/remove/${id}`, { method: 'POST' })
-        .then(() => location.reload());
-    });
-  });
-</script>
+  </script>
+</body>
+</html>
