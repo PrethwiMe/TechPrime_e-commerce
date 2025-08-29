@@ -56,7 +56,7 @@ exports.updatePassword = async (mail, hashedPassword) => {
   const user = db.collection(dbVariables.userCollection).updateOne({ email: mail }, { $set: { password: hashedPassword } })
   return user;
 }
-
+//cart logic
 exports.addToCartdb = async (userId, productID, variantId,productName) => {
   const db = await getDB();
 
@@ -64,12 +64,12 @@ exports.addToCartdb = async (userId, productID, variantId,productName) => {
 
   if (userCart && userCart.items) {
     const productExists = userCart.items.some(item => {
-      return item.productId == productID; // 👈 compare string directly
+      return item.productId == productID; 
     });
 
     if (productExists) {
       const result = await db.collection(dbVariables.cartCollection).updateOne(
-        { userId, "items.productId": productID }, // 👈 match string
+        { userId, "items.productId": productID }, 
         { $inc: { "items.$.quantity": 1 } }
       );
       return result.modifiedCount > 0
@@ -81,9 +81,10 @@ exports.addToCartdb = async (userId, productID, variantId,productName) => {
         {
           $push: {
             items: {
-              productId: productID, // 👈 save as string
-              variantId,            // 👈 keep variantId too
-              quantity: 1
+              productId: productID, 
+              variantId,            
+              quantity: 1,
+              productName
             }
           }
         }
@@ -110,4 +111,12 @@ exports.addToCartdb = async (userId, productID, variantId,productName) => {
       : { success: false, message: "Failed to create new cart" };
   }
 };
+
+exports.viewCartData = async (userId) =>{
+
+  const db = await getDB();
+  const data =await db.collection(dbVariables.cartCollection).find({userId:userId}).toArray();
+  return data
+  
+}
 

@@ -42,6 +42,8 @@ router.get('/search', userController.searchProduct);
 router.post('/search/data',userController.sortAndSearchProducts)
 router.get('/all-product/product-details/:id',userController.loadProductDetails)
 //add to cart
-router.post("/cart/add",userController.addToCart)
+router.post("/cart/add",userConfirmed,userController.addToCart)
+//view cart
+router.get('/cart',userConfirmed,userController.viewCart)
 module.exports = router;
   
