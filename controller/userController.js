@@ -450,19 +450,19 @@ exports.loadProductDetails = async (req, res) => {
 //add to carts
 
 exports.addToCart = async (req,res) => {  
-   req.session.user= {
-    userId: '689c69c53616ccec32a3d701',
-    firstName: 'prethwi',
-    email: 'admin@gmail.com',
-    phone: '7034271417',
-    role: 'user'
-  }
+  //  req.session.user= {
+  //   userId: '689c69c53616ccec32a3d701',
+  //   firstName: 'prethwi',
+  //   email: 'admin@gmail.com',
+  //   phone: '7034271417',
+  //   role: 'user'
+  // }
   
 if (!req.session.user) {
   return res.status(401).json({ success: false, loginRequired: true, message: "Please login to TechPrime" });
 }
     console.log(req.body);
-   const { productId, variantId } = req.body;
+   const { productId, variantId,productName } = req.body;
 
 
 const Id = req.session.user.userId
@@ -470,7 +470,8 @@ const name = req.session.user.name
 
 
 
-const data =await userModel.addToCartdb(Id,productId,variantId)
+
+const data =await userModel.addToCartdb(Id,productId,variantId,productName)
 console.log(data);
 return res.json(data);
 

@@ -57,18 +57,19 @@ exports.updatePassword = async (mail, hashedPassword) => {
   return user;
 }
 
-exports.addToCartdb = async (userId, productID,variantId) => {
+exports.addToCartdb = async (userId, productID, variantId,productName) => {
   const db = await getDB();
 
   const userCart = await db.collection(dbVariables.cartCollection).findOne({ userId });
+
   if (userCart && userCart.items) {
     const productExists = userCart.items.some(item => {
-      return item.productId.productId == productID.productId;
+      return item.productId == productID; // 👈 compare string directly
     });
 
     if (productExists) {
       const result = await db.collection(dbVariables.cartCollection).updateOne(
-        { userId, "items.productId": productID },
+        { userId, "items.productId": productID }, // 👈 match string
         { $inc: { "items.$.quantity": 1 } }
       );
       return result.modifiedCount > 0
@@ -80,7 +81,8 @@ exports.addToCartdb = async (userId, productID,variantId) => {
         {
           $push: {
             items: {
-              productId: productID,
+              productId: productID, // 👈 save as string
+              variantId,            // 👈 keep variantId too
               quantity: 1
             }
           }
@@ -95,9 +97,10 @@ exports.addToCartdb = async (userId, productID,variantId) => {
       userId,
       items: [
         {
-          productId: productID,
+          productId: productID, // 👈 string
+          variantId,
           quantity: 1,
-          variantId:variantId
+          productName
         }
       ]
     };
@@ -107,3 +110,4 @@ exports.addToCartdb = async (userId, productID,variantId) => {
       : { success: false, message: "Failed to create new cart" };
   }
 };
+

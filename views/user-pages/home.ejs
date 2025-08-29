@@ -191,8 +191,13 @@
                 <span>₹<%= product.originalPrice %></span>
               </div>
               <div class="d-flex justify-content-between">
-                <button class="btn-dark-custom add-to-cart" data-id="<%= product._id %>" data-variant="<%= product.fullProduct[0]?._id %>">Add to Cart</button>
-                <button class="btn-dark-custom add-to-wishlist" data-id="<%= product._id %>">&#9829;</button>
+                <button class="btn-dark-custom add-to-cart" 
+                  data-id="<%= product._id %>" 
+                  data-variant="<%= product.fullProduct[0]?._id %>"
+                  data-name="<%= product.name %>">Add to Cart</button>
+                <button class="btn-dark-custom add-to-wishlist" 
+                  data-id="<%= product._id %>" 
+                  data-name="<%= product.name %>">&#9829;</button>
               </div>
             </div>
           </div>
@@ -239,8 +244,13 @@
                 <span>₹<%= product.originalPrice %></span>
               </div>
               <div class="d-flex justify-content-between">
-                <button class="btn-dark-custom add-to-cart" data-id="<%= product._id %>" data-variant="<%= product.fullProduct[0]?._id %>">Add to Cart</button>
-                <button class="btn-dark-custom add-to-wishlist" data-id="<%= product._id %>">&#9829;</button>
+                <button class="btn-dark-custom add-to-cart" 
+                  data-id="<%= product._id %>" 
+                  data-variant="<%= product.fullProduct[0]?._id %>"
+                  data-name="<%= product.name %>">Add to Cart</button>
+                <button class="btn-dark-custom add-to-wishlist" 
+                  data-id="<%= product._id %>" 
+                  data-name="<%= product.name %>">&#9829;</button>
               </div>
             </div>
           </div>
@@ -273,8 +283,13 @@
                 <span>₹<%= product.originalPrice %></span>
               </div>
               <div class="d-flex justify-content-between">
-                <button class="btn-dark-custom add-to-cart" data-id="<%= product._id %>" data-variant="<%= product.fullProduct[0]?._id %>" >Add to Cart</button>
-                <button class="btn-dark-custom add-to-wishlist" data-id="<%= product._id %>">&#9829;</button>
+                <button class="btn-dark-custom add-to-cart" 
+                  data-id="<%= product._id %>" 
+                  data-variant="<%= product.fullProduct[0]?._id %>" 
+                  data-name="<%= product.name %>">Add to Cart</button>
+                <button class="btn-dark-custom add-to-wishlist" 
+                  data-id="<%= product._id %>" 
+                  data-name="<%= product.name %>">&#9829;</button>
               </div>
             </div>
           </div>
@@ -306,9 +321,11 @@
       document.querySelectorAll(".add-to-cart").forEach(btn => {
         btn.addEventListener("click", async () => {
           const productId = btn.dataset.id;
-           const variantId = btn.dataset.variant; 
+          const variantId = btn.dataset.variant;
+          const productName = btn.dataset.name;
+
           try {
-            const res = await postData("/cart/add", { productId,variantId  });
+            const res = await postData("/cart/add", { productId, variantId, productName });
 
             if (res.success) {
               Swal.fire({
@@ -349,8 +366,10 @@
       document.querySelectorAll(".add-to-wishlist").forEach(btn => {
         btn.addEventListener("click", async () => {
           const productId = btn.dataset.id;
+          const productName = btn.dataset.name;
+
           try {
-            const res = await postData("/wishlist/add", { productId });
+            const res = await postData("/wishlist/add", { productId, productName });
 
             if (res.success) {
               Swal.fire({
@@ -361,26 +380,28 @@
                 timer: 1500
               });
             } else if (res.loginRequired) {
-            
-            } else {
-            Swal.fire({
+              Swal.fire({
                 icon: "warning",
                 title: "Login Required",
                 text: res.message || "Please login to continue.",
                 confirmButtonText: "Login"
-              })  .catch((error) => {
-                 window.location.href = "/login";
+              }).then((result) => {
+                if (result.isConfirmed) window.location.href = "/login";
+              });
+            } else {
+              Swal.fire({
+                icon: "error",
+                title: "Failed",
+                text: res.message || "Could not add to wishlist."
               });
             }
           } catch (err) {
-      Swal.fire({
-                icon: "warning",
-                title: "Login Required",
-                text: res.message || "Please login to continue.",
-                confirmButtonText: "Login"
-              })  .catch((error) => {
-                 window.location.href = "/login";
-              });          }
+            Swal.fire({
+              icon: "error",
+              title: "Oops...",
+              text: "Something went wrong!"
+            });
+          }
         });
       });
     });
