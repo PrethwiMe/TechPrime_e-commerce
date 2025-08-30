@@ -174,7 +174,16 @@ exports.viewCartData = async (userId) => {
           images: "$productDetails.images",
           companyDetails: "$productDetails.companyDetails"
         },
-        variant: "$variantDetails",
+        variant: {
+          _id: "$variantDetails._id",   // <-- keep variantId
+          processor: "$variantDetails.processor",
+          price: "$variantDetails.price",
+          ram: "$variantDetails.ram",
+          storage: "$variantDetails.storage",
+          graphicsCard:"$variantDetails.graphics",
+          stock: "$variantDetails.stock",
+          color:"$variantDetails.color",
+        },
         itemOriginal: 1,
         itemDiscount: 1,
         itemSubtotal: 1
@@ -183,7 +192,7 @@ exports.viewCartData = async (userId) => {
     {
       $group: {
         _id: "$userId",
-        items: { $push: "$$ROOT" },
+        items: { $push: "$$ROOT" }, // each variant becomes separate entry
         cartOriginal: { $sum: "$itemOriginal" },
         cartDiscount: { $sum: "$itemDiscount" },
         cartSubtotal: { $sum: "$itemSubtotal" }
@@ -196,6 +205,5 @@ exports.viewCartData = async (userId) => {
     .aggregate(query)
     .toArray();
 
-  console.log(data[0]);
-  return data[0]; // single cart object
+  return data[0] || null; // return null if no cart
 };

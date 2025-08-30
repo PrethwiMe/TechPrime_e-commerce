@@ -452,11 +452,15 @@ exports.loadProductDetails = async (req, res) => {
 
 exports.addToCart = async (req,res) => {  
   
-if (!req.session.user) {
-  return res.status(401).json({ success: false, loginRequired: true, message: "Please login to TechPrime" });
-}
-    console.log(req.body);
-   const { productId, variantId,productName } = req.body;
+   if (!req.session.user) {
+      return res.json({
+        success: false,
+        loginRequired: true,
+        message: "Please login to continue."
+      });
+    }
+console.log(req.session.user);
+  const { productId, variantId,productName } = req.body;
 const Id = req.session.user.userId
 const name = req.session.user.name
 const data =await userModel.addToCartdb(Id,productId,variantId,productName)
@@ -468,13 +472,18 @@ return res.json(data);
 //view cart
 exports.viewCart = async (req,res) => {
 let userId = req.session.user.userId
-console.log("user",userId);
 
   let cartOriginal = 0;
     let cartDiscount = 0;
     let cartSubtotal = 0;
 
     let data = await userModel.viewCartData(userId);
+    console.log("dattttttttttttttttttttttttttaaaaaaaaaaaaaaaa");
+data.items.forEach((item, i) => {
+  console.log(`\n--- Item ${i+1} ---`);
+  console.log("Product:", item.product);
+  console.log("Variant:", item.variant);
+});
 
     if (!data) {
       return res.render("user-pages/cart.ejs", {

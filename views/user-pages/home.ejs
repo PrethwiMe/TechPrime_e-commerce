@@ -350,6 +350,8 @@
               });
 
             } else {
+              console.log("inside if");
+              
               Swal.fire({
                 icon: "error",
                 title: "Failed",
@@ -357,7 +359,17 @@
               });
             }
           } catch (err) {
-            Swal.fire({ icon: "error", title: "Oops...", text: "Something went wrong!" });
+            
+         Swal.fire({
+  icon: "warning",
+  title: "Login Required",
+  text: "Please login to continue",
+  confirmButtonText: "Login"
+}).then((result) => {
+  if (result.isConfirmed) {
+    window.location.href = "/login";
+  }
+});
           }
         });
       });
@@ -397,8 +409,8 @@
             }
           } catch (err) {
             Swal.fire({
-              icon: "error",
-              title: "Oops...",
+              icon: "warning",
+              title: "Login Required...",
               text: "Something went wrong!"
             });
           }
