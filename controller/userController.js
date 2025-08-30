@@ -356,7 +356,7 @@ exports.searchProduct = async (req, res) => {
     let value = searchKey.trim() || "";
     console.log(value, "value");
 
-    let limit = 4;
+    let limit = 3;
     let query = { isActive: true };
 
     if (value !== "") {
@@ -408,6 +408,8 @@ exports.sortAndSearchProducts = async (req, res) => {
     }
 
     let products = await productModel.getFilteredProducts(query);
+    console.log(products[0]);
+    
 
     if (sort === "low-high") products.sort((a, b) => a.originalPrice - b.originalPrice);
     if (sort === "high-low") products.sort((a, b) => b.originalPrice - a.originalPrice);
@@ -417,7 +419,7 @@ exports.sortAndSearchProducts = async (req, res) => {
     if (sort === "z-a") products.sort((a, b) => b.name.localeCompare(a.name));
 
     const page = Number(req.body.page) || 1;
-    const limit = 4;
+    const limit = 3;
     const totalDocs = products.length;
     const { skip, totalPages } = paginate({ totalDocs, page, limit });
     const paginatedProducts = products.slice(skip, skip + limit);
@@ -468,12 +470,20 @@ exports.viewCart = async (req,res) => {
 let userId = req.session.user.userId
 console.log("user",userId);
 
-  let data = await userModel.viewCartData(userId);
-// console.log(data);
-// console.log(data[0]);
-  data[0].items.forEach(item => {
-    console.log(item.variantId);
-  });
+  let cartOriginal = 0;
+    let cartDiscount = 0;
+    let cartSubtotal = 0;
+
+    let data = await userModel.viewCartData(userId);
+
+    if (!data) {
+      return res.render("user-pages/cart.ejs", {
+        data: null,
+        cartOriginal,
+        cartDiscount,
+        cartSubtotal,
+      });
+    }
 
 
   res.render('user-pages/cart.ejs',{data})

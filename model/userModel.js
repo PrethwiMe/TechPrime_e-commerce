@@ -1,5 +1,6 @@
 
 // mongo data 
+const { Query } = require('mongoose');
 const dbVariables = require('../config/databse')
 const { getDB } = require('../config/mongodb')
 const { ObjectId } = require('mongodb');
@@ -112,11 +113,89 @@ exports.addToCartdb = async (userId, productID, variantId,productName) => {
   }
 };
 
-exports.viewCartData = async (userId) =>{
-
+exports.viewCartData = async (userId) => {
   const db = await getDB();
-  const data =await db.collection(dbVariables.cartCollection).find({userId:userId}).toArray();
-  return data
-  
-}
 
+  const query = [
+    { $match: { userId: userId } }, // filter by user
+    { $unwind: "$items" },
+    {
+      $addFields: {
+        "items.productIdObj": { $toObjectId: "$items.productId" },
+        "items.variantIdObj": { $toObjectId: "$items.variantId" }
+      }
+    },
+    {
+      $lookup: {
+        from: dbVariables.productCollection,
+        localField: "items.productIdObj",
+        foreignField: "_id",
+        as: "productDetails"
+      }
+    },
+    { $unwind: "$productDetails" },
+    {
+      $lookup: {
+        from: dbVariables.variantCollection,
+        localField: "items.variantIdObj",
+        foreignField: "_id",
+        as: "variantDetails"
+      }
+    },
+    { $unwind: "$variantDetails" },
+    {
+      $addFields: {
+        effectivePrice: {
+          $ifNull: ["$variantDetails.discountPrice", "$variantDetails.price"]
+        }
+      }
+    },
+    {
+      $addFields: {
+        itemOriginal: { $multiply: ["$items.quantity", "$variantDetails.price"] },
+        itemSubtotal: { $multiply: ["$items.quantity", "$effectivePrice"] },
+        itemDiscount: {
+          $multiply: [
+            "$items.quantity",
+            { $subtract: ["$variantDetails.price", "$effectivePrice"] }
+          ]
+        }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        userId: 1,
+        quantity: "$items.quantity",
+        product: {
+          _id: "$productDetails._id",
+          name: "$productDetails.name",
+          description: "$productDetails.description",
+          images: "$productDetails.images",
+          companyDetails: "$productDetails.companyDetails"
+        },
+        variant: "$variantDetails",
+        itemOriginal: 1,
+        itemDiscount: 1,
+        itemSubtotal: 1
+      }
+    },
+    {
+      $group: {
+        _id: "$userId",
+        items: { $push: "$$ROOT" },
+        cartOriginal: { $sum: "$itemOriginal" },
+        cartDiscount: { $sum: "$itemDiscount" },
+        cartSubtotal: { $sum: "$itemSubtotal" }
+      }
+    }
+  ];
+
+  const data = await db
+    .collection(dbVariables.cartCollection)
+    .aggregate(query)
+    .toArray();
+
+  console.log(data[0]);
+  return data[0]; // single cart object
+};

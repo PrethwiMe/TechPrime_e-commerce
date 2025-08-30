@@ -246,5 +246,248 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchProducts();
 });
 </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const grid = document.getElementById("product-grid");
+  const pagination = document.getElementById("pagination");
+  const sortLinks = document.querySelectorAll(".sort-link");
+  const categoryCheckboxes = document.querySelectorAll(".filter-category");
+  const minPrice = document.getElementById("minPrice");
+  const maxPrice = document.getElementById("maxPrice");
+  const applyPriceBtn = document.getElementById("applyPriceFilter");
+
+  // 🔑 add reference to search box in header (if exists)
+  const searchBox = document.getElementById("searchBox");
+
+  let filters = {
+    sort: "popularity",
+    categories: [],
+    minPrice: null,
+    maxPrice: null,
+    page: 1,
+    limit: 6,
+    searchKey: "<%= query || '' %>" // initial value from server render
+  };
+
+  // ===== Helper: POST =====
+  async function postData(url = "", data = {}) {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  }
+
+  // ===== Render products =====
+  function renderProducts(products) {
+    if (!products || products.length === 0) {
+      grid.innerHTML = "<p>No products found.</p>";
+      return;
+    }
+
+    grid.innerHTML = products.map(p => `
+      <div class="product-card">
+        <a href="/all-product/product-details/${p._id}" class="text-decoration-none text-dark">
+          <img src="${p.images?.[0] || '/images/default.png'}" alt="${p.name || ''}" />
+          <h6>${p.name || ''}</h6>
+          <div>
+            <span class="price">₹${p.fullProduct?.[0]?.price || p.originalPrice || 0}</span>
+            ${p.originalPrice && p.fullProduct?.[0]?.price !== p.originalPrice 
+              ? `<span class="old-price">₹${p.originalPrice}</span>` : ''}
+          </div>
+          <div class="star">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        </a>
+        <div class="mt-2 d-flex justify-content-center gap-2">
+          <button class="btn-custom add-to-cart" 
+            data-id="${p._id}" 
+            data-variant="${p.fullProduct?.[0]?._id || ''}" 
+            data-name="${p.name || ''}">Add to Cart</button>
+          <button class="btn-custom add-to-wishlist" 
+            data-id="${p._id}" 
+            data-name="${p.name || ''}">&#9829;</button>
+        </div>
+      </div>
+    `).join("");
+
+    // re-bind cart + wishlist after rendering
+    bindCartWishlistButtons();
+  }
+
+  // ===== Render pagination =====
+  function renderPagination(totalPages) {
+    pagination.innerHTML = "";
+    if (totalPages <= 1) return;
+
+    const prevLi = document.createElement("li");
+    prevLi.className = "page-item" + (filters.page === 1 ? " disabled" : "");
+    prevLi.innerHTML = `<span class="page-link">&laquo; Prev</span>`;
+    prevLi.addEventListener("click", () => { if (filters.page > 1) goToPage(filters.page - 1); });
+    pagination.appendChild(prevLi);
+
+    for (let i = 1; i <= totalPages; i++) {
+      const li = document.createElement("li");
+      li.className = "page-item" + (i === filters.page ? " active" : "");
+      li.innerHTML = `<span class="page-link">${i}</span>`;
+      li.addEventListener("click", () => { if (i !== filters.page) goToPage(i); });
+      pagination.appendChild(li);
+    }
+
+    const nextLi = document.createElement("li");
+    nextLi.className = "page-item" + (filters.page === totalPages ? " disabled" : "");
+    nextLi.innerHTML = `<span class="page-link">Next &raquo;</span>`;
+    nextLi.addEventListener("click", () => { if (filters.page < totalPages) goToPage(filters.page + 1); });
+    pagination.appendChild(nextLi);
+  }
+
+  function goToPage(page) {
+    filters.page = page;
+    fetchProducts();
+  }
+
+  // ===== Fetch products (POST) =====
+  async function fetchProducts() {
+    try {
+      if (searchBox) {
+        filters.searchKey = searchBox.value.trim();
+      }
+
+      const res = await fetch("/search/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(filters)
+      });
+
+      const data = await res.json();
+      renderProducts(data.products);
+      renderPagination(data.totalPages || 1);
+    } catch (err) {
+      console.error(err);
+      grid.innerHTML = "<p class='text-danger'>Error loading products.</p>";
+    }
+  }
+
+  // ====== Add to Cart + Wishlist binding (same as home page) ======
+  function bindCartWishlistButtons() {
+    document.querySelectorAll(".add-to-cart").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const productId = btn.dataset.id;
+        const variantId = btn.dataset.variant;
+        const productName = btn.dataset.name;
+
+        try {
+          const res = await postData("/cart/add", { productId, variantId, productName });
+
+          if (res.success) {
+            Swal.fire({
+              icon: "success",
+              title: "Added to Cart",
+              text: res.message || "Product added successfully!",
+              confirmButtonText: "Go to Cart",
+              showCancelButton: true,
+              cancelButtonText: "Continue Shopping"
+            }).then((result) => {
+              if (result.isConfirmed) window.location.href = "/cart";
+            });
+          } else if (res.loginRequired) {
+            Swal.fire({
+              icon: "warning",
+              title: "Login Required",
+              text: res.message || "Please login to continue.",
+              confirmButtonText: "Login"
+            }).then((result) => {
+              if (result.isConfirmed) window.location.href = "/login";
+            });
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: "Failed",
+              text: res.message || "Could not add product to cart."
+            });
+          }
+        } catch (err) {
+          Swal.fire({ icon: "error", title: "Oops...", text: "Something went wrong!" });
+        }
+      });
+    });
+
+    document.querySelectorAll(".add-to-wishlist").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const productId = btn.dataset.id;
+        const productName = btn.dataset.name;
+
+        try {
+          const res = await postData("/wishlist/add", { productId, productName });
+
+          if (res.success) {
+            Swal.fire({
+              icon: "success",
+              title: "Added to Wishlist",
+              text: res.message || "Product added successfully!",
+              showConfirmButton: false,
+              timer: 1500
+            });
+          } else if (res.loginRequired) {
+            Swal.fire({
+              icon: "warning",
+              title: "Login Required",
+              text: res.message || "Please login to continue.",
+              confirmButtonText: "Login"
+            }).then((result) => {
+              if (result.isConfirmed) window.location.href = "/login";
+            });
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: "Failed",
+              text: res.message || "Could not add to wishlist."
+            });
+          }
+        } catch (err) {
+          Swal.fire({ icon: "error", title: "Oops...", text: "Something went wrong!" });
+        }
+      });
+    });
+  }
+
+  // Sort links
+  sortLinks.forEach(link => {
+    link.addEventListener("click", e => {
+      e.preventDefault();
+      sortLinks.forEach(l => l.classList.remove("active"));
+      link.classList.add("active");
+      filters.sort = link.dataset.sort;
+      filters.page = 1;
+      fetchProducts();
+    });
+  });
+
+  // Category filters
+  categoryCheckboxes.forEach(cb => {
+    cb.addEventListener("change", () => {
+      filters.categories = Array.from(categoryCheckboxes)
+        .filter(c => c.checked)
+        .map(c => c.value);
+      filters.page = 1;
+      fetchProducts();
+    });
+  });
+
+  // Price filter
+  applyPriceBtn.addEventListener("click", () => {
+    filters.minPrice = minPrice.value || null;
+    filters.maxPrice = maxPrice.value || null;
+    filters.page = 1;
+    fetchProducts();
+  });
+
+  // Initial fetch
+  fetchProducts();
+});
+</script>
+
 </body>
 </html>

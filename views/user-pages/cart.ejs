@@ -26,11 +26,16 @@
     .price { font-weight: 700; font-size: 1.1rem; color: #000; }
     .discount { font-size: 0.85rem; color: #dc3545; margin-left: 8px; }
 
-    .quantity-input {
-      width: 60px;
-      text-align: center;
-      border-radius: 8px;
+    .specs { font-size: 0.85rem; color: #555; margin-top: 6px; }
+    .specs span {
+      display: inline-block;
+      background: #f1f1f1;
+      padding: 2px 8px;
+      border-radius: 6px;
+      margin: 2px 4px 2px 0;
     }
+
+    .quantity-input { width: 60px; text-align: center; border-radius: 8px; }
     .btn-qty {
       border: none;
       background: #000;
@@ -51,7 +56,6 @@
     }
     .btn-remove:hover { transform: scale(1.2); color: #a71d2a; }
 
-    /* Summary Card */
     .summary-card {
       background: #fff;
       border-radius: 14px;
@@ -95,25 +99,35 @@
       <!-- Cart Items -->
       <div class="col-lg-8">
         <h3 class="mb-4">Shopping Cart</h3>
-        <% if (data.items && data.items.length) { %>
-          <% data.items.forEach(item => { const product = item.productId; %>
+        <% if (data && data.items && data.items.length) { %>
+          <% data.items.forEach(item => { %>
             <div class="cart-item d-flex align-items-center justify-content-between">
               <!-- Product Info -->
               <div class="d-flex align-items-center">
-                <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="me-3"/>
+                <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="me-3"/>
                 <div>
-                  <div class="product-name"><%= product.name %></div>
-                  <div class="product-details"><%= product.companyDetails %> | <%= product.OS %></div>
-                  <div class="price">₹<%= product.originalPrice %></div>
+                  <div class="product-name"><%= item.product.name %></div>
+                  <div class="product-details"><%= item.product.companyDetails %> | <%= item.product.OS %></div>
+                  <div class="price">₹<%= item.itemSubtotal %></div>
+
+                  <!-- Specs -->
+                  <div class="specs">
+                    <span><%= item.variant.processor %></span>
+                    <span><%= item.variant.ram %> GB RAM</span>
+                    <span><%= item.variant.storage %> Storage</span>
+                    <span><%= item.variant.graphics %></span>
+                    <span><%= item.variant.color %></span>
+                    <span><%= item.variant.display %></span>
+                  </div>
                 </div>
               </div>
 
               <!-- Quantity + Remove -->
               <div class="d-flex align-items-center gap-2">
-                <button class="btn-qty decrease-qty" data-id="<%= product._id %>">-</button>
+                <button class="btn-qty decrease-qty" data-id="<%= item.product._id %>">-</button>
                 <input type="text" class="form-control quantity-input" value="<%= item.quantity %>" readonly>
-                <button class="btn-qty increase-qty" data-id="<%= product._id %>">+</button>
-                <button class="btn-remove remove-item" data-id="<%= product._id %>">&times;</button>
+                <button class="btn-qty increase-qty" data-id="<%= item.product._id %>">+</button>
+                <button class="btn-remove remove-item" data-id="<%= item.product._id %>">&times;</button>
               </div>
             </div>
           <% }) %>
@@ -121,39 +135,55 @@
           <p>Your cart is empty. <a href="/search">Shop now</a></p>
         <% } %>
       </div>
+<div class="summary-card">
+  <h5>Order Summary</h5>
 
-      <!-- Summary -->
-      <div class="col-lg-4">
-        <div class="summary-card">
-          <h5>Order Summary</h5>
-          <div class="summary-line"><span>Subtotal</span> <span id="subtotal">₹0</span></div>
-          <div class="summary-line"><span>Discount</span> <span id="discount">₹0</span></div>
-          <div class="summary-line total"><span>Total</span> <span id="total">₹0</span></div>
-          <button class="btn-checkout mt-3">Proceed to Checkout</button>
-        </div>
-      </div>
+  <% if (data) { %>
+    <div class="summary-line">
+      <span>Subtotal</span> 
+      <span id="subtotal">₹<%= data.cartOriginal || 0 %></span>
+    </div>
+    <div class="summary-line">
+      <span>Discount</span> 
+      <span id="discount">₹<%= data.cartDiscount || 0 %></span>
+    </div>
+    <div class="summary-line total">
+      <span>Total</span> 
+      <span id="total">₹<%= data.cartSubtotal || 0 %></span>
+    </div>
+    <button class="btn-checkout mt-3">Proceed to Checkout</button>
+  <% } else { %>
+    <p class="text-center text-muted mt-3">No items in cart</p>
+  <% } %>
+</div>
+
     </div>
   </div>
 
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    // Example JS: quantity updates & remove
     document.addEventListener("DOMContentLoaded", () => {
+      // Quantity +
       document.querySelectorAll(".increase-qty").forEach(btn => {
         btn.addEventListener("click", () => {
           let input = btn.previousElementSibling;
           input.value = parseInt(input.value) + 1;
-          // TODO: send update to backend with fetch("/cart/update", {productId, quantity})
+          // TODO: send update to backend
         });
       });
+
+      // Quantity -
       document.querySelectorAll(".decrease-qty").forEach(btn => {
         btn.addEventListener("click", () => {
           let input = btn.nextElementSibling;
           if (parseInt(input.value) > 1) input.value = parseInt(input.value) - 1;
-          // TODO: send update
+          // TODO: send update to backend
         });
       });
+
+      // Remove item
       document.querySelectorAll(".remove-item").forEach(btn => {
         btn.addEventListener("click", () => {
           Swal.fire({
@@ -164,6 +194,7 @@
           }).then(res => {
             if (res.isConfirmed) {
               btn.closest(".cart-item").remove();
+              // TODO: call backend to remove
             }
           });
         });
