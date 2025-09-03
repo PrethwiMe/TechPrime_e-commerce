@@ -140,11 +140,10 @@ document.addEventListener("DOMContentLoaded", () => {
         <a href="/all-product/product-details/${p._id}" class="text-decoration-none text-dark">
           <img src="${p.images?.[0] || '/images/default.png'}" alt="${p.name || ''}" />
           <h6>${p.name || ''}</h6>
-          <div>
-            <span class="price">₹${p.fullProduct?.[0]?.price || p.originalPrice || 0}</span>
-            ${p.originalPrice && p.fullProduct?.[0]?.price !== p.originalPrice 
-              ? `<span class="old-price">₹${p.originalPrice}</span>` : ''}
-          </div>
+          <span class="price">₹${p.originalPrice || 0}</span>
+${p.fullProduct?.[0]?.price && p.fullProduct?.[0]?.price !== p.originalPrice 
+  ? `<span class="old-price">₹${p.fullProduct[0].price}</span>` : ''}
+
           <div class="star">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
           <div class="mt-2 d-flex justify-content-center gap-2">
             <button class="btn-custom">Add to Cart</button>

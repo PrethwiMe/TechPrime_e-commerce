@@ -8,7 +8,6 @@
   <style>
     body { background: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
     .cart-container { margin-top: 40px; }
-    
     .cart-item {
       background: #fff;
       border-radius: 14px;
@@ -20,12 +19,9 @@
     .cart-item:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
     .cart-item img { max-width: 140px; border-radius: 10px; transition: transform 0.3s ease; }
     .cart-item img:hover { transform: scale(1.05); }
-    
     .product-name { font-weight: 600; font-size: 1.05rem; margin-bottom: 4px; }
     .product-details { font-size: 0.9rem; color: #666; }
     .price { font-weight: 700; font-size: 1.1rem; color: #000; }
-    .discount { font-size: 0.85rem; color: #dc3545; margin-left: 8px; }
-
     .specs { font-size: 0.85rem; color: #555; margin-top: 6px; }
     .specs span {
       display: inline-block;
@@ -34,7 +30,6 @@
       border-radius: 6px;
       margin: 2px 4px 2px 0;
     }
-
     .quantity-input { width: 60px; text-align: center; border-radius: 8px; }
     .btn-qty {
       border: none;
@@ -46,7 +41,6 @@
       transition: all 0.3s ease;
     }
     .btn-qty:hover { background: #333; transform: translateY(-2px); }
-
     .btn-remove {
       background: transparent;
       border: none;
@@ -55,7 +49,6 @@
       transition: transform 0.2s ease;
     }
     .btn-remove:hover { transform: scale(1.2); color: #a71d2a; }
-
     .summary-card {
       background: #fff;
       border-radius: 14px;
@@ -101,16 +94,17 @@
         <h3 class="mb-4">Shopping Cart</h3>
         <% if (data && data.items && data.items.length) { %>
           <% data.items.forEach(item => { %>
-            <div class="cart-item d-flex align-items-center justify-content-between">
-              <!-- Product Info -->
+            <div class="cart-item d-flex align-items-center justify-content-between" 
+                 data-id="<%= item.product._id %>" 
+                 data-variant="<%= item.variant._id %>" 
+                 data-price="<%= item.variant.price %>"
+                 data-user="<%=userId %>">
               <div class="d-flex align-items-center">
                 <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="me-3"/>
                 <div>
                   <div class="product-name"><%= item.product.name %></div>
                   <div class="product-details"><%= item.product.companyDetails %> | <%= item.product.OS %></div>
-                  <div class="price">₹<%= item.itemSubtotal %></div>
-
-                  <!-- Specs -->
+                  <div class="price">₹<span class="item-subtotal"><%= item.itemSubtotal %></span></div>
                   <div class="specs">
                     <span><%= item.variant.processor %></span>
                     <span><%= item.variant.ram %> GB RAM</span>
@@ -121,13 +115,11 @@
                   </div>
                 </div>
               </div>
-
-              <!-- Quantity + Remove -->
               <div class="d-flex align-items-center gap-2">
-                <button class="btn-qty decrease-qty" data-id="<%= item.product._id %>">-</button>
+                <button class="btn-qty decrease-qty">-</button>
                 <input type="text" class="form-control quantity-input" value="<%= item.quantity %>" readonly>
-                <button class="btn-qty increase-qty" data-id="<%= item.product._id %>">+</button>
-                <button class="btn-remove remove-item" data-id="<%= item.product._id %>">&times;</button>
+                <button class="btn-qty increase-qty">+</button>
+                <button class="btn-remove remove-item">&times;</button>
               </div>
             </div>
           <% }) %>
@@ -135,57 +127,119 @@
           <p>Your cart is empty. <a href="/search">Shop now</a></p>
         <% } %>
       </div>
-<div class="summary-card">
-  <h5>Order Summary</h5>
 
-  <% if (data) { %>
-    <div class="summary-line">
-      <span>Subtotal</span> 
-      <span id="subtotal">₹<%= data.cartOriginal || 0 %></span>
-    </div>
-    <div class="summary-line">
-      <span>Discount</span> 
-      <span id="discount">₹<%= data.cartDiscount || 0 %></span>
-    </div>
-    <div class="summary-line total">
-      <span>Total</span> 
-      <span id="total">₹<%= data.cartSubtotal || 0 %></span>
-    </div>
-    <button class="btn-checkout mt-3">Proceed to Checkout</button>
-  <% } else { %>
-    <p class="text-center text-muted mt-3">No items in cart</p>
-  <% } %>
-</div>
-
+      <!-- Order Summary -->
+      <div class="col-lg-4">
+        <div class="summary-card">
+          <h5>Order Summary</h5>
+          <% if (data) { %>
+            <div class="summary-line">
+              <span>Subtotal</span> 
+              <span id="subtotal">₹<%= data.cartOriginal || 0 %></span>
+            </div>
+            <div class="summary-line">
+              <span>Discount</span> 
+              <span id="discount">₹<%= data.cartDiscount || 0 %></span>
+            </div>
+            <div class="summary-line total">
+              <span>Total</span> 
+              <span id="total">₹<%= data.cartSubtotal || 0 %></span>
+            </div>
+            <button class="btn-checkout mt-3">Proceed to Checkout</button>
+          <% } else { %>
+            <p class="text-center text-muted mt-3">No items in cart</p>
+          <% } %>
+        </div>
+      </div>
     </div>
   </div>
+
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      // Quantity +
+      const recalcSummary = () => {
+        let subtotal = 0;
+        document.querySelectorAll(".cart-item").forEach(item => {
+          const price = parseFloat(item.dataset.price);
+          const qty = parseInt(item.querySelector(".quantity-input").value);
+          const itemSubtotal = price * qty;
+          item.querySelector(".item-subtotal").textContent = itemSubtotal;
+          subtotal += itemSubtotal;
+        });
+        document.getElementById("subtotal").textContent = "₹" + subtotal;
+        document.getElementById("discount").textContent = "₹0";
+        document.getElementById("total").textContent = "₹" + subtotal;
+      };
+
+      // ✅ Update cart API call
+      const updateCart = async (productId, variantId, action) => {
+        try {
+          const res = await fetch("/cart/update", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ productId, variantId, action })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message || "Error updating cart");
+        } catch (err) {
+          Swal.fire("Error", err.message, "error");
+        }
+      };
+
+      // ✅ Delete item API call
+      const deleteCartItem = async (productId, variantId, userId) => {
+        try {
+          const res = await fetch("/cart/delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ productId, variantId, userId })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message || "Error deleting item");
+        } catch (err) {
+          Swal.fire("Error", err.message, "error");
+        }
+      };
+
+      // Increase qty
       document.querySelectorAll(".increase-qty").forEach(btn => {
         btn.addEventListener("click", () => {
-          let input = btn.previousElementSibling;
-          input.value = parseInt(input.value) + 1;
-          // TODO: send update to backend
+          let item = btn.closest(".cart-item");
+          let input = item.querySelector(".quantity-input");
+          let current = parseInt(input.value);
+          if (current < 10) {
+            input.value = current + 1;
+            recalcSummary();
+            updateCart(item.dataset.id, item.dataset.variant, "increment");
+          } else {
+            Swal.fire("Limit Reached", "Maximum quantity is 10", "info");
+          }
         });
       });
 
-      // Quantity -
+      // Decrease qty
       document.querySelectorAll(".decrease-qty").forEach(btn => {
         btn.addEventListener("click", () => {
-          let input = btn.nextElementSibling;
-          if (parseInt(input.value) > 1) input.value = parseInt(input.value) - 1;
-          // TODO: send update to backend
+          let item = btn.closest(".cart-item");
+          let input = item.querySelector(".quantity-input");
+          let current = parseInt(input.value);
+          if (current > 1) {
+            input.value = current - 1;
+            recalcSummary();
+            updateCart(item.dataset.id, item.dataset.variant, "decrement");
+          }
         });
       });
 
       // Remove item
       document.querySelectorAll(".remove-item").forEach(btn => {
         btn.addEventListener("click", () => {
+          let item = btn.closest(".cart-item");
           Swal.fire({
             title: "Remove Item?",
             icon: "warning",
@@ -193,12 +247,18 @@
             confirmButtonText: "Yes, remove it!"
           }).then(res => {
             if (res.isConfirmed) {
-              btn.closest(".cart-item").remove();
-              // TODO: call backend to remove
+              const productId = item.dataset.id;
+              const variantId = item.dataset.variant;
+              const userId = item.dataset.user;
+              item.remove();
+              recalcSummary();
+              deleteCartItem(productId, variantId, userId);
             }
           });
         });
       });
+
+      recalcSummary();
     });
   </script>
 </body>

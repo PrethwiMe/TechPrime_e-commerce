@@ -99,8 +99,6 @@ exports.showVarients = async(data) => {
 
 exports.toggleProduct = async (id,state) => {
   const db = getDB();
-  console.log("next state",state);
-  console.log(id);
   const collection =await db.collection(dbVariables.productCollection).updateOne({_id:new ObjectId(id)},{$set:{isActive:state}})
   return collection;
 }
@@ -244,8 +242,6 @@ exports.getFilteredProducts = async (query) => {
     }
   ]).toArray();
 };
-
-
 //categoris is active still needed to improve when in disable
 
 exports.getAllCategoriesForUser = async () => {
@@ -259,10 +255,7 @@ exports.getAllCategoriesForUser = async () => {
 };
 
 exports.viewProducts = async (data) => {
-
   let db =await getDB();
-console.log(data);
-
   const pipeline = [{
     $match:{_id:new ObjectId(data) }}
   ,{

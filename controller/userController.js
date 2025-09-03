@@ -15,11 +15,11 @@ exports.loadHome = async (req, res) => {
 
     const data = await productModel.allProductsDisplay();
     const products = data;
-// data.forEach(element => {
-//   console.log(element);
-  
-// }); 
-   const categories = await productModel.getAllCategories();
+    // data.forEach(element => {
+    //   console.log(element);
+
+    // }); 
+    const categories = await productModel.getAllCategories();
     res.render('user-pages/home', {
       user: req.session.user || null,
       products,
@@ -52,7 +52,6 @@ exports.loginAccess = async (req, res) => {
 
     const user = await userModel.fetchUser(email);
 
-    console.log(user);
 
     if (!user) {
       return res.render('user-pages/login', { error: 'User not found.' });
@@ -161,7 +160,6 @@ exports.verifyUserOtp = async (req, res) => {
   let numOtp = parseInt(otp)
 
   if (result.otp == numOtp) {
-    console.log("inside if");
     await userModel.userActive(email)
     return res.json({ success: true, message: "Success." });
   }
@@ -237,7 +235,6 @@ exports.verifyForgotOtp = async (req, res) => {
         err: "Invalid OTP. Please try again."
       });
     }
-    console.log("sucsss");
 
     return res.render('user-pages/newPassoword.ejs', { email, err: null, success: null });
 
@@ -332,10 +329,10 @@ exports.googleSuccessRedirect = async (req, res) => {
   if (!req.user) {
     return res.redirect('/login');
   }
-   const data = await productModel.allProductsDisplay();
-    const products = data;
-    const categories = await productModel.getAllCategories();
-  res.render('user-pages/home', { user: req.user,products,categories });
+  const data = await productModel.allProductsDisplay();
+  const products = data;
+  const categories = await productModel.getAllCategories();
+  res.render('user-pages/home', { user: req.user, products, categories });
 };
 
 // Logout
@@ -351,10 +348,8 @@ exports.searchProduct = async (req, res) => {
 
   const searchKey = req.query.searchKey || '';
 
-   console.log(searchKey);
   try {
     let value = searchKey.trim() || "";
-    console.log(value, "value");
 
     let limit = 3;
     let query = { isActive: true };
@@ -408,8 +403,6 @@ exports.sortAndSearchProducts = async (req, res) => {
     }
 
     let products = await productModel.getFilteredProducts(query);
-    console.log(products[0]);
-    
 
     if (sort === "low-high") products.sort((a, b) => a.originalPrice - b.originalPrice);
     if (sort === "high-low") products.sort((a, b) => b.originalPrice - a.originalPrice);
@@ -440,7 +433,6 @@ exports.loadProductDetails = async (req, res) => {
   let data = req.params.id
   try {
     let result = await productModel.viewProducts(data)
-    console.log(result[0]);
     const { totalDocs, products } = await productModel.viewAllProducts()
     let categories = await productModel.getAllCategories()
     res.render("user-pages/productDetails.ejs", { categories, product: result[0], products: products, query: req.query.q || "" });
@@ -450,50 +442,82 @@ exports.loadProductDetails = async (req, res) => {
 }
 //add to carts
 
-exports.addToCart = async (req,res) => {  
-  
-   if (!req.session.user) {
-      return res.json({
-        success: false,
-        loginRequired: true,
-        message: "Please login to continue."
-      });
-    }
-console.log(req.session.user);
-  const { productId, variantId,productName } = req.body;
-const Id = req.session.user.userId
-const name = req.session.user.name
-const data =await userModel.addToCartdb(Id,productId,variantId,productName)
-console.log(data);
-return res.json(data);
+exports.addToCart = async (req, res) => {
 
-  
+  if (!req.session.user) {
+    return res.json({
+      success: false,
+      loginRequired: true,
+      message: "Please login to continue."
+    });
+  }
+  const { productId, variantId, productName } = req.body;
+  const Id = req.session.user.userId
+  const name = req.session.user.name
+  const data = await userModel.addToCartdb(Id, productId, variantId, productName)
+  return res.json(data);
+
+
 }
 //view cart
-exports.viewCart = async (req,res) => {
-let userId = req.session.user.userId
+exports.viewCart = async (req, res) => {
+  let userId = req.session.user.userId
 
   let cartOriginal = 0;
-    let cartDiscount = 0;
-    let cartSubtotal = 0;
+  let cartDiscount = 0;
+  let cartSubtotal = 0;
 
-    let data = await userModel.viewCartData(userId);
-    console.log("dattttttttttttttttttttttttttaaaaaaaaaaaaaaaa");
-data.items.forEach((item, i) => {
-  console.log(`\n--- Item ${i+1} ---`);
-  console.log("Product:", item.product);
-  console.log("Variant:", item.variant);
-});
+  let data = await userModel.viewCartData(userId);
 
-    if (!data) {
-      return res.render("user-pages/cart.ejs", {
-        data: null,
-        cartOriginal,
-        cartDiscount,
-        cartSubtotal,
-      });
+
+  if (!data) {
+    return res.render("user-pages/cart.ejs", {
+      data: null,
+      cartOriginal,
+      cartDiscount,
+      cartSubtotal,
+    });
+  }
+
+
+  res.render('user-pages/cart.ejs', { data,userId })
+}
+//cart + -
+exports.quntityControlCart = async (req, res) => {
+  try {
+    const userId = req.session.user.userId;
+    const { productId, variantId, action } = req.body;
+
+    if (!productId || !variantId || !action) {
+      return res.status(400).json({ success: false, message: "Missing fields" });
     }
 
+    const result = await userModel.controllCart(userId, productId, variantId, action);
 
-  res.render('user-pages/cart.ejs',{data})
+    if (!result) {
+      return res.status(404).json({ success: false, message: "Item not found in cart" });
+    }
+
+    res.json({
+      success: true,
+      message: "Quantity updated",
+      item: result
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+//remove product
+exports.deleteCart =async (req,res) => {
+  const {productId,variantId,userId }=req.body
+
+let data =  await userModel.removeProduct(productId,variantId,userId ) 
+}
+
+exports.whishList = async (req,res) => {
+  console.log(req.body);
+  const userId = req.session.userId
+  const{productId,productName} = req.body;
+  let response = await userModel.addToWhishList(userId,productId,productName)
 }

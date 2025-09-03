@@ -381,16 +381,20 @@
           const productName = btn.dataset.name;
 
           try {
-            const res = await postData("/wishlist/add", { productId, productName });
+            const res = await postData("/wishlist", { productId, productName });
 
             if (res.success) {
               Swal.fire({
                 icon: "success",
                 title: "Added to Wishlist",
                 text: res.message || "Product added successfully!",
-                showConfirmButton: false,
-                timer: 1500
+                confirmButtonText: "Go to Wishlist",
+                showCancelButton: true,
+                cancelButtonText: "Continue Shopping"
+              }).then((result) => {
+                if (result.isConfirmed) window.location.href = "/wishlist";
               });
+
             } else if (res.loginRequired) {
               Swal.fire({
                 icon: "warning",
@@ -410,8 +414,11 @@
           } catch (err) {
             Swal.fire({
               icon: "warning",
-              title: "Login Required...",
-              text: "Something went wrong!"
+              title: "Login Required",
+              text: "Please login to continue",
+              confirmButtonText: "Login"
+            }).then((result) => {
+              if (result.isConfirmed) window.location.href = "/login";
             });
           }
         });

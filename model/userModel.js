@@ -4,6 +4,7 @@ const { Query } = require('mongoose');
 const dbVariables = require('../config/databse')
 const { getDB } = require('../config/mongodb')
 const { ObjectId } = require('mongodb');
+const { any } = require('joi');
 
 exports.insertUser = async (userdata) => {
 
@@ -58,35 +59,35 @@ exports.updatePassword = async (mail, hashedPassword) => {
   return user;
 }
 //cart logic
-exports.addToCartdb = async (userId, productID, variantId,productName) => {
+exports.addToCartdb = async (userId, productId, variantId, productName) => {
+  
   const db = await getDB();
 
+  // find cart
   const userCart = await db.collection(dbVariables.cartCollection).findOne({ userId });
 
-  if (userCart && userCart.items) {
-    const productExists = userCart.items.some(item => {
-      return item.productId == productID; 
-    });
+  if (userCart) {
+    // check if same product , variant already 
+    const itemExists = userCart.items.some(item => 
+      item.productId === productId && item.variantId === variantId
+    );
 
-    if (productExists) {
+    if (itemExists) {
+      //increase quantity
       const result = await db.collection(dbVariables.cartCollection).updateOne(
-        { userId, "items.productId": productID }, 
+        { userId, "items.productId": productId, "items.variantId": variantId },
         { $inc: { "items.$.quantity": 1 } }
       );
       return result.modifiedCount > 0
         ? { success: true, message: "Quantity updated in cart" }
         : { success: false, message: "Failed to update cart" };
     } else {
+      //add product and variant to cart
       const result = await db.collection(dbVariables.cartCollection).updateOne(
         { userId },
         {
           $push: {
-            items: {
-              productId: productID, 
-              variantId,            
-              quantity: 1,
-              productName
-            }
+            items: { productId, variantId, quantity: 1, productName }
           }
         }
       );
@@ -94,23 +95,18 @@ exports.addToCartdb = async (userId, productID, variantId,productName) => {
         ? { success: true, message: "Product added to cart" }
         : { success: false, message: "Failed to add product to cart" };
     }
-  } else {
-    const newCart = {
-      userId,
-      items: [
-        {
-          productId: productID, // 👈 string
-          variantId,
-          quantity: 1,
-          productName
-        }
-      ]
-    };
-    const insertResult = await db.collection(dbVariables.cartCollection).insertOne(newCart);
-    return insertResult.insertedId
-      ? { success: true, message: "New cart created and product added" }
-      : { success: false, message: "Failed to create new cart" };
   }
+
+  // no cart for this user create new cart
+  const newCart = {
+    userId,
+    items: [{ productId, variantId, quantity: 1, productName }]
+  };
+  const insertResult = await db.collection(dbVariables.cartCollection).insertOne(newCart);
+
+  return insertResult.insertedId
+    ? { success: true, message: "New cart created and product added" }
+    : { success: false, message: "Failed to create new cart" };
 };
 
 exports.viewCartData = async (userId) => {
@@ -207,3 +203,59 @@ exports.viewCartData = async (userId) => {
 
   return data[0] || null; // return null if no cart
 };
+
+//contol cart function
+exports.controllCart = async (userId, productId, variantId, op) => {
+  const db = await getDB();
+  const updateValue = op === "increment" ? 1 : -1;
+
+  // Find cart
+  const cart = await db.collection(dbVariables.cartCollection).findOne({
+    userId,
+    "items.productId": productId,
+    "items.variantId": variantId
+  });
+  if (!cart) return null;
+
+  const item = cart.items.find(
+    i => i.productId === productId && i.variantId === variantId
+  );
+  if (!item) return null;
+
+  let newQuantity = item.quantity + updateValue;
+  if (newQuantity < 1) newQuantity = 1;
+  if (newQuantity > 10) newQuantity = 10;
+
+  // Update in DB
+  await db.collection(dbVariables.cartCollection).updateOne(
+    {
+      userId,
+      "items.productId": productId,
+      "items.variantId": variantId
+    },
+    { $set: { "items.$.quantity": newQuantity } }
+  );
+
+  // ✅ Return only updated item info
+  return {
+    productId,
+    variantId,
+    quantity: newQuantity,
+    itemSubtotal: newQuantity * item.price, // assuming you store price in variant
+  };
+};
+
+exports.removeProduct = async(productId,variantId,userId) => {
+  const db = getDB();
+  const productData = await db.collection(dbVariables.cartCollection).updateOne({userId:userId},{$pull: {items:{productId: productId,variantId: variantId }}})
+  return productData
+  
+}
+
+exports.addToWhishList = async (userId,productId,productName) => 
+{
+   const data = {  userId,productId,productName  }//obj
+  const db = getDB();
+  const whishlist = await db.collection(dbVariables.whishList).insertOne(data)
+  return whishlist;
+}

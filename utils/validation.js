@@ -55,7 +55,7 @@ const addressValidation = (data) => {
     city: Joi.string().required(),
     street: Joi.string().required(),
   });
-
+               
   return schema.validate(data);
 };
 

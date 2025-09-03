@@ -45,5 +45,12 @@ router.get('/all-product/product-details/:id',userController.loadProductDetails)
 router.post("/cart/add",userConfirmed,userController.addToCart)
 //view cart
 router.get('/cart',userConfirmed,userController.viewCart)
+//increment or decrement
+router.post("/cart/update", userConfirmed,userController.quntityControlCart);
+//delete
+router.post('/cart/delete',userController.deleteCart)
+//whishlist
+router.post('/wishlist',userController.whishList)
+
 module.exports = router;
   
