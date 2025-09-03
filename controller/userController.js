@@ -315,15 +315,10 @@ exports.savePassword = async (req, res) => {
     });
   }
 };
-
-
-
 // Google login redirect
 exports.googleLogin = passport.authenticate('google', { scope: ['profile', 'email'] });
-
 // Google callback
 exports.googleCallback = passport.authenticate('google', { failureRedirect: '/login' });
-
 // After successful Google login
 exports.googleSuccessRedirect = async (req, res) => {
   if (!req.user) {
@@ -334,7 +329,6 @@ exports.googleSuccessRedirect = async (req, res) => {
   const categories = await productModel.getAllCategories();
   res.render('user-pages/home', { user: req.user, products, categories });
 };
-
 // Logout
 exports.logoutUser = (req, res) => {
 
@@ -342,7 +336,6 @@ exports.logoutUser = (req, res) => {
     res.redirect('/');
   });
 };
-
 //  Search 
 exports.searchProduct = async (req, res) => {
 
@@ -379,7 +372,6 @@ exports.searchProduct = async (req, res) => {
     return res.status(500).send("error");
   }
 };
-
 //Sort + Search +Filter 
 exports.sortAndSearchProducts = async (req, res) => {
   const searchKey = req.query.searchKey || '';
@@ -428,7 +420,6 @@ exports.sortAndSearchProducts = async (req, res) => {
     res.status(500).json({ error: "Something went wrong" });
   }
 }
-
 exports.loadProductDetails = async (req, res) => {
   let data = req.params.id
   try {
@@ -441,7 +432,6 @@ exports.loadProductDetails = async (req, res) => {
   }
 }
 //add to carts
-
 exports.addToCart = async (req, res) => {
 
   if (!req.session.user) {
@@ -509,15 +499,35 @@ exports.quntityControlCart = async (req, res) => {
   }
 };
 //remove product
-exports.deleteCart =async (req,res) => {
-  const {productId,variantId,userId }=req.body
+exports.deleteCart = async (req, res) => {
+  try {
+    const { productId, variantId, userId } = req.body;
+    const result = await userModel.removeProduct(productId, variantId, userId);
+    if (result.modifiedCount > 0) {
+      return res.json({ success: true, message: "Item removed" });
+    }
+    return res.json({ success: false, message: "Item not found in cart" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
-let data =  await userModel.removeProduct(productId,variantId,userId ) 
-}
-
-exports.whishList = async (req,res) => {
-  console.log(req.body);
-  const userId = req.session.userId
-  const{productId,productName} = req.body;
-  let response = await userModel.addToWhishList(userId,productId,productName)
-}
+// controller
+exports.whishList = async (req, res) => {
+  try {
+    const userId = req.session?.user?.userId;
+    if (!userId) {
+      return res.json({ success: false, loginRequired: true, message: "Login required" });
+    }
+    const { productId, productName } = req.body;
+    const response = await userModel.addToWhishList(userId, productId, productName);
+    if (response === "data is there") {
+      return res.json({ success: false, message: "Already in Wishlist" });
+    }
+    res.json({ success: true, message: "Product added to wishlist!" });
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false, message: "Server error, try again later" });
+  }
+};

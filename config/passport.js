@@ -1,6 +1,6 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const { getDB } = require('./mongodb');
+const  getDB  = require('./mongodb');
 const dbVariables = require('./databse');
 const userModel = require('../model/userModel')
 

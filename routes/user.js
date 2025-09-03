@@ -50,7 +50,7 @@ router.post("/cart/update", userConfirmed,userController.quntityControlCart);
 //delete
 router.post('/cart/delete',userController.deleteCart)
 //whishlist
-router.post('/wishlist',userController.whishList)
+router.post('/wishlist',userConfirmed,userController.whishList)
 
 module.exports = router;
   

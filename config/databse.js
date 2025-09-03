@@ -1,4 +1,3 @@
-const { whishList } = require("../controller/userController");
 
 module.exports={
      dbName : 'techprime_db',

@@ -60,7 +60,7 @@ exports.updatePassword = async (mail, hashedPassword) => {
 }
 //cart logic
 exports.addToCartdb = async (userId, productId, variantId, productName) => {
-  
+
   const db = await getDB();
 
   // find cart
@@ -68,7 +68,7 @@ exports.addToCartdb = async (userId, productId, variantId, productName) => {
 
   if (userCart) {
     // check if same product , variant already 
-    const itemExists = userCart.items.some(item => 
+    const itemExists = userCart.items.some(item =>
       item.productId === productId && item.variantId === variantId
     );
 
@@ -176,9 +176,9 @@ exports.viewCartData = async (userId) => {
           price: "$variantDetails.price",
           ram: "$variantDetails.ram",
           storage: "$variantDetails.storage",
-          graphicsCard:"$variantDetails.graphics",
+          graphicsCard: "$variantDetails.graphics",
           stock: "$variantDetails.stock",
-          color:"$variantDetails.color",
+          color: "$variantDetails.color",
         },
         itemOriginal: 1,
         itemDiscount: 1,
@@ -203,7 +203,6 @@ exports.viewCartData = async (userId) => {
 
   return data[0] || null; // return null if no cart
 };
-
 //contol cart function
 exports.controllCart = async (userId, productId, variantId, op) => {
   const db = await getDB();
@@ -244,18 +243,19 @@ exports.controllCart = async (userId, productId, variantId, op) => {
     itemSubtotal: newQuantity * item.price, // assuming you store price in variant
   };
 };
-
-exports.removeProduct = async(productId,variantId,userId) => {
+exports.removeProduct = async (productId, variantId, userId) => {
   const db = getDB();
-  const productData = await db.collection(dbVariables.cartCollection).updateOne({userId:userId},{$pull: {items:{productId: productId,variantId: variantId }}})
+  const productData = await db.collection(dbVariables.cartCollection).updateOne({ userId: userId }, { $pull: { items: { productId: productId, variantId: variantId } } })
   return productData
-  
-}
 
-exports.addToWhishList = async (userId,productId,productName) => 
-{
-   const data = {  userId,productId,productName  }//obj
-  const db = getDB();
+}
+exports.addToWhishList = async (userId, productId, productName) => {
+  const data = { userId, productId, productName }//obj
+  const db =await getDB();
+
+const userCheck = await db.collection(dbVariables.whishList).findOne({userId:userId,productId:productId})
+
+if (userCheck) return "data is there"
   const whishlist = await db.collection(dbVariables.whishList).insertOne(data)
   return whishlist;
 }
