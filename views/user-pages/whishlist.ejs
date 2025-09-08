@@ -114,7 +114,7 @@
       document.querySelectorAll(".btn-add-cart").forEach(btn => {
         btn.addEventListener("click", () => {
           let item = btn.closest(".wishlist-item");
-          const productId = item.dataset.id;
+          const productId = item.dataset.id; 
           const variantId = item.dataset.variant;
 
           // call API

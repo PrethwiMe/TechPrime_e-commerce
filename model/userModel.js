@@ -258,5 +258,33 @@ if (userCheck) return "data is there"
   const whishlist = await db.collection(dbVariables.whishList).insertOne(data)
   return whishlist;
 }
+
+exports.viewWishList = async (userId) => {
+  const db = await getDB();
+
+  const wishListItems = await db.collection(dbVariables.whishList)
+    .find({ userId: userId })
+    .toArray();
+
+  const productIds = wishListItems
+    .map(item => ObjectId.isValid(item.productId) ? new ObjectId(item.productId) : null)
+    .filter(id => id !== null);
+
+  const products = await db.collection(dbVariables.productCollection)
+    .find({ _id: { $in: productIds } })
+    .toArray();
+  const wishlistWithVariants = await Promise.all(products.map(async product => {
+    let variant = null;
+    if (product.variantIds.length) {
+      variant = await db.collection(dbVariables.variantCollection)
+        .findOne({ _id: new ObjectId(product.variantIds[0]) });
+    }
+    return { product, variant };
+  }));
+
+  return wishlistWithVariants;
+};
+
+
 ////////////////////////////////////////////////////////////////////////
 //userProfile

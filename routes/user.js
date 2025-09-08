@@ -52,5 +52,7 @@ router.post('/cart/delete',userController.deleteCart)
 //whishlist
 router.post('/wishlist',userConfirmed,userController.whishList)
 
+router.get('/viewWishList',userConfirmed,userController.whishListCall)
+
 module.exports = router;
   
