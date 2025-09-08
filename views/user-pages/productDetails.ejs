@@ -317,141 +317,198 @@
   <%- include('partials/footer') %>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script>
-    // Global product object
-    const PRODUCT = <%- JSON.stringify(product || {}) %>;
-    const variantsWrap = document.getElementById('variantsWrap');
-    const priceEl = document.getElementById('currentPrice');
-    const stockBadgeEl = document.getElementById('stockBadge');
-    const tdProcessor = document.getElementById('tdProcessor');
-    const tdRam = document.getElementById('tdRam');
-    const tdStorage = document.getElementById('tdStorage');
-    const tdGraphics = document.getElementById('tdGraphics');
-    const tdDisplay = document.getElementById('tdDisplay');
-    const tdColor = document.getElementById('tdColor');
-    const addToCartBtn = document.getElementById('addToCartBtn');
-    const zoomContainer = document.getElementById('zoomContainer');
-    const mainImage = document.getElementById('mainImage');
-    function selectVariant(index) {
-      const variants = PRODUCT.combProduct || [];
-      if (!variants.length) return;
-      const i = Math.max(0, Math.min(index, variants.length-1));
-      const v = variants[i];
-      // Active UI
-      [...variantsWrap.querySelectorAll('.variant-card')].forEach(c => c.classList.remove('active'));
-      const activeCard = variantsWrap.querySelector(`.variant-card[data-variant-index="${i}"]`);
-      if(activeCard) activeCard.classList.add('active');
-      // Price & stock
-      if(priceEl) priceEl.textContent = '₹' + (v.price ?? '');
-      if(stockBadgeEl) stockBadgeEl.textContent = (v.stock ?? 0) + ' in stock';
+ <script>
+  // Global product object
+  const PRODUCT = <%- JSON.stringify(product || {}) %>;
+  const variantsWrap = document.getElementById('variantsWrap');
+  const priceEl = document.getElementById('currentPrice');
+  const stockBadgeEl = document.getElementById('stockBadge');
+  const tdProcessor = document.getElementById('tdProcessor');
+  const tdRam = document.getElementById('tdRam');
+  const tdStorage = document.getElementById('tdStorage');
+  const tdGraphics = document.getElementById('tdGraphics');
+  const tdDisplay = document.getElementById('tdDisplay');
+  const tdColor = document.getElementById('tdColor');
+  const addToCartBtn = document.getElementById('addToCartBtn');
+  const wishlistBtn = document.querySelector('.btn-light-custom');
+  const zoomContainer = document.getElementById('zoomContainer');
+  const mainImage = document.getElementById('mainImage');
 
-      // Specs
-      if(tdProcessor) tdProcessor.textContent = v.processor ?? '—';
-      if(tdRam) tdRam.textContent = v.ram ?? '—';
-      if(tdStorage) tdStorage.textContent = v.storage ?? '—';
-      if(tdGraphics) tdGraphics.textContent = v.graphics ?? '—';
-      if(tdDisplay) tdDisplay.textContent = v.display ?? '—';
-      if(tdColor) tdColor.textContent = v.color ?? '—';
+  function selectVariant(index) {
+    const variants = PRODUCT.combProduct || [];
+    if (!variants.length) return;
+    const i = Math.max(0, Math.min(index, variants.length - 1));
+    const v = variants[i];
+    // Active UI
+    [...variantsWrap.querySelectorAll('.variant-card')].forEach(c => c.classList.remove('active'));
+    const activeCard = variantsWrap.querySelector(`.variant-card[data-variant-index="${i}"]`);
+    if (activeCard) activeCard.classList.add('active');
 
-      // Update Add to Cart button variantId
-      if(addToCartBtn) addToCartBtn.setAttribute('data-variant-id', v._id);
-    }
+    // Price & stock
+    if (priceEl) priceEl.textContent = '₹' + (v.price ?? '');
+    if (stockBadgeEl) stockBadgeEl.textContent = (v.stock ?? 0) + ' in stock';
 
-    function bindVariantClicks() {
-      if (!variantsWrap) return;
-      variantsWrap.addEventListener('click', e => {
-        const card = e.target.closest('.variant-card');
-        if (!card) return;
-        const idx = Number(card.getAttribute('data-variant-index'));
-        if (!Number.isNaN(idx)) selectVariant(idx);
-      });
-    }
+    // Specs
+    if (tdProcessor) tdProcessor.textContent = v.processor ?? '—';
+    if (tdRam) tdRam.textContent = v.ram ?? '—';
+    if (tdStorage) tdStorage.textContent = v.storage ?? '—';
+    if (tdGraphics) tdGraphics.textContent = v.graphics ?? '—';
+    if (tdDisplay) tdDisplay.textContent = v.display ?? '—';
+    if (tdColor) tdColor.textContent = v.color ?? '—';
 
-    function setMainImage(src){
-      if(!src) return;
-      mainImage.src = src;
-      zoomContainer.style.backgroundImage = `url('${src}')`;
-    }
+    // Update buttons' variantId
+    if (addToCartBtn) addToCartBtn.setAttribute('data-variant-id', v._id);
+    if (wishlistBtn) wishlistBtn.setAttribute('data-variant-id', v._id);
+  }
 
-    mainImage?.addEventListener('load', () => setMainImage(mainImage.src));
-    zoomContainer?.addEventListener('mousemove', e => {
-      const rect = zoomContainer.getBoundingClientRect();
-      const x = ((e.clientX - rect.left)/rect.width)*100;
-      const y = ((e.clientY - rect.top)/rect.height)*100;
-      zoomContainer.style.backgroundPosition = x + '% ' + y + '%';
+  function bindVariantClicks() {
+    if (!variantsWrap) return;
+    variantsWrap.addEventListener('click', e => {
+      const card = e.target.closest('.variant-card');
+      if (!card) return;
+      const idx = Number(card.getAttribute('data-variant-index'));
+      if (!Number.isNaN(idx)) selectVariant(idx);
     });
-    // Init
-    document.addEventListener('DOMContentLoaded', () => {
-      if(PRODUCT.images && PRODUCT.images.length) setMainImage(PRODUCT.images[0]);
-      if(PRODUCT.combProduct && PRODUCT.combProduct.length) selectVariant(0);
-      bindVariantClicks();
-    });
-    // Add to Cart functionality
-    if(addToCartBtn){
-      addToCartBtn.addEventListener('click', async () => {
-        const productId = addToCartBtn.getAttribute('data-product-id');
-        const variantId = addToCartBtn.getAttribute('data-variant-id');
-        const productName = addToCartBtn.getAttribute('data-product-name')
-        if(!variantId){
-          Swal.fire('Select Variant','Please select a variant before adding to cart.','warning');
+  }
+
+  function setMainImage(src) {
+    if (!src) return;
+    mainImage.src = src;
+    zoomContainer.style.backgroundImage = `url('${src}')`;
+  }
+
+  mainImage?.addEventListener('load', () => setMainImage(mainImage.src));
+  zoomContainer?.addEventListener('mousemove', e => {
+    const rect = zoomContainer.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    zoomContainer.style.backgroundPosition = x + '% ' + y + '%';
+  });
+
+  // Init
+  document.addEventListener('DOMContentLoaded', () => {
+    if (PRODUCT.images && PRODUCT.images.length) setMainImage(PRODUCT.images[0]);
+    if (PRODUCT.combProduct && PRODUCT.combProduct.length) selectVariant(0);
+    bindVariantClicks();
+  });
+
+  // Add to Cart functionality
+  if (addToCartBtn) {
+    addToCartBtn.addEventListener('click', async () => {
+      const productId = addToCartBtn.getAttribute('data-product-id');
+      const variantId = addToCartBtn.getAttribute('data-variant-id');
+      const productName = addToCartBtn.getAttribute('data-product-name');
+      if (!variantId) {
+        Swal.fire('Select Variant', 'Please select a variant before adding to cart.', 'warning');
+        return;
+      }
+      try {
+        const res = await fetch('/cart/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId, variantId, productName })
+        });
+        const data = await res.json();
+        if (data.loginRequired) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Login Required',
+            text: data.message || 'Please login to continue.',
+            confirmButtonText: 'Login'
+          }).then(r => { if (r.isConfirmed) window.location.href = '/login'; });
           return;
         }
-        try{
-          const res = await fetch('/cart/add', {
-            method: 'POST',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({ productId, variantId,productName })
+        if (data.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Added to Cart!',
+            text: 'Your product has been added.',
+            showCancelButton: true,
+            confirmButtonText: 'Go to Cart 🛒',
+            cancelButtonText: 'Continue Shopping'
+          }).then(result => {
+            if (result.isConfirmed) {
+              window.location.href = '/cart';
+            }
           });
-          const data = await res.json();
-          if(data.loginRequired){
-            Swal.fire({
-              icon:'warning',
-              title:'Login Required',
-              text:data.message || 'Please login to continue.',
-              confirmButtonText:'Login'
-            }).then(r => { if(r.isConfirmed) window.location.href='/login'; });
-            return;
-          }
-        if(data.success){
-  Swal.fire({
-    icon: 'success',
-    title: 'Added to Cart!',
-    text: 'Your product has been added.',
-    showCancelButton: true,
-    confirmButtonText: 'Go to Cart 🛒',
-    cancelButtonText: 'Continue Shopping'
-  }).then(result => {
-    if(result.isConfirmed){
-      window.location.href = '/cart'; // 👈 redirect to cart page
-    }
-  });
-}
-        }catch(err){
-          console.error(err);
-          Swal.fire('Error','Server error while adding to cart.','error');
+        }
+      } catch (err) {
+        console.error(err);
+        Swal.fire('Error', 'Server error while adding to cart.', 'error');
+      }
+    });
+  }
+
+  // Add to Wishlist functionality
+  if (wishlistBtn) {
+    wishlistBtn.addEventListener('click', async () => {
+      const productId = addToCartBtn.getAttribute('data-product-id');
+      const variantId = wishlistBtn.getAttribute('data-variant-id');
+      const productName = addToCartBtn.getAttribute('data-product-name');
+      if (!variantId) {
+        Swal.fire('Select Variant', 'Please select a variant before adding to wishlist.', 'warning');
+        return;
+      }
+      try {
+        const res = await fetch('/whishlist/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId, variantId })
+        });
+        const data = await res.json();
+        if (data.loginRequired) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Login Required',
+            text: data.message || 'Please login to continue.',
+            confirmButtonText: 'Login'
+          }).then(r => { if (r.isConfirmed) window.location.href = '/login'; });
+          return;
+        }
+        if (data.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Added to Wishlist ❤️',
+            text: 'Item saved to your wishlist!',
+            confirmButtonColor: '#e74c3c', // red color
+            iconColor: '#e74c3c',
+            showCancelButton: true,
+            confirmButtonText: 'View Wishlist',
+            cancelButtonText: 'Close'
+          }).then(result => {
+            if (result.isConfirmed) {
+              window.location.href = '/wishlist';
+            }
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        Swal.fire('Error', 'Server error while adding to wishlist.', 'error');
+      }
+    });
+  }
+
+  // Reviews toggle
+  const reviewCards = document.querySelectorAll('.review-card');
+  const dummyReviews = <%- JSON.stringify(dummyReviews) %>;
+  reviewCards.forEach(card => {
+    const readMore = card.querySelector('.read-more');
+    const reviewText = card.querySelector('.review-text');
+    if (readMore && reviewText) {
+      const fullText = dummyReviews[card.dataset.index].comment;
+      readMore.addEventListener('click', () => {
+        const expanded = card.classList.toggle('expanded');
+        if (expanded) {
+          reviewText.textContent = fullText;
+          readMore.textContent = 'Show less';
+        } else {
+          reviewText.textContent = fullText.split(' ').slice(0, 3).join(' ') + '...';
+          readMore.textContent = 'Read more';
         }
       });
     }
-    // Reviews toggle
-    const reviewCards = document.querySelectorAll('.review-card');
-    const dummyReviews = <%- JSON.stringify(dummyReviews) %>;
-    reviewCards.forEach(card => {
-      const readMore = card.querySelector('.read-more');
-      const reviewText = card.querySelector('.review-text');
-      if(readMore && reviewText){
-        const fullText = dummyReviews[card.dataset.index].comment;
-        readMore.addEventListener('click', () => {
-          const expanded = card.classList.toggle('expanded');
-          if(expanded){
-            reviewText.textContent = fullText;
-            readMore.textContent = 'Show less';
-          } else {
-            reviewText.textContent = fullText.split(' ').slice(0,3).join(' ') + '...';
-            readMore.textContent = 'Read more';
-          }
-        });
-      }
-    });
-  </script>
+  });
+</script>
+
 </body>
 </html>

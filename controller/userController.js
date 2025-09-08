@@ -531,3 +531,5 @@ exports.whishList = async (req, res) => {
     res.json({ success: false, message: "Server error, try again later" });
   }
 };
+//////////////////////////////////////////
+//userProfile

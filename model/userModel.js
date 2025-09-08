@@ -247,7 +247,6 @@ exports.removeProduct = async (productId, variantId, userId) => {
   const db = getDB();
   const productData = await db.collection(dbVariables.cartCollection).updateOne({ userId: userId }, { $pull: { items: { productId: productId, variantId: variantId } } })
   return productData
-
 }
 exports.addToWhishList = async (userId, productId, productName) => {
   const data = { userId, productId, productName }//obj
@@ -259,3 +258,5 @@ if (userCheck) return "data is there"
   const whishlist = await db.collection(dbVariables.whishList).insertOne(data)
   return whishlist;
 }
+////////////////////////////////////////////////////////////////////////
+//userProfile

@@ -82,6 +82,12 @@
       transition: all 0.3s ease;
     }
     .btn-checkout:hover { background: #333; transform: translateY(-2px); }
+    .cart-item-link {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      color: inherit;
+    }
   </style>
 </head>
 <body>
@@ -98,8 +104,10 @@
                  data-id="<%= item.product._id %>" 
                  data-variant="<%= item.variant._id %>" 
                  data-price="<%= item.variant.price %>"
-                 data-user="<%=userId %>">
-              <div class="d-flex align-items-center">
+                 data-user="<%=userId %>"
+                 data-stock="<%= item.variant.stock %>">
+
+              <a href="/all-product/product-details/<%= item.product._id %>" class="cart-item-link">
                 <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="me-3"/>
                 <div>
                   <div class="product-name"><%= item.product.name %></div>
@@ -110,11 +118,16 @@
                     <span><%= item.variant.ram %> GB RAM</span>
                     <span><%= item.variant.storage %> Storage</span>
                     <span><%= item.variant.graphicsCard %></span>
-                    <span><%= item.variant.stock %></span>
+                    <% if (item.variant.stock == 0) { %>
+                      <span class="text-danger">Out of Stock</span>
+                    <% } else { %>
+                      <span><%= item.variant.stock %></span>
+                    <% } %>
                     <span><%= item.variant.color %></span>
                   </div>
                 </div>
-              </div>
+              </a>
+
               <div class="d-flex align-items-center gap-2">
                 <button class="btn-qty decrease-qty">-</button>
                 <input type="text" class="form-control quantity-input" value="<%= item.quantity %>" readonly>
@@ -154,11 +167,9 @@
     </div>
   </div>
 
-
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
@@ -176,7 +187,6 @@
         document.getElementById("total").textContent = "₹" + subtotal;
       };
 
-      // ✅ Update cart API call
       const updateCart = async (productId, variantId, action) => {
         try {
           const res = await fetch("/cart/update", {
@@ -191,7 +201,6 @@
         }
       };
 
-      // ✅ Delete item API call
       const deleteCartItem = async (productId, variantId, userId) => {
         try {
           const res = await fetch("/cart/delete", {
@@ -206,23 +215,23 @@
         }
       };
 
-      // Increase qty
       document.querySelectorAll(".increase-qty").forEach(btn => {
         btn.addEventListener("click", () => {
           let item = btn.closest(".cart-item");
           let input = item.querySelector(".quantity-input");
           let current = parseInt(input.value);
-          if (current < 10) {
+          const stock = parseInt(item.dataset.stock);
+          const maxLimit = Math.min(10, stock);
+          if (current < maxLimit) {
             input.value = current + 1;
             recalcSummary();
             updateCart(item.dataset.id, item.dataset.variant, "increment");
           } else {
-            Swal.fire("Limit Reached", "Maximum quantity is 10", "info");
+            Swal.fire("Limit Reached", `Maximum allowed quantity is ${maxLimit}`, "info");
           }
         });
       });
 
-      // Decrease qty
       document.querySelectorAll(".decrease-qty").forEach(btn => {
         btn.addEventListener("click", () => {
           let item = btn.closest(".cart-item");
@@ -236,7 +245,6 @@
         });
       });
 
-      // Remove item
       document.querySelectorAll(".remove-item").forEach(btn => {
         btn.addEventListener("click", () => {
           let item = btn.closest(".cart-item");
@@ -256,6 +264,39 @@
             }
           });
         });
+      });
+
+      document.querySelector(".btn-checkout").addEventListener("click", () => {
+        const outOfStockItems = [];
+        document.querySelectorAll(".cart-item").forEach(item => {
+          if (parseInt(item.dataset.stock) === 0) {
+            outOfStockItems.push(item);
+          }
+        });
+
+        if (outOfStockItems.length > 0) {
+          Swal.fire({
+            title: "Some items are out of stock",
+            text: "Do you want to remove unavailable items from the cart?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Remove and proceed"
+          }).then(res => {
+            if (res.isConfirmed) {
+              outOfStockItems.forEach(item => {
+                const productId = item.dataset.id;
+                const variantId = item.dataset.variant;
+                const userId = item.dataset.user;
+                item.remove();
+                recalcSummary();
+                deleteCartItem(productId, variantId, userId);
+              });
+              Swal.fire("Updated", "Unavailable items removed. You can now proceed.", "success");
+            }
+          });
+        } else {
+          window.location.href = "/checkout";
+        }
       });
 
       recalcSummary();
