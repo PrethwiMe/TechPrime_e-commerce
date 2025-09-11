@@ -284,7 +284,3 @@ exports.viewWishList = async (userId) => {
 
   return wishlistWithVariants;
 };
-
-
-////////////////////////////////////////////////////////////////////////
-//userProfile

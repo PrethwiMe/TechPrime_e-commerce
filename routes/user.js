@@ -3,6 +3,7 @@ var router = express.Router();
 const userController = require('../controller/userController')
 const passport = require('../config/passport');
 const { isUserLoggedIn, userConfirmed } = require('../middleware/userSession');
+const userProfileController = require('../controller/userProfileController')
 
 console.log('!!!!!@@ user route reloaded', new Date().toLocaleTimeString());
 
@@ -51,8 +52,16 @@ router.post("/cart/update", userConfirmed,userController.quntityControlCart);
 router.post('/cart/delete',userController.deleteCart)
 //whishlist
 router.post('/wishlist',userConfirmed,userController.whishList)
-
 router.get('/viewWishList',userConfirmed,userController.whishListCall)
+
+//account settings account
+router.get('/account',userConfirmed,userProfileController.viewProfile)
+//view address
+router.get("/account/address",userConfirmed,userProfileController.viewAdress)
+//add adress
+router.post('/account/addAddress',userConfirmed,userProfileController.addAddress)
+//update address 
+router.post('/account/editAddress',userConfirmed,userProfileController.updateAddress)
 
 module.exports = router;
   

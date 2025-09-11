@@ -531,10 +531,8 @@ exports.whishList = async (req, res) => {
     res.json({ success: false, message: "Server error, try again later" });
   }
 };
-
+////whishList...................................................................
 exports.whishListCall = async (req,res) => {
-  console.log("call here");
-  console.log(req.session.user);
   const id = req.session.user.userId
 
   let wishlist = await userModel.viewWishList(id);
@@ -542,5 +540,3 @@ exports.whishListCall = async (req,res) => {
   res.render('user-pages/whishlist.ejs',{wishlist})
 
 }
-//////////////////////////////////////////
-//userProfile

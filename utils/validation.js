@@ -53,7 +53,7 @@ const addressValidation = (data) => {
       .required(),
     state: Joi.string().required(),
     city: Joi.string().required(),
-    street: Joi.string().required(),
+    line1: Joi.string().required(),
   });
                
   return schema.validate(data);
