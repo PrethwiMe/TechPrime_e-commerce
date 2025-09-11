@@ -26,7 +26,7 @@ exports.fetchUser = async (email) => {
       .collection(dbVariables.userCollection)
       .findOne(
         { email: email, isActive: true },
-        { projection: { password: 1, firstName: 1, email: 1, phone: 1, role: 1 } }
+        { projection: { password: 1, firstName: 1, email: 1, phone: 1, role: 1,referralCode:1,lastName:1 } }
       );
     return data;
   } catch (error) {

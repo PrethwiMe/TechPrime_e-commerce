@@ -57,3 +57,18 @@ const { updateId, fullName, phone, line1, city, state, pincode } = data
 )
     return dataUpdate
 }
+
+exports.updatePassword = async (email, hashedPassword) => {
+  const db = await getDB();
+  try {
+    const result = await db
+      .collection(dbVariables.userCollection)
+      .updateOne(
+        { email: email }, // Find the user by their email
+        { $set: { password: hashedPassword } } // Set the new hashed password
+      );
+    return result; // Return the result of the update operation
+  } catch (err) {
+    throw new Error('Failed to update password');
+  }
+};

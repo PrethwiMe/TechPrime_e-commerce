@@ -44,7 +44,8 @@ exports.renderLoginPage = (req, res) => {
 exports.loginAccess = async (req, res) => {
   try {
     const { email, password } = req.body;
-
+    console.log("hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii");
+console.log(req.body);
     const { error } = joi.loginValidation({ email, password });
     if (error) {
       return res.render('user-pages/login', { error: error.details[0].message });

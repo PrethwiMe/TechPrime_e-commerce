@@ -4,6 +4,8 @@ const sendMail = require('../utils/mailSend');
 const { addressValidation } = require('../utils/validation');
 const userProfileModel = require("../model/userProfileModel")
 const { v4: uuidv4 } = require('uuid');
+const bcrypt = require('bcrypt');
+const upload = require('../middleware/multer')
 
 
 
@@ -51,3 +53,45 @@ exports.updateAddress = async (req,res) => {
             return res.status(400).json({ message: "No changes were made or address not found." });
         }  
 }
+//viewUserEditpage
+
+exports.viewUserEditpage = async (req,res) => {
+  const email =  req.session.user.email
+
+ let data = await userModel.fetchUser(email)
+ res.render('user-pages/editUserData.ejs',{user:data})
+
+}
+///////////////////////////////////////////////////////////////////////
+exports.userImage = async (req,res) => {
+
+    console.log(req.file);
+    
+}
+////////////////////////////////////////////////////////////////////////
+exports.updatePassword = async (req, res) => {
+  const { firstName, email, phone, currentPassword, newPassword, confirmPassword } = req.body;
+  
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({ message: "New password and confirmation do not match!" });
+  }
+  let data = await userModel.fetchUser(email);
+  if (!data) {
+    return res.status(404).json({ message: "User not found!" });
+  }
+
+  const isMatch = await bcrypt.compare(currentPassword, data.password);
+    if (!isMatch) {
+    return res.status(400).json({ message: "Current password is incorrect!" });
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  const updateResult = await userModel.updatePassword(email, hashedPassword);
+
+  if (updateResult.modifiedCount > 0) {
+    return res.status(200).json({ message: "Password updated successfully!" });
+  } else {
+    return res.status(400).json({ message: "Failed to update password." });
+  }
+};
