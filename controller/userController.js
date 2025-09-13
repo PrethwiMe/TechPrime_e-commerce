@@ -44,7 +44,6 @@ exports.renderLoginPage = (req, res) => {
 exports.loginAccess = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log("hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii");
 console.log(req.body);
     const { error } = joi.loginValidation({ email, password });
     if (error) {
@@ -86,7 +85,7 @@ exports.handleSignup = async (req, res) => {
     const { firstName, lastName, email, phone, password, confirmPassword, referralCode } = req.body;
 
     const { error } = joi.signupValidation({
-      name: firstName, // mapping to schema
+      name: firstName, 
       email,
       phone,
       password,
@@ -532,12 +531,11 @@ exports.whishList = async (req, res) => {
     res.json({ success: false, message: "Server error, try again later" });
   }
 };
-////whishList...................................................................
+////whishList
 exports.whishListCall = async (req,res) => {
   const id = req.session.user.userId
-
   let wishlist = await userModel.viewWishList(id);
-
   res.render('user-pages/whishlist.ejs',{wishlist})
-
 }
+
+

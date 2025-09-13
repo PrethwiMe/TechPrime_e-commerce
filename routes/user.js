@@ -68,8 +68,9 @@ router.post('/account/editAddress',userConfirmed,userProfileController.updateAdd
 router.get('/account/edit',userConfirmed,userProfileController.viewUserEditpage)
 //  image  pending user profile
 router.post('/account/uploadImage', upload.single('image'),userProfileController.userImage)
-
 //update password
 router.post('/account/updatePassword',userConfirmed,userProfileController.updatePassword)
+//checkOut
+router.get('/checkout',userConfirmed,userProfileController.checkoutView)
 module.exports = router;
   

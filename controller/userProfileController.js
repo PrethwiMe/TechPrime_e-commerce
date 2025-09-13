@@ -5,9 +5,8 @@ const { addressValidation } = require('../utils/validation');
 const userProfileModel = require("../model/userProfileModel")
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
-const upload = require('../middleware/multer')
-
-
+const upload = require('../middleware/multer');
+const { getDB } = require('../config/mongodb');
 
 exports.viewProfile = (req, res) => {
 
@@ -94,4 +93,14 @@ exports.updatePassword = async (req, res) => {
   } else {
     return res.status(400).json({ message: "Failed to update password." });
   }
+};
+
+//check
+exports.checkoutView = async (req, res) => {
+  const userId = req.session.user.userId;
+  let data = await userProfileModel.checkOutView(userId);
+  res.render('user-pages/checkOutPage.ejs', {
+    cartItems: data.cartItems,
+    addresses: data.addresses.length > 0 ? data.addresses[0].addresses : []
+  });
 };

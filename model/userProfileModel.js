@@ -64,11 +64,75 @@ exports.updatePassword = async (email, hashedPassword) => {
     const result = await db
       .collection(dbVariables.userCollection)
       .updateOne(
-        { email: email }, // Find the user by their email
-        { $set: { password: hashedPassword } } // Set the new hashed password
+        { email: email }, 
+        { $set: { password: hashedPassword } } 
       );
-    return result; // Return the result of the update operation
+    return result;
   } catch (err) {
     throw new Error('Failed to update password');
+  }
+};
+
+
+exports.checkOutView = async (userId) => {
+  try {
+
+    const db = await getDB();
+
+
+    const cart = await db.collection(dbVariables.cartCollection).findOne({ userId: userId });
+
+    if (!cart) {
+      return []; 
+    }
+
+   
+    const pipeline = [
+      { $match: { userId: userId } },
+      { $unwind: "$items" },
+      {
+        $addFields: {
+          "items.productId": { $toObjectId: "$items.productId" },
+          "items.variantId": { $toObjectId: "$items.variantId" }
+        }
+      },
+      {
+        $lookup: {
+          from: dbVariables.productCollection,
+          localField: "items.productId",
+          foreignField: "_id",
+          as: "product"
+        }
+      },
+      { $unwind: "$product" },
+      {
+        $lookup: {
+          from: dbVariables.variantCollection,
+          localField: "items.variantId",
+          foreignField: "_id",
+          as: "variant"
+        }
+      },
+      { $unwind: "$variant" },
+      {
+        $project: {
+          _id: 0,
+          product: 1,
+          variant: 1,
+          quantity: "$items.quantity",
+          productName: "$items.productName"
+        }
+      }
+    ];
+
+
+   const cartItems = await db.collection(dbVariables.cartCollection).aggregate(pipeline).toArray();
+
+   const addresses = await db.collection(dbVariables.addressCollection).find({userId:userId}).toArray()
+
+    return {cartItems,addresses}
+
+  } catch (error) {
+    return [];
   }
 };
