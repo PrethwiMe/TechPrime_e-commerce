@@ -5,6 +5,7 @@ const passport = require('../config/passport');
 const { isUserLoggedIn, userConfirmed } = require('../middleware/userSession');
 const userProfileController = require('../controller/userProfileController')
 const upload = require('../middleware/multer')
+const {uploadUser} = require('../middleware/cloudinary')
 
 
 console.log('!!!!!@@ user route reloaded', new Date().toLocaleTimeString());
@@ -67,10 +68,12 @@ router.post('/account/editAddress',userConfirmed,userProfileController.updateAdd
 //edit details
 router.get('/account/edit',userConfirmed,userProfileController.viewUserEditpage)
 //  image  pending user profile
-router.post('/account/uploadImage', upload.single('image'),userProfileController.userImage)
+//router.post('/account/uploadImage',uploadUser.single('profileImage'),userProfileController.userImage);
+
 //update password
 router.post('/account/updatePassword',userConfirmed,userProfileController.updatePassword)
 //checkOut
 router.get('/checkout',userConfirmed,userProfileController.checkoutView)
+
 module.exports = router;
   

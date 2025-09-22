@@ -6,6 +6,8 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.OWNER_MAIL,
     pass: process.env.OWNER_PASS,
+  },  tls: {
+    rejectUnauthorized: false,
   },
 });
 

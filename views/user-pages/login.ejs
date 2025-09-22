@@ -1,7 +1,7 @@
 <%- include('partials/header') %>
 <link rel="stylesheet" href="/stylesheets/userLogin.css">
 
-<div class="container-fluid px-5 ">
+<div class="container-fluid px-5">
   <div class="row min-vh-100 d-flex align-items-center">
     
     <!-- Left Image -->
@@ -15,18 +15,13 @@
         <h2 class="fw-bold mb-2">Log in</h2>
         <p class="mb-4">Enter your details below</p>
 
-        <!-- 🔴 Error Message -->
-        <% if (typeof error !== 'undefined' && error) { %>
-          <div class="alert alert-danger"><%= error %></div>
-        <% } %>
-
-        <form action="/login-req" method="POST">
+        <form id="login-form">
           <div class="mb-3">
-            <input type="email" name="email" class="form-control border-0 border-bottom rounded-0" placeholder="Email" >
+            <input type="email" name="email" id="email" class="form-control border-0 border-bottom rounded-0" placeholder="Email" >
           </div>
 
           <div class="mb-3">
-            <input type="password" name="password" class="form-control border-0 border-bottom rounded-0" placeholder="Password" >
+            <input type="password" name="password" id="password" class="form-control border-0 border-bottom rounded-0" placeholder="Password" >
           </div>
 
           <div class="d-flex justify-content-end mb-4">
@@ -38,16 +33,14 @@
           </div>
 
           <div class="d-grid mb-4">
-         <a href="/auth/google" class="btn btn-outline-dark d-flex align-items-center justify-content-center gap-2 text-decoration-none">
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" width="20" alt="Google Icon">
-  Sign in with Google
-</a>
-
-            
+            <a href="/auth/google" class="btn btn-outline-dark d-flex align-items-center justify-content-center gap-2 text-decoration-none">
+              <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" width="20" alt="Google Icon">
+              Sign in with Google
+            </a>
           </div>
         </form>
 
-        <p class="text-center">Don't have account? <a href="/signup" class="text-decoration-none fw-semibold">Sign Up</a></p>
+        <p class="text-center">Don't have an account? <a href="/signup" class="text-decoration-none fw-semibold">Sign Up</a></p>
       </div>
     </div>
 
@@ -55,3 +48,48 @@
 </div>
 
 <%- include('partials/footer') %>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  document.getElementById('login-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    // Get form data
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    // Send data to the server via Axios
+    axios.post('/login-req', {
+      email: email,
+      password: password
+    })
+    .then(function (response) {
+      // Show success alert using SweetAlert2
+      Swal.fire({
+        title: 'Login Successful!',
+        text: 'Welcome back!',
+        icon: 'success',
+        confirmButtonText: 'Okay'
+      }).then(() => {
+        // Redirect to the homepage or dashboard after successful login
+        window.location.href = '/';
+      });
+    })
+    .catch(function (error) {
+      let errorMessage = 'An error occurred. Please try again.';
+      if (error.response && error.response.data && error.response.data.error) {
+        errorMessage = error.response.data.error;
+      }
+
+      // Show error alert using SweetAlert2
+      Swal.fire({
+        title: 'Login Failed!',
+        text: errorMessage,
+        icon: 'error',
+        confirmButtonText: 'Try Again'
+      });
+    });
+  });
+</script>

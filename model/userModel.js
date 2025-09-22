@@ -33,20 +33,29 @@ exports.fetchUser = async (email) => {
     console.log(error);
   }
 };
-
+//check user exist or not 
+exports.userCheck = async (query) =>{
+  try {
+    const db = getDB();
+    let data = await db
+      .collection(dbVariables.userCollection)
+      .findOne(query);
+    return data;
+  } catch (error) {
+    console.log(error);
+  }
+}
 exports.resendotpData = (mail, otp) => {
 
   const db = getDB();
   let forOtp = db.collection(dbVariables.userCollection).updateOne({ email: mail }, { $set: { otp: otp, otpCreated: new Date() } })
   return forOtp
 }
-
 exports.userVerify = async (mail) => {
   const db = await getDB()
   const user = await db.collection(dbVariables.userCollection).findOne({ email: mail })
   return user;
 }
-
 exports.userActive = async (mail) => {
   const db = await getDB();
   const user = await db.collection(dbVariables.userCollection).updateOne({ email: mail }, { $set: { isActive: true } })
@@ -108,7 +117,6 @@ exports.addToCartdb = async (userId, productId, variantId, productName) => {
     ? { success: true, message: "New cart created and product added" }
     : { success: false, message: "Failed to create new cart" };
 };
-
 exports.viewCartData = async (userId) => {
   const db = await getDB();
 
@@ -258,7 +266,6 @@ if (userCheck) return "data is there"
   const whishlist = await db.collection(dbVariables.whishList).insertOne(data)
   return whishlist;
 }
-
 exports.viewWishList = async (userId) => {
   const db = await getDB();
 

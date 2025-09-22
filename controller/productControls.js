@@ -42,36 +42,22 @@ exports.handleAddProduct = async (req, res) => {
       isActive,
       variant
     } = req.body;
-    console.log("data is try bfore validatoin");
 
-    if (!name?.trim()) return res.json({ error: 'Product name is required.' });
-    if (!companyDetails?.trim()) return res.json({ error: 'Company details are required.' });
-    if (!description?.trim()) return res.json({ error: 'Description is required.' });
-    if (!categoriesId?.trim()) return res.json({ error: 'Category ID is required.' });
-    if (!packageItems?.trim()) return res.json({ error: 'Package items are required.' });
-    if (!OS?.trim()) return res.json({ error: 'OS is required.' });
-    if (!dimension?.trim()) return res.json({ error: 'Dimension is required.' });
-    if (!series?.trim()) return res.json({ error: 'Series is required.' });
-    if (!originalPrice || isNaN(originalPrice) || parseFloat(originalPrice) <= 0) {
-      return res.json({ error: 'Original price must be a positive number.' });
-    }
-    if (!variant) {
-      return res.json({ error: 'Variants must be provided as an array.' });
-    }
-    const requiredVariantFields = ['processor', 'ram', 'storage', 'graphics', 'color', 'display', 'price', 'stock'];
-    for (let v of variant) {
-      for (let field of requiredVariantFields) {
-        if (!v[field] || (typeof v[field] === 'string' && !v[field].trim())) {
-          return res.json({ error: `Variant ${field} is required.` });
-        }
-      }
-      if (isNaN(v.price)) {
-        return res.json({ error: 'Variant price must be a positive number.' });
-      }
-      if (isNaN(v.stock)) {
-        return res.json({ error: 'Variant stock must be a non-negative integer.' });
-      }
-    }
+      const { error, value } = productValidation(req.body);
+
+  if (error) {
+    const messages = error.details.map((d) => d.message);
+    return res.json({ error: messages });
+  }
+
+  try {
+    // if valid, proceed
+    console.log("Validated Product:", value);
+    res.json({ success: true, product: value });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+
     const imagePaths = req.files.map(file => '/uploads/products/' + file.filename);
     console.log("data is try before object");
 

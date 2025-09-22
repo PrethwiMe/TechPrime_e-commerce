@@ -30,17 +30,15 @@ exports.loadHome = async (req, res) => {
     res.status(500).render('error', { error: 'Server error loading home page' });
   }
 };
-
-
 exports.renderLoginPage = (req, res) => {
   try {
+    
     res.render('user-pages/login', { user: req.session.user });
   } catch (error) {
     console.log(error);
     res.render('error');
   }
 };
-
 exports.loginAccess = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -59,24 +57,22 @@ console.log(req.body);
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+     
       return res.render('user-pages/login', { error: 'Invalid email or password.' });
     }
-
-    req.session.user = {
+         req.session.user = {
       userId: user._id,
       firstName: user.firstName,
       email: user.email,
       phone: user.phone,
       role: user.role
     };
-
     return res.redirect('/');
   } catch (error) {
     console.error('Login error:', error);
     return res.render('user-pages/login', { error: 'Server error. Please try again.' });
   }
 };
-
 exports.renderSignupPage = (req, res) => {
   res.render('user-pages/signup', { error: null });
 };
@@ -97,7 +93,11 @@ exports.handleSignup = async (req, res) => {
     }
 
     //  Check if email already exists
-    const existingUser = await userModel.fetchUser(email);
+    const data={
+      email:email
+    }
+    const existingUser = await userModel.userCheck(data);
+    console.log(existingUser);
     if (existingUser) {
       return res.render('user-pages/signup', { error: 'Email is already registered. Please log in or use another email.' });
     }
@@ -134,7 +134,6 @@ exports.handleSignup = async (req, res) => {
     return res.status(500).render('error', { error: 'Server error. Please try again.' });
   }
 };
-
 exports.resendOtp = async (req, res) => {
   try {
     let mail = req.body.email
@@ -149,7 +148,6 @@ exports.resendOtp = async (req, res) => {
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
-
 exports.verifyUserOtp = async (req, res) => {
   //otp from front end
   const { email, otp } = req.body

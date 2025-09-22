@@ -1,7 +1,5 @@
 const Joi = require("joi");
 
-
-
 const signupValidation = (data) => {
   const schema = Joi.object({
     name: Joi.string().min(3).max(30).required(),
@@ -60,9 +58,48 @@ const addressValidation = (data) => {
 };
 
 /* =====================
+   CHECKOUT VALIDATIONS
+   ===================== */
+const checkoutValidation = (data) => {
+  const schema = Joi.object({
+    selectedAddress: Joi.string()
+      .guid({ version: ["uuidv4", "uuidv5"] })
+      .message("Invalid address ID format")
+      .required(),
+
+    paymentMethod: Joi.string()
+      .valid("COD", "Online", "Wallet", "creditCard", "debitCard", "netBanking", "upi")
+      .required(),
+
+    couponCode: Joi.string()
+      .allow("")
+      .pattern(/^[A-Z0-9]{0,10}$/)
+      .message("Coupon code must be up to 10 chars (A-Z, 0-9 only)"),
+
+    fullName: Joi.string().min(3).max(50).required(),
+
+    phone: Joi.string()
+      .pattern(/^[6-9]\d{9}$/)
+      .message("Phone must be a valid 10-digit Indian number")
+      .required(),
+
+    line1: Joi.string().min(3).max(100).required(),
+    city: Joi.string().min(2).max(50).required(),
+    state: Joi.string().min(2).max(50).required(),
+
+    pincode: Joi.string()
+      .pattern(/^\d{6}$/)
+      .message("Pincode must be a valid 6-digit number")
+      .required(),
+  });
+
+  return schema.validate(data);
+};
+
+
+/* =====================
    PRODUCT VALIDATIONS
    ===================== */
-
 const productValidation = (data) => {
   const schema = Joi.object({
     name: Joi.string().min(2).max(100).required(),
@@ -124,13 +161,25 @@ const orderValidation = (data) => {
       )
       .min(1)
       .required(),
-    addressId: Joi.string().required(),
-    paymentMethod: Joi.string().valid("COD", "Online", "Wallet").required(),
+    selectedAddress: Joi.string().required(),
+    paymentMethod: Joi.string().valid("COD", "Online", "Wallet", "creditCard", "debitCard", "upi", "netBanking").required(),
     totalAmount: Joi.number().positive().required(),
   });
 
   return schema.validate(data);
 };
+
+
+const variantSchema = Joi.object({
+  processor: Joi.string().trim().required(),
+  ram: Joi.string().trim().required(),
+  storage: Joi.string().trim().required(),
+  graphics: Joi.string().trim().required(),
+  color: Joi.string().trim().required(),
+  display: Joi.string().trim().required(),
+  price: Joi.number().positive().required(),
+  stock: Joi.number().integer().min(0).required(),
+});
 
 /* =====================
    PAYMENT VALIDATIONS
@@ -153,6 +202,7 @@ module.exports = {
   signupValidation,
   loginValidation,
   addressValidation,
+  checkoutValidation, 
   productValidation,
   categoryValidation,
   couponValidation,

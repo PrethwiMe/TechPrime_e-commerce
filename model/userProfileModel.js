@@ -129,8 +129,8 @@ exports.checkOutView = async (userId) => {
    const cartItems = await db.collection(dbVariables.cartCollection).aggregate(pipeline).toArray();
 
    const addresses = await db.collection(dbVariables.addressCollection).find({userId:userId}).toArray()
-
-    return {cartItems,addresses}
+  const data = { cartItems, addresses };
+    return data;
 
   } catch (error) {
     return [];

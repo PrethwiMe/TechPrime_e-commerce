@@ -6,54 +6,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Checkout | TechCart</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
 
   <style>
-    .address-card {
-      border: 1px solid #ccc;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      transition: background-color 0.3s;
+    body {
+      background-color: #fff;
+      color: #000;
     }
 
-    .address-card:hover {
-      background-color: #e9f5ff;
+    .breadcrumb {
+      background-color: #f8f9fa !important;
     }
 
-    .coupon-button {
-      background-color: #007bff;
-      color: #fff;
-      border: none;
-      transition: background-color 0.3s;
+    .address-card,
+    .payment-card {
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: 2px solid #ddd;
     }
 
-    .coupon-button:hover {
-      background-color: #0056b3;
+    .address-card:hover,
+    .payment-card:hover {
+      background-color: #f8f9f8;
     }
 
-    .place-order-btn {
-      background-color: #28a745;
-      color: #fff;
-      border: none;
-      transition: background-color 0.3s;
+    .address-card.selected,
+    .payment-card.selected {
+      border-color: #000 !important;
+      background-color: #eaeaea;
     }
 
-    .place-order-btn:hover {
-      background-color: #218838;
+    .btn-dark {
+      background-color: #000 !important;
+      border: none !important;
+      color: #fff !important;
     }
 
-    .available-coupons {
-      background-color: #17a2b8;
-      color: #fff;
-      border-radius: 25px;
-      padding: 10px 20px;
-      display: inline-block;
+    .btn-dark:hover {
+      background-color: #333 !important;
+      color: #fff !important;
     }
 
-    @media (max-width: 767px) {
-      .order-summary {
-        margin-top: 30px;
-      }
+    .card-header {
+      background-color: #000 !important;
+      color: #fff !important;
     }
   </style>
 </head>
@@ -62,111 +59,255 @@
   <%- include('partials/header') %>
 
   <div class="container my-5">
+    <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/account">Account</a></li>
-        <li class="breadcrumb-item"><a href="/cart">Product</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Checkout</li>
+      <ol class="breadcrumb p-3 rounded">
+        <li class="breadcrumb-item">
+          <a href="/account" class="text-decoration-none text-dark">
+            <i class="bi bi-person-circle me-1"></i>Account
+          </a>
+        </li>
+        <li class="breadcrumb-item">
+          <a href="/cart" class="text-decoration-none text-dark">
+            <i class="bi bi-cart me-1"></i>Product
+          </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">
+          <i class="bi bi-credit-card me-1"></i>Checkout
+        </li>
       </ol>
     </nav>
 
-    <h2 class="mb-4">Billing Details</h2>
+    <div class="d-flex align-items-center mb-4">
+      <i class="bi bi-receipt-cutoff fs-2 text-dark me-3"></i>
+      <h2 class="mb-0">Billing Details</h2>
+    </div>
 
     <div class="row">
+      <!-- Address Section -->
       <div class="col-lg-6">
-        <h5>Delivery Address</h5>
-
-        <form method="POST" action="/checkout/placeOrder">
-          <% if (addresses.length === 0) { %>
-            <p>No addresses found. Please add an address in your profile.</p>
-          <% } %>
-
-          <% addresses.forEach(function(address, index) { %>
-            <div class="address-card">
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="selectedAddress" id="address<%= index %>" value="<%= address.id %>" <%= index === 0 ? 'checked' : '' %> required>
-                <label class="form-check-label" for="address<%= index %>">
-                  <%= address.fullName %>, <%= address.line1 %><br />
-                  <%= address.city %>, <%= address.state %><br />
-                  Pincode: <%= address.pincode %><br />
-                  Contact: <%= address.phone %>
-                </label>
-              </div>
-            </div>
-          <% }); %>
-
-<button type="button" class="btn btn-secondary mb-4" onclick="window.location.href='/account/address'">Add New Address</button>
-
-          <h5>Payment Methods</h5>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="paymentMethod" id="debitCard" value="debitCard" checked required>
-            <label class="form-check-label" for="debitCard">
-              Debit/Credit Card
-            </label>
-          </div>
-
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="paymentMethod" id="bank" value="bank">
-            <label class="form-check-label" for="bank">Bank</label>
-          </div>
-
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="paymentMethod" id="upi" value="upi">
-            <label class="form-check-label" for="upi">UPI Method</label>
-          </div>
-
-          <div class="form-check mb-4">
-            <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="cod">
-            <label class="form-check-label" for="cod">Cash on Delivery</label>
-          </div>
-      </div>
-
-      <div class="col-lg-6 order-summary">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <span class="available-coupons">AVAILABLE COUPONS</span>
+          <h5 class="mb-0">
+            <i class="bi bi-geo-alt-fill text-dark me-2"></i>Delivery Address
+          </h5>
+          <button type="button" class="btn btn-dark btn-sm" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+            <i class="bi bi-plus-circle me-1"></i>Add New Address
+          </button>
         </div>
 
-        <% let subtotal = 0; %>
-        <% cartItems.forEach(item => { %>
-          <% let itemTotal = item.variant.price * item.quantity; %>
-          <% subtotal += itemTotal; %>
-          <div class="d-flex mb-3">
-            <img src="<%= (item.product.images && item.product.images.length > 0) ? item.product.images[0] : '/images/default-product.png' %>" alt="Product Image" class="img-fluid me-3" style="max-width: 100px;">
-            <div>
-              <p><strong><%= item.product.name %></strong></p>
-              <p>₹<%= item.variant.price.toLocaleString() %> (Incl. all Taxes)</p>
-              <p>Quantity: <%= item.quantity %></p>
+        <% if (addresses.length === 0) { %>
+          <div class="alert alert-warning" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            No addresses found. Please add an address to continue.
+          </div>
+        <% } %>
+
+        <% addresses.forEach(function(address, index) { %>
+          <div class="card address-card mb-3" onclick="selectAddress(<%= index %>)">
+            <div class="card-body">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="selectedAddress" id="address<%= index %>"
+                  value="<%= address.id %>" <%= index === 0 ? 'checked' : '' %> required>
+                <label class="form-check-label w-100" for="address<%= index %>">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <h6 class="mb-1 text-dark"><i class="bi bi-person-fill me-1"></i><%= address.fullName %></h6>
+                      <p class="mb-1"><i class="bi bi-house-door me-1"></i><%= address.line1 %></p>
+                      <p class="mb-1"><i class="bi bi-geo me-1"></i><%= address.city %>, <%= address.state %></p>
+                      <p class="mb-1"><i class="bi bi-mailbox me-1"></i>Pincode: <%= address.pincode %></p>
+                      <p class="mb-0"><i class="bi bi-telephone me-1"></i>Contact: <%= address.phone %></p>
+                    </div>
+                    <i class="bi bi-check-circle-fill text-dark fs-4" style="display: none;" id="check<%= index %>"></i>
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
         <% }); %>
 
-        <ul class="list-group mb-3">
-          <li class="list-group-item d-flex justify-content-between">
-            <span>Subtotal:</span>
-            <strong>₹<%= subtotal.toLocaleString() %></strong>
-          </li>
-          <li class="list-group-item d-flex justify-content-between">
-            <span>Shipping:</span>
-            <strong>Free</strong>
-          </li>
-          <li class="list-group-item d-flex justify-content-between">
-            <span>Total:</span>
-            <strong>₹<%= subtotal.toLocaleString() %></strong>
-          </li>
-        </ul>
+        <!-- Payment Methods -->
+        <h5 class="mt-4 mb-3">
+          <i class="bi bi-credit-card-2-front text-dark me-2"></i>Payment Methods
+        </h5>
 
-        <div class="input-group mb-3">
-          <input type="text" class="form-control" placeholder="Coupon Code" name="couponCode">
-          <button class="btn coupon-button btn-primary" type="submit" >Apply Coupon</button>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="card payment-card" onclick="selectPayment('debitCard')">
+              <div class="card-body text-center">
+                <input class="form-check-input" type="radio" name="paymentMethod" id="debitCard" value="debitCard" checked required>
+                <label class="form-check-label w-100" for="debitCard">
+                  <i class="bi bi-credit-card fs-2 text-dark d-block mb-2"></i><strong>Debit/Credit Card</strong>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card payment-card" onclick="selectPayment('bank')">
+              <div class="card-body text-center">
+                <input class="form-check-input" type="radio" name="paymentMethod" id="bank" value="bank">
+                <label class="form-check-label w-100" for="bank">
+                  <i class="bi bi-bank fs-2 text-dark d-block mb-2"></i><strong>Net Banking</strong>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card payment-card" onclick="selectPayment('upi')">
+              <div class="card-body text-center">
+                <input class="form-check-input" type="radio" name="paymentMethod" id="upi" value="upi">
+                <label class="form-check-label w-100" for="upi">
+                  <i class="bi bi-phone fs-2 text-dark d-block mb-2"></i><strong>UPI Payment</strong>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card payment-card" onclick="selectPayment('cod')">
+              <div class="card-body text-center">
+                <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="cod">
+                <label class="form-check-label w-100" for="cod">
+                  <i class="bi bi-cash-coin fs-2 text-dark d-block mb-2"></i><strong>Cash on Delivery</strong>
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
 
-        <button type="submit" class="btn place-order-btn w-100 btn-success">Place Order</button>
-        </form>
+      <!-- Order Summary -->
+      <div class="col-lg-6 mt-4 mt-lg-0">
+        <div class="card shadow-sm">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Order Summary</h5>
+          </div>
+          <div class="card-body">
+            <% cartItems.forEach(item => { %>
+              <div class="d-flex align-items-center mb-3 p-2 border rounded">
+                <img src="<%= (item.product.images && item.product.images.length > 0) ? item.product.images[0] : '/images/default-product.png' %>"
+                  alt="Product Image" class="img-fluid rounded me-3" style="max-width: 80px; height: 80px; object-fit: cover;">
+                <div class="flex-grow-1">
+                  <h6 class="mb-1"><%= item.product.name %></h6>
+                  <p class="mb-1 fw-bold">₹<%= item.variant.price.toLocaleString() %></p>
+                  <span class="badge bg-dark">Qty: <%= item.quantity %></span>
+                </div>
+              </div>
+            <% }); %>
+
+            <div class="border-top pt-3">
+              <div class="d-flex justify-content-between mb-2"><span>Subtotal:</span><strong>₹<%= subtotal.toLocaleString() %></strong></div>
+              <div class="d-flex justify-content-between mb-2"><span>Tax:</span><strong>₹<%= tax.toLocaleString() %></strong></div>
+              <div class="d-flex justify-content-between mb-2"><span>Delivery:</span><strong>₹<%= deliveryCharge.toLocaleString() %></strong></div>
+              <hr>
+              <div class="d-flex justify-content-between fs-5"><span class="fw-bold">Total:</span><strong class="text-dark">₹<%= total.toLocaleString() %></strong></div>
+            </div>
+
+            <div class="mt-3">
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-tag"></i></span>
+                <input type="text" class="form-control" placeholder="Enter Coupon Code" name="couponCode">
+                <button class="btn btn-dark" type="submit" formaction="/checkout/applyCoupon">
+                  <i class="bi bi-check-circle me-1"></i>Apply
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-dark btn-lg w-100 mt-3" id="placeOrderBtn">
+              <i class="bi bi-bag-check me-2"></i>Place Order
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+  <!-- Add Address Modal -->
+  <div class="modal fade" id="addAddressModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-dark text-white">
+          <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Add New Address</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <!-- AJAX Form -->
+          <form id="addAddressForm">
+            <div class="row g-3">
+              <div class="col-md-6"><label class="form-label">Full Name *</label><input type="text" class="form-control" name="fullName" required></div>
+              <div class="col-md-6"><label class="form-label">Phone *</label><input type="tel" class="form-control" name="phone" required></div>
+              <div class="col-12"><label class="form-label">Address Line 1 *</label><input type="text" class="form-control" name="line1" required></div>
+              <div class="col-md-4"><label class="form-label">City *</label><input type="text" class="form-control" name="city" required></div>
+              <div class="col-md-4"><label class="form-label">State *</label>
+                <select class="form-select" name="state" required>
+                  <option value="">Select State</option>
+                  <option>Kerala</option><option>Karnataka</option><option>Tamil Nadu</option><option>Maharashtra</option>
+                </select>
+              </div>
+              <div class="col-md-4"><label class="form-label">Pincode *</label><input type="text" class="form-control" name="pincode" pattern="[0-9]{6}" required></div>
+            </div>
+            <div class="modal-footer mt-3">
+              <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-dark">Save Address</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+    function selectAddress(index) {
+      document.querySelectorAll('.address-card').forEach(card => card.classList.remove('selected'));
+      document.querySelectorAll('[id^="check"]').forEach(icon => icon.style.display = 'none');
+      document.getElementById(`address${index}`).checked = true;
+      document.getElementById(`check${index}`).style.display = 'block';
+      document.getElementById(`address${index}`).closest('.address-card').classList.add('selected');
+    }
+
+    function selectPayment(method) {
+      document.querySelectorAll('.payment-card').forEach(card => card.classList.remove('selected'));
+      document.getElementById(method).checked = true;
+      document.getElementById(method).closest('.payment-card').classList.add('selected');
+    }
+
+    // AJAX Save Address using Axios + SweetAlert2
+    document.getElementById("addAddressForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+      const data = {
+        fullName: formData.get("fullName"),
+        phone: formData.get("phone"),
+        line1: formData.get("line1"),
+        city: formData.get("city"),
+        state: formData.get("state"),
+        pincode: formData.get("pincode")
+      };
+
+      try {
+        const res = await axios.post("/account/addAddress", data);
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: "Address saved successfully.",
+          confirmButtonColor: "#000"
+        }).then(() => {
+          location.reload();
+        });
+      } catch (err) {
+        console.error(err);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: err.response?.data?.message || "Failed to save address.",
+          confirmButtonColor: "#000"
+        });
+      }
+    });
+  </script>
+</body>
 </html>
