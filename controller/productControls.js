@@ -7,6 +7,7 @@ const dbVariables = require('../config/databse');
 const paginate = require('../utils/paginate');
 const { error } = require('console');
 const { ObjectId } = require('mongodb');
+const{productValidation} = require('../utils/validation')
 // add product
 exports.renderAddProduct = async (req, res) => {
   try {
@@ -21,14 +22,13 @@ exports.renderAddProduct = async (req, res) => {
 };
 
 //adding product
+
 exports.handleAddProduct = async (req, res) => {
-
-
   try {
     if (!req.files || req.files.length !== 3) {
-      console.log("data is try first");
       return res.json({ error: 'Please upload exactly 3 images.' });
     }
+
     const {
       name,
       companyDetails,
@@ -43,23 +43,23 @@ exports.handleAddProduct = async (req, res) => {
       variant
     } = req.body;
 
-      const { error, value } = productValidation(req.body);
-
-  if (error) {
-    const messages = error.details.map((d) => d.message);
-    return res.json({ error: messages });
-  }
-
-  try {
-    // if valid, proceed
-    console.log("Validated Product:", value);
-    res.json({ success: true, product: value });
-  } catch (err) {
-    res.status(500).json({ error: "Server error" });
-  }
-
     const imagePaths = req.files.map(file => '/uploads/products/' + file.filename);
-    console.log("data is try before object");
+
+    const productDataForValidation = {
+      name,
+      description,
+      price: parseFloat(originalPrice),
+      stock: variant && variant.length > 0 ? parseInt(variant[0].stock) : 0, 
+      categoryId: categoriesId,
+      brand: companyDetails || '',
+      images: imagePaths
+    };
+
+    const { error, value } = productValidation(productDataForValidation);
+    if (error) {
+      const messages = error.details.map(d => d.message);
+      return res.json({ error: messages });
+    }
 
     const productData = {
       name,
@@ -77,39 +77,40 @@ exports.handleAddProduct = async (req, res) => {
     };
     const productResult = await productModel.insertProduct(productData);
     const productId = productResult.insertedId;
-    const variantIds = [];
-    for (let v of variant) {
-      const variantData = {
-        productId,
-        processor: v.processor,
-        ram: v.ram,
-        storage: v.storage,
-        graphics: v.graphics,
-        color: v.color,
-        display: v.display,
-        price: parseFloat(v.price),
-        stock: parseInt(v.stock)
-      };
-      const variantResult = await productModel.insertVariant(variantData);
 
-      variantIds.push(variantResult.insertedId);
+    const variantIds = [];
+    if (variant && Array.isArray(variant)) {
+      for (let v of variant) {
+        const variantData = {
+          productId,
+          processor: v.processor,
+          ram: v.ram,
+          storage: v.storage,
+          graphics: v.graphics,
+          color: v.color,
+          display: v.display,
+          price: parseFloat(v.price),
+          stock: parseInt(v.stock)
+        };
+        const variantResult = await productModel.insertVariant(variantData);
+        variantIds.push(variantResult.insertedId);
+      }
     }
-   let data = await productModel.updateProductVarientsData(productId, variantIds);
-    if (data) {
-      console.log("added to db");
-       res.json({
-    success: true,
-    message: 'Variants added successfully',
-    productId,
-    variantIds
-  })
-    }
+
+    await productModel.updateProductVarientsData(productId, variantIds);
+
+    return res.json({
+      success: true,
+      message: 'Product and variants added successfully',
+      productId,
+      variantIds
+    });
+
   } catch (err) {
     console.error('Product Upload Error:', err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
-
 
 exports.renderAddCategories = (req, res) => {
   res.render('admin-pages/categories', { error: null })

@@ -29,8 +29,12 @@
                 <%= address.line1 %>, <%= address.city %>, <%= address.state %> - <%= address.pincode %><br/>
                 Phone: <%= address.phone %>
               </div>
-              <button type="button" class="btn btn-sm btn-outline-primary update-address-btn"
-                data-bs-toggle="modal" data-bs-target="#updateAddressModal" data-index="<%= index %>">Update Address</button>
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-outline-primary update-address-btn"
+                  data-bs-toggle="modal" data-bs-target="#updateAddressModal" data-index="<%= index %>">Update</button>
+                <button type="button" class="btn btn-sm btn-outline-danger delete-address-btn"
+                  data-id="<%= address.id %>">Delete</button>
+              </div>
             </li>
           <% }); %>
         </ul>
@@ -96,7 +100,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
-            <input type="hidden" id="updateId" name="updateId"/ value="">
+            <input type="hidden" id="updateId" name="updateId" value="">
             <div class="mb-3">
               <label class="form-label">Full Name</label>
               <input type="text" class="form-control" id="updateFullName" name="fullName" required />
@@ -174,7 +178,6 @@
 
       document.getElementById('updateId').value = address.id;
       document.getElementById('updateFullName').value = address.fullName;
-      
       document.getElementById('updatePhone').value = address.phone;
       document.getElementById('updateLine1').value = address.line1;
       document.getElementById('updateCity').value = address.city;
@@ -207,10 +210,45 @@
           });
         });
     });
+
+    // Delete Address
+    document.querySelectorAll('.delete-address-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const id = this.getAttribute('data-id');
+        Swal.fire({
+          title: 'Are you sure?',
+          text: 'This address will be deleted permanently.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            axios.post('/account/deleteAddress', { id })
+              .then(response => {
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Deleted',
+                  text: response.data.message,
+                  timer: 2000,
+                  showConfirmButton: false,
+                }).then(() => location.reload());
+              })
+              .catch(error => {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: error.response?.data?.message || 'Something went wrong!',
+                });
+              });
+          }
+        });
+      });
+    });
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
-

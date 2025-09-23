@@ -108,7 +108,7 @@ const productValidation = (data) => {
     stock: Joi.number().integer().min(0).required(),
     categoryId: Joi.string().required(),
     brand: Joi.string().allow(""),
-    images: Joi.array().items(Joi.string().uri()).min(1).required(),
+    images: Joi.array().min(3).required(),
   });
 
   return schema.validate(data);

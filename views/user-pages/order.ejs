@@ -39,10 +39,6 @@
 
       .btn-brand { background-color: var(--brand); border-color: var(--brand); color: #07131c; }
       .btn-brand:hover { filter: brightness(1.05); color: #07131c; }
-
-      .btn-address { background-color: #1f2937; border: 1px solid var(--border); color: var(--text); }
-      .btn-address:hover { background-color: rgba(14,165,233,0.15); color: #7dd3fc; }
-
       .text-muted-2 { color: var(--muted) !important; }
       .order-item-thumb { width: 64px; height: 64px; border-radius: .5rem; background-color: #0f172a; object-fit: cover; border: 1px solid var(--border); }
       .divider { height: 1px; background-color: var(--border); width: 100%; }
@@ -92,6 +88,7 @@
                   <span class="vr mx-2" style="background-color: var(--border);"></span>
                   <span class="text-muted-2"><i class="bi bi-calendar-date me-1"></i> <%= new Date(order.createdAt).toLocaleDateString() %></span>
                 </div>
+
                 <div class="order-actions d-flex align-items-center gap-2">
                   <button class="btn btn-outline-light border-secondary" data-order="<%= order.orderId %>"><i class="bi bi-eye me-1"></i> View</button>
                   <% if (['shipped','processing'].includes(order.status.toLowerCase())) { %>
@@ -103,6 +100,10 @@
                   <% if (order.status.toLowerCase() === 'processing') { %>
                     <button class="btn btn-outline-danger border-danger-subtle" data-cancel="<%= order.orderId %>"><i class="bi bi-x-circle me-1"></i> Cancel</button>
                   <% } %>
+                  <!-- New button to view full address -->
+                  <button class="btn btn-outline-info border-info-subtle" data-address="<%= JSON.stringify(order.selectedAddress) %>">
+                    <i class="bi bi-geo-alt me-1"></i> View Address
+                  </button>
                 </div>
               </div>
 
@@ -116,7 +117,6 @@
                       <th scope="col">Item</th>
                       <th scope="col" class="text-center">Qty</th>
                       <th scope="col" class="text-end">Price</th>
-                      <th scope="col" class="text-end">Address</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -132,12 +132,7 @@
                           </div>
                         </td>
                         <td class="text-center"><%= item.quantity %></td>
-                        <td class="text-end"><%= parseFloat(item.price).toFixed(2) %>/–</td>
-                        <td class="text-end">
-                          <button class="btn btn-address btn-sm" onclick="showAddress('<%= order.selectedAddress.fullName %>', '<%= order.selectedAddress.phone %>', '<%= order.selectedAddress.line1 %>', '<%= order.selectedAddress.city %>', '<%= order.selectedAddress.state %>', '<%= order.selectedAddress.pincode %>')">
-                            View Address
-                          </button>
-                        </td>
+                        <td class="text-end"><%= parseFloat(item.price).toFixed(2) %>/-</td>
                       </tr>
                     <% }) %>
                   </tbody>
@@ -157,7 +152,7 @@
                   <div class="p-3 rounded-3 d-flex align-items-center justify-content-between" style="background: rgba(255,255,255,0.02); border: 1px dashed var(--border);">
                     <div>
                       <div class="text-muted-2 mb-1">Order total</div>
-                      <div class="fs-5 fw-bold"><%= parseFloat(order.total).toFixed(2) %>/–</div>
+                      <div class="fs-5 fw-bold"><%= parseFloat(order.total).toFixed(2) %>/-</div>
                     </div>
                     <button class="btn btn-brand"><i class="bi bi-box-arrow-in-down me-1"></i> Download Summary</button>
                   </div>
@@ -185,14 +180,19 @@
     <script>
       const list = document.getElementById('ordersList');
       const chips = document.querySelectorAll('.filter-chip');
+      const searchInput = document.getElementById('searchOrders');
 
       function applyFilters() {
         const activeChip = document.querySelector('.filter-chip.active');
         const status = activeChip ? activeChip.dataset.filter : 'all';
+        const q = (searchInput.value || '').toLowerCase();
 
         list.querySelectorAll('.order-card').forEach(card => {
           const cardStatus = card.getAttribute('data-status');
-          card.style.display = (status === 'all' || cardStatus === status) ? '' : 'none';
+          const text = card.innerText.toLowerCase();
+          const matchStatus = status === 'all' || cardStatus === status;
+          const matchText = !q || text.includes(q);
+          card.style.display = (matchStatus && matchText) ? '' : 'none';
         });
       }
 
@@ -204,21 +204,24 @@
         });
       });
 
-      function showAddress(name, phone, line1, city, state, pincode) {
-        alert(`Delivery Address:\n\n${name}\n${phone}\n${line1}\n${city}, ${state} - ${pincode}`);
-      }
+      searchInput.addEventListener('input', applyFilters);
 
       document.addEventListener('click', (e) => {
         const view = e.target.closest('[data-order]');
         const track = e.target.closest('[data-track]');
         const invoice = e.target.closest('[data-invoice]');
         const cancelBtn = e.target.closest('[data-cancel]');
+        const addressBtn = e.target.closest('[data-address]');
 
         if (view) alert('Viewing details for ' + view.getAttribute('data-order') + ' (demo)');
         if (track) alert('Tracking ' + track.getAttribute('data-track') + ' (demo)');
         if (invoice) alert('Downloading invoice for ' + invoice.getAttribute('data-invoice') + ' (demo)');
         if (cancelBtn && confirm('Cancel order ' + cancelBtn.getAttribute('data-cancel') + '?')) {
           alert('Order ' + cancelBtn.getAttribute('data-cancel') + ' cancelled (demo)');
+        }
+        if (addressBtn) {
+          const addr = JSON.parse(addressBtn.getAttribute('data-address'));
+          alert(`Full Delivery Address:\n${addr.fullName}\n${addr.line1}\n${addr.city}, ${addr.state} - ${addr.pincode}\nPhone: ${addr.phone}`);
         }
       });
     </script>

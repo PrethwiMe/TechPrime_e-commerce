@@ -8,5 +8,6 @@ module.exports={
      categoriesCollection:"categories",
      cartCollection:"cart",
      whishList:"wishList",
-     addressCollection:"userAddress"
+     addressCollection:"userAddress",
+     orderCollection:"order"
 }

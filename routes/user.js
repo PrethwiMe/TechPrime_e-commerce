@@ -63,6 +63,8 @@ router.get('/account',userConfirmed,userProfileController.viewProfile)
 router.get("/account/address",userConfirmed,userProfileController.viewAdress)
 //add adress
 router.post('/account/addAddress',userConfirmed,userProfileController.addAddress)
+//del address
+router.post('/account/deleteAddress',userConfirmed,userProfileController.deleteAddress)
 //update address 
 router.post('/account/editAddress',userConfirmed,userProfileController.updateAddress)
 //edit details
@@ -73,7 +75,11 @@ router.get('/account/edit',userConfirmed,userProfileController.viewUserEditpage)
 //update password
 router.post('/account/updatePassword',userConfirmed,userProfileController.updatePassword)
 //checkOut
-router.get('/checkout',userConfirmed,userProfileController.checkoutView)
+router.get('/cart/checkout',userConfirmed,userProfileController.checkoutView)
+//order page
+router.post('/cart/checkout/order',userConfirmed,userProfileController.addToOrder)
+//view Order
+router.get('/account/orders',userConfirmed,userProfileController.viewOrder)
 
 module.exports = router;
   
