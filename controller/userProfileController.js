@@ -175,7 +175,12 @@ exports.checkoutView = async (req, res) => {
   let deliveryCharge = subtotal > 100000 ? 0 : 100;
 
   let total = subtotal + tax + deliveryCharge;
-
+console.log(cartItems,
+    JSON.stringify(data,null,2),
+    subtotal,
+    tax,
+    deliveryCharge,
+    total);
   const addresses = Array.isArray(data.addresses) ? data.addresses.map(a => a.addresses) : [];
   res.render("user-pages/checkOutPage.ejs", {
     cartItems,

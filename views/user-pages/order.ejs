@@ -11,40 +11,99 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
 
     <style>
-      :root {
-        --brand: #0ea5e9;
-        --bg: #0b1220;
-        --surface: #111827;
-        --border: #1f2937;
-        --text: #e5e7eb;
-        --muted: #9ca3af;
-        --success: #22c55e;
-        --warning: #f59e0b;
-        --danger: #ef4444;
+      body {
+        background: #fff;
+        color: #212529;
       }
-      html, body { background-color: var(--bg); color: var(--text); }
-      a, a:hover, a:focus { color: var(--brand); }
+      a, a:hover, a:focus {
+        color: #0d6efd;
+      }
 
-      .content-wrapper { margin-left: 260px; padding: 1.5rem; }
-      @media (max-width: 768px) { .content-wrapper { margin-left: 0; padding: 1rem; } }
+      .content-wrapper {
+        margin-left: 260px;
+        padding: 1.5rem;
+      }
+      @media (max-width: 768px) {
+        .content-wrapper {
+          margin-left: 0;
+          padding: 1rem;
+        }
+      }
 
-      .page-header { border-bottom: 1px solid var(--border); margin-bottom: 1rem; padding-bottom: 0.75rem; }
-      .card-dark { background-color: var(--surface); border: 1px solid var(--border); color: var(--text); }
-      .table-darkish { --bs-table-bg: transparent; --bs-table-striped-bg: rgba(255,255,255,0.03); --bs-table-striped-color: var(--text); --bs-table-hover-bg: rgba(255,255,255,0.05); --bs-table-hover-color: var(--text); color: var(--text); border-color: var(--border); }
-      .badge-status { font-weight: 600; letter-spacing: .02em; }
-      .badge-status.shipped { background-color: rgba(14,165,233,0.15); color: #7dd3fc; border: 1px solid rgba(125,211,252,0.3); }
-      .badge-status.delivered { background-color: rgba(34,197,94,0.15); color: #86efac; border: 1px solid rgba(134,239,172,0.3); }
-      .badge-status.processing { background-color: rgba(245,158,11,0.15); color: #facc15; border: 1px solid rgba(250,204,21,0.3); }
-      .badge-status.cancelled { background-color: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(252,165,165,0.3); }
+      .page-header {
+        border-bottom: 1px solid #dee2e6;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+      }
+      .page-header h1 {
+        color: #000;
+      }
 
-      .btn-brand { background-color: var(--brand); border-color: var(--brand); color: #07131c; }
-      .btn-brand:hover { filter: brightness(1.05); color: #07131c; }
-      .text-muted-2 { color: var(--muted) !important; }
-      .order-item-thumb { width: 64px; height: 64px; border-radius: .5rem; background-color: #0f172a; object-fit: cover; border: 1px solid var(--border); }
-      .divider { height: 1px; background-color: var(--border); width: 100%; }
-      .filter-chip { border: 1px solid var(--border); background: transparent; color: var(--text); }
-      .filter-chip.active { background: rgba(14,165,233,0.12); border-color: rgba(14,165,233,0.35); color: #7dd3fc; }
-      .order-actions .btn { --bs-btn-padding-y: .35rem; --bs-btn-padding-x: .6rem; --bs-btn-font-size: .875rem; }
+      .card-light {
+        background: #fff;
+        border: 1px solid #dee2e6;
+      }
+      .table-lightish {
+        --bs-table-bg: transparent;
+        --bs-table-striped-bg: rgba(0,0,0,0.03);
+        --bs-table-hover-bg: rgba(0,0,0,0.05);
+        color: #212529;
+        border-color: #dee2e6;
+      }
+
+      .badge-status {
+        font-weight: 600;
+        letter-spacing: .02em;
+      }
+      .badge-status.shipped { background-color: #e7f3fe; color: #0d6efd; }
+      .badge-status.delivered { background-color: #e6f4ea; color: #198754; }
+      .badge-status.processing { background-color: #fff3cd; color: #856404; }
+      .badge-status.cancelled { background-color: #f8d7da; color: #842029; }
+
+      .filter-chip {
+        border: 1px solid #dee2e6;
+        background: transparent;
+        color: #212529;
+      }
+      .filter-chip:hover {
+        background: #6c757d;
+        color: #fff;
+      }
+      .filter-chip.active {
+        background: #0d6efd;
+        color: #fff;
+        border-color: #0d6efd;
+      }
+
+      .order-item-thumb {
+        width: 64px;
+        height: 64px;
+        border-radius: .5rem;
+        object-fit: cover;
+        border: 1px solid #dee2e6;
+      }
+      .divider {
+        height: 1px;
+        background-color: #dee2e6;
+        width: 100%;
+      }
+
+      /* Address Modal Styles */
+      .address-detail {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 1rem;
+      }
+      .address-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.25rem;
+      }
+      .address-value {
+        color: #212529;
+        margin-bottom: 0.75rem;
+      }
     </style>
   </head>
 
@@ -58,7 +117,7 @@
       <header class="page-header d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div>
           <h1 class="h3 mb-1">My Orders</h1>
-          <p class="mb-0 text-muted-2">Track, manage, and view your laptop orders</p>
+          <p class="mb-0 text-muted">Track, manage, and view your laptop orders</p>
         </div>
         <div class="d-flex align-items-center gap-2">
           <button class="btn filter-chip active" data-filter="all"><i class="bi bi-card-list me-1"></i> All</button>
@@ -72,7 +131,7 @@
       <!-- Orders List -->
       <section id="ordersList" class="vstack gap-3">
         <% orders.forEach(order => { %>
-          <article class="card card-dark order-card" data-status="<%= order.status.toLowerCase() %>">
+          <article class="card card-light order-card" data-status="<%= order.status.toLowerCase() %>">
             <div class="card-body">
               <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                 <div class="d-flex flex-wrap align-items-center gap-3">
@@ -83,25 +142,24 @@
                           order.status === 'delivered' ? 'bi-check2-circle' : 'bi-x-circle' %>"></i>
                     <%= order.status %>
                   </span>
-                  <span class="text-muted-2">Order ID</span>
+                  <span class="text-muted">Order ID</span>
                   <strong><%= order.orderId %></strong>
-                  <span class="vr mx-2" style="background-color: var(--border);"></span>
-                  <span class="text-muted-2"><i class="bi bi-calendar-date me-1"></i> <%= new Date(order.createdAt).toLocaleDateString() %></span>
+                  <span class="vr mx-2"></span>
+                  <span class="text-muted"><i class="bi bi-calendar-date me-1"></i> <%= new Date(order.createdAt).toLocaleDateString() %></span>
                 </div>
 
                 <div class="order-actions d-flex align-items-center gap-2">
-                  <button class="btn btn-outline-light border-secondary" data-order="<%= order.orderId %>"><i class="bi bi-eye me-1"></i> View</button>
+                  <button class="btn btn-outline-secondary" data-order="<%= order.orderId %>"><i class="bi bi-eye me-1"></i> View</button>
                   <% if (['shipped','processing'].includes(order.status.toLowerCase())) { %>
-                    <button class="btn btn-outline-light border-secondary" data-track="<%= order.orderId %>"><i class="bi bi-geo-alt me-1"></i> Track</button>
+                    <button class="btn btn-outline-secondary" data-track="<%= order.orderId %>"><i class="bi bi-geo-alt me-1"></i> Track</button>
                   <% } %>
                   <% if (order.status.toLowerCase() === 'delivered') { %>
-                    <button class="btn btn-outline-light border-secondary" data-invoice="<%= order.orderId %>"><i class="bi bi-receipt me-1"></i> Invoice</button>
+                    <button class="btn btn-outline-secondary" data-invoice="<%= order.orderId %>"><i class="bi bi-receipt me-1"></i> Invoice</button>
                   <% } %>
                   <% if (order.status.toLowerCase() === 'processing') { %>
-                    <button class="btn btn-outline-danger border-danger-subtle" data-cancel="<%= order.orderId %>"><i class="bi bi-x-circle me-1"></i> Cancel</button>
+                    <button class="btn btn-outline-danger" data-cancel="<%= order.orderId %>"><i class="bi bi-x-circle me-1"></i> Cancel</button>
                   <% } %>
-                  <!-- New button to view full address -->
-                  <button class="btn btn-outline-info border-info-subtle" data-address="<%= JSON.stringify(order.selectedAddress) %>">
+                  <button class="btn btn-outline-info view-address-btn" data-bs-toggle="modal" data-bs-target="#addressModal" data-address='<%= JSON.stringify(order.selectedAddress) %>' data-order-id="<%= order.orderId %>">
                     <i class="bi bi-geo-alt me-1"></i> View Address
                   </button>
                 </div>
@@ -111,7 +169,7 @@
 
               <!-- Items -->
               <div class="table-responsive">
-                <table class="table table-darkish align-middle mb-3">
+                <table class="table table-lightish align-middle mb-3">
                   <thead>
                     <tr>
                       <th scope="col">Item</th>
@@ -127,7 +185,7 @@
                             <img class="order-item-thumb" src="<%= item.product.images[0] %>" alt="Item image" />
                             <div>
                               <div class="fw-semibold"><%= item.product.name %></div>
-                              <small class="text-muted-2">Category: Laptops & Accessories</small>
+                              <small class="text-muted">Category: Laptops & Accessories</small>
                             </div>
                           </div>
                         </td>
@@ -141,20 +199,20 @@
 
               <div class="row g-3">
                 <div class="col-12 col-md-6">
-                  <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px dashed var(--border);">
-                    <div class="text-muted-2 mb-1">Ship to</div>
+                  <div class="p-3 rounded-3 border bg-light">
+                    <div class="text-muted mb-1">Ship to</div>
                     <div class="fw-semibold"><i class="bi bi-geo-alt me-2"></i>
                       <%= order.selectedAddress.line1 %>, <%= order.selectedAddress.city %>, <%= order.selectedAddress.state %>, <%= order.selectedAddress.pincode %>
                     </div>
                   </div>
                 </div>
                 <div class="col-12 col-md-6">
-                  <div class="p-3 rounded-3 d-flex align-items-center justify-content-between" style="background: rgba(255,255,255,0.02); border: 1px dashed var(--border);">
+                  <div class="p-3 rounded-3 border bg-light d-flex align-items-center justify-content-between">
                     <div>
-                      <div class="text-muted-2 mb-1">Order total</div>
+                      <div class="text-muted mb-1">Order total</div>
                       <div class="fs-5 fw-bold"><%= parseFloat(order.total).toFixed(2) %>/-</div>
                     </div>
-                    <button class="btn btn-brand"><i class="bi bi-box-arrow-in-down me-1"></i> Download Summary</button>
+                    <button class="btn btn-primary"><i class="bi bi-box-arrow-in-down me-1"></i> Download Summary</button>
                   </div>
                 </div>
               </div>
@@ -162,67 +220,176 @@
           </article>
         <% }) %>
       </section>
-
-      <!-- Pagination (dummy) -->
-      <nav aria-label="Orders pagination" class="mt-4">
-        <ul class="pagination pagination-sm mb-0">
-          <li class="page-item disabled"><span class="page-link bg-transparent border-secondary text-muted-2">Previous</span></li>
-          <li class="page-item active"><span class="page-link bg-transparent border-secondary" style="background: rgba(14,165,233,0.12); color:#7dd3fc; border-color: rgba(14,165,233,0.35);">1</span></li>
-          <li class="page-item"><a class="page-link bg-transparent border-secondary text-light" href="#">2</a></li>
-          <li class="page-item"><a class="page-link bg-transparent border-secondary text-light" href="#">3</a></li>
-          <li class="page-item"><a class="page-link bg-transparent border-secondary text-light" href="#">Next</a></li>
-        </ul>
-      </nav>
     </main>
+
+    <!-- Address Modal -->
+    <div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addressModalLabel">
+              <i class="bi bi-geo-alt me-2"></i>Shipping Address
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <div class="text-muted small mb-2">Order ID: <span id="modalOrderId" class="fw-bold text-dark"></span></div>
+            </div>
+            
+            <div class="address-detail">
+              <div class="row g-3">
+                <div class="col-12" id="recipientName" style="display: none;">
+                  <div class="address-label">
+                    <i class="bi bi-person me-1"></i>Recipient Name
+                  </div>
+                  <div class="address-value" id="modalRecipientName"></div>
+                </div>
+                
+                <div class="col-12">
+                  <div class="address-label">
+                    <i class="bi bi-house me-1"></i>Address Line 1
+                  </div>
+                  <div class="address-value" id="modalLine1"></div>
+                </div>
+                
+                <div class="col-12" id="line2Container" style="display: none;">
+                  <div class="address-label">
+                    <i class="bi bi-house me-1"></i>Address Line 2
+                  </div>
+                  <div class="address-value" id="modalLine2"></div>
+                </div>
+                
+                <div class="col-sm-6">
+                  <div class="address-label">
+                    <i class="bi bi-building me-1"></i>City
+                  </div>
+                  <div class="address-value" id="modalCity"></div>
+                </div>
+                
+                <div class="col-sm-6">
+                  <div class="address-label">
+                    <i class="bi bi-map me-1"></i>State
+                  </div>
+                  <div class="address-value" id="modalState"></div>
+                </div>
+                
+                <div class="col-sm-6">
+                  <div class="address-label">
+                    <i class="bi bi-mailbox me-1"></i>PIN Code
+                  </div>
+                  <div class="address-value" id="modalPincode"></div>
+                </div>
+                
+                <div class="col-sm-6" id="countryContainer" style="display: none;">
+                  <div class="address-label">
+                    <i class="bi bi-globe me-1"></i>Country
+                  </div>
+                  <div class="address-value" id="modalCountry"></div>
+                </div>
+                
+                <div class="col-12" id="phoneContainer" style="display: none;">
+                  <div class="address-label">
+                    <i class="bi bi-telephone me-1"></i>Phone Number
+                  </div>
+                  <div class="address-value" id="modalPhone"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-outline-primary">
+              <i class="bi bi-map me-1"></i>View on Map
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-      const list = document.getElementById('ordersList');
-      const chips = document.querySelectorAll('.filter-chip');
-      const searchInput = document.getElementById('searchOrders');
-
-      function applyFilters() {
-        const activeChip = document.querySelector('.filter-chip.active');
-        const status = activeChip ? activeChip.dataset.filter : 'all';
-        const q = (searchInput.value || '').toLowerCase();
-
-        list.querySelectorAll('.order-card').forEach(card => {
-          const cardStatus = card.getAttribute('data-status');
-          const text = card.innerText.toLowerCase();
-          const matchStatus = status === 'all' || cardStatus === status;
-          const matchText = !q || text.includes(q);
-          card.style.display = (matchStatus && matchText) ? '' : 'none';
+      // Handle View Address button clicks
+      document.addEventListener('DOMContentLoaded', function() {
+        const viewAddressBtns = document.querySelectorAll('.view-address-btn');
+        
+        viewAddressBtns.forEach(btn => {
+          btn.addEventListener('click', function() {
+            const addressData = JSON.parse(this.dataset.address);
+            const orderId = this.dataset.orderId;
+            
+            // Set order ID
+            document.getElementById('modalOrderId').textContent = orderId;
+            
+            // Set address fields
+            document.getElementById('modalLine1').textContent = addressData.line1 || 'N/A';
+            document.getElementById('modalCity').textContent = addressData.city || 'N/A';
+            document.getElementById('modalState').textContent = addressData.state || 'N/A';
+            document.getElementById('modalPincode').textContent = addressData.pincode || 'N/A';
+            
+            // Handle optional fields
+            const recipientContainer = document.getElementById('recipientName');
+            const modalRecipientName = document.getElementById('modalRecipientName');
+            if (addressData.name) {
+              modalRecipientName.textContent = addressData.name;
+              recipientContainer.style.display = 'block';
+            } else {
+              recipientContainer.style.display = 'none';
+            }
+            
+            const line2Container = document.getElementById('line2Container');
+            const modalLine2 = document.getElementById('modalLine2');
+            if (addressData.line2) {
+              modalLine2.textContent = addressData.line2;
+              line2Container.style.display = 'block';
+            } else {
+              line2Container.style.display = 'none';
+            }
+            
+            const countryContainer = document.getElementById('countryContainer');
+            const modalCountry = document.getElementById('modalCountry');
+            if (addressData.country) {
+              modalCountry.textContent = addressData.country;
+              countryContainer.style.display = 'block';
+            } else {
+              countryContainer.style.display = 'none';
+            }
+            
+            const phoneContainer = document.getElementById('phoneContainer');
+            const modalPhone = document.getElementById('modalPhone');
+            if (addressData.phone) {
+              modalPhone.textContent = addressData.phone;
+              phoneContainer.style.display = 'block';
+            } else {
+              phoneContainer.style.display = 'none';
+            }
+          });
         });
-      }
-
-      chips.forEach(chip => {
-        chip.addEventListener('click', () => {
-          chips.forEach(c => c.classList.remove('active'));
-          chip.classList.add('active');
-          applyFilters();
+        
+        // Filter functionality
+        const filterBtns = document.querySelectorAll('.filter-chip');
+        const orderCards = document.querySelectorAll('.order-card');
+        
+        filterBtns.forEach(btn => {
+          btn.addEventListener('click', function() {
+            // Remove active class from all buttons
+            filterBtns.forEach(b => b.classList.remove('active'));
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            const filter = this.dataset.filter;
+            
+            orderCards.forEach(card => {
+              if (filter === 'all' || card.dataset.status === filter) {
+                card.style.display = 'block';
+              } else {
+                card.style.display = 'none';
+              }
+            });
+          });
         });
-      });
-
-      searchInput.addEventListener('input', applyFilters);
-
-      document.addEventListener('click', (e) => {
-        const view = e.target.closest('[data-order]');
-        const track = e.target.closest('[data-track]');
-        const invoice = e.target.closest('[data-invoice]');
-        const cancelBtn = e.target.closest('[data-cancel]');
-        const addressBtn = e.target.closest('[data-address]');
-
-        if (view) alert('Viewing details for ' + view.getAttribute('data-order') + ' (demo)');
-        if (track) alert('Tracking ' + track.getAttribute('data-track') + ' (demo)');
-        if (invoice) alert('Downloading invoice for ' + invoice.getAttribute('data-invoice') + ' (demo)');
-        if (cancelBtn && confirm('Cancel order ' + cancelBtn.getAttribute('data-cancel') + '?')) {
-          alert('Order ' + cancelBtn.getAttribute('data-cancel') + ' cancelled (demo)');
-        }
-        if (addressBtn) {
-          const addr = JSON.parse(addressBtn.getAttribute('data-address'));
-          alert(`Full Delivery Address:\n${addr.fullName}\n${addr.line1}\n${addr.city}, ${addr.state} - ${addr.pincode}\nPhone: ${addr.phone}`);
-        }
       });
     </script>
   </body>

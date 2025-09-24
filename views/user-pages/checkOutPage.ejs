@@ -1,226 +1,215 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <!-- Meta -->
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>My Orders • Account</title>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Checkout | TechCart</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <style>
+    body { background-color: #121212; color: #f1f1f1; }
+    .card { background: #fff; color: #000; border-radius: 10px; transition: 0.3s; }
+    .card:hover { background-color: #f1f1f1; }
+    .btn-success { background-color: #28a745; border: none; }
+    .btn-success:hover { background-color: #218838; }
+  </style>
+</head>
+<body>
 
-    <!-- Bootstrap + Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <%- include('partials/header') %>
 
-    <style>
-      :root {
-        --brand: #0ea5e9;
-        --bg: #0b1220;
-        --surface: #111827;
-        --border: #1f2937;
-        --text: #e5e7eb;
-        --muted: #9ca3af;
-        --success: #22c55e;
-        --warning: #f59e0b;
-        --danger: #ef4444;
-      }
-      html, body { background-color: var(--bg); color: var(--text); }
-      a, a:hover, a:focus { color: var(--brand); }
-
-      .content-wrapper { margin-left: 260px; padding: 1.5rem; }
-      @media (max-width: 768px) { .content-wrapper { margin-left: 0; padding: 1rem; } }
-
-      .page-header { border-bottom: 1px solid var(--border); margin-bottom: 1rem; padding-bottom: 0.75rem; }
-      .card-dark { background-color: var(--surface); border: 1px solid var(--border); color: var(--text); }
-      .table-darkish { --bs-table-bg: transparent; --bs-table-striped-bg: rgba(255,255,255,0.03); --bs-table-striped-color: var(--text); --bs-table-hover-bg: rgba(255,255,255,0.05); --bs-table-hover-color: var(--text); color: var(--text); border-color: var(--border); }
-      .badge-status { font-weight: 600; letter-spacing: .02em; }
-      .badge-status.shipped { background-color: rgba(14,165,233,0.15); color: #7dd3fc; border: 1px solid rgba(125,211,252,0.3); }
-      .badge-status.delivered { background-color: rgba(34,197,94,0.15); color: #86efac; border: 1px solid rgba(134,239,172,0.3); }
-      .badge-status.processing { background-color: rgba(245,158,11,0.15); color: #facc15; border: 1px solid rgba(250,204,21,0.3); }
-      .badge-status.cancelled { background-color: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(252,165,165,0.3); }
-
-      .btn-brand { background-color: var(--brand); border-color: var(--brand); color: #07131c; }
-      .btn-brand:hover { filter: brightness(1.05); color: #07131c; }
-
-      .btn-address { background-color: #1f2937; border: 1px solid var(--border); color: var(--text); }
-      .btn-address:hover { background-color: rgba(14,165,233,0.15); color: #7dd3fc; }
-
-      .text-muted-2 { color: var(--muted) !important; }
-      .order-item-thumb { width: 64px; height: 64px; border-radius: .5rem; background-color: #0f172a; object-fit: cover; border: 1px solid var(--border); }
-      .divider { height: 1px; background-color: var(--border); width: 100%; }
-      .filter-chip { border: 1px solid var(--border); background: transparent; color: var(--text); }
-      .filter-chip.active { background: rgba(14,165,233,0.12); border-color: rgba(14,165,233,0.35); color: #7dd3fc; }
-      .order-actions .btn { --bs-btn-padding-y: .35rem; --bs-btn-padding-x: .6rem; --bs-btn-font-size: .875rem; }
-    </style>
-  </head>
-
-  <body>
-    <!-- Header partial -->
-    <%- include('partials/header') %>
-    <!-- Account Sidebar partial -->
-    <%- include('partials/accountSidebar') %>
-
-    <main class="content-wrapper">
-      <header class="page-header d-flex flex-wrap align-items-center justify-content-between gap-3">
-        <div>
-          <h1 class="h3 mb-1">My Orders</h1>
-          <p class="mb-0 text-muted-2">Track, manage, and view your laptop orders</p>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-          <button class="btn filter-chip active" data-filter="all"><i class="bi bi-card-list me-1"></i> All</button>
-          <button class="btn filter-chip" data-filter="processing"><i class="bi bi-hourglass-split me-1"></i> Processing</button>
-          <button class="btn filter-chip" data-filter="shipped"><i class="bi bi-truck me-1"></i> Shipped</button>
-          <button class="btn filter-chip" data-filter="delivered"><i class="bi bi-check2-circle me-1"></i> Delivered</button>
-          <button class="btn filter-chip" data-filter="cancelled"><i class="bi bi-x-circle me-1"></i> Cancelled</button>
-        </div>
-      </header>
-
-      <!-- Orders List -->
-      <section id="ordersList" class="vstack gap-3">
-        <% orders.forEach(order => { %>
-          <article class="card card-dark order-card" data-status="<%= order.status.toLowerCase() %>">
-            <div class="card-body">
-              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
-                <div class="d-flex flex-wrap align-items-center gap-3">
-                  <span class="badge badge-status <%= order.status.toLowerCase() %> text-uppercase">
-                    <i class="bi me-1
-                      <%= order.status === 'processing' ? 'bi-hourglass-split' :
-                          order.status === 'shipped' ? 'bi-truck' :
-                          order.status === 'delivered' ? 'bi-check2-circle' : 'bi-x-circle' %>"></i>
-                    <%= order.status %>
-                  </span>
-                  <span class="text-muted-2">Order ID</span>
-                  <strong><%= order.orderId %></strong>
-                  <span class="vr mx-2" style="background-color: var(--border);"></span>
-                  <span class="text-muted-2"><i class="bi bi-calendar-date me-1"></i> <%= new Date(order.createdAt).toLocaleDateString() %></span>
-                </div>
-                <div class="order-actions d-flex align-items-center gap-2">
-                  <button class="btn btn-outline-light border-secondary" data-order="<%= order.orderId %>"><i class="bi bi-eye me-1"></i> View</button>
-                  <% if (['shipped','processing'].includes(order.status.toLowerCase())) { %>
-                    <button class="btn btn-outline-light border-secondary" data-track="<%= order.orderId %>"><i class="bi bi-geo-alt me-1"></i> Track</button>
-                  <% } %>
-                  <% if (order.status.toLowerCase() === 'delivered') { %>
-                    <button class="btn btn-outline-light border-secondary" data-invoice="<%= order.orderId %>"><i class="bi bi-receipt me-1"></i> Invoice</button>
-                  <% } %>
-                  <% if (order.status.toLowerCase() === 'processing') { %>
-                    <button class="btn btn-outline-danger border-danger-subtle" data-cancel="<%= order.orderId %>"><i class="bi bi-x-circle me-1"></i> Cancel</button>
-                  <% } %>
-                </div>
-              </div>
-
-              <div class="my-3 divider"></div>
-
-              <!-- Items -->
-              <div class="table-responsive">
-                <table class="table table-darkish align-middle mb-3">
-                  <thead>
-                    <tr>
-                      <th scope="col">Item</th>
-                      <th scope="col" class="text-center">Qty</th>
-                      <th scope="col" class="text-end">Price</th>
-                      <th scope="col" class="text-end">Address</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <% order.items.forEach(item => { %>
-                      <tr>
-                        <td>
-                          <div class="d-flex align-items-center gap-3">
-                            <img class="order-item-thumb" src="<%= item.product.images[0] %>" alt="Item image" />
-                            <div>
-                              <div class="fw-semibold"><%= item.product.name %></div>
-                              <small class="text-muted-2">Category: Laptops & Accessories</small>
-                            </div>
-                          </div>
-                        </td>
-                        <td class="text-center"><%= item.quantity %></td>
-                        <td class="text-end"><%= parseFloat(item.price).toFixed(2) %>/–</td>
-                        <td class="text-end">
-                          <button class="btn btn-address btn-sm" onclick="showAddress('<%= order.selectedAddress.fullName %>', '<%= order.selectedAddress.phone %>', '<%= order.selectedAddress.line1 %>', '<%= order.selectedAddress.city %>', '<%= order.selectedAddress.state %>', '<%= order.selectedAddress.pincode %>')">
-                            View Address
-                          </button>
-                        </td>
-                      </tr>
-                    <% }) %>
-                  </tbody>
-                </table>
-              </div>
-
-              <div class="row g-3">
-                <div class="col-12 col-md-6">
-                  <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px dashed var(--border);">
-                    <div class="text-muted-2 mb-1">Ship to</div>
-                    <div class="fw-semibold"><i class="bi bi-geo-alt me-2"></i>
-                      <%= order.selectedAddress.line1 %>, <%= order.selectedAddress.city %>, <%= order.selectedAddress.state %>, <%= order.selectedAddress.pincode %>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-12 col-md-6">
-                  <div class="p-3 rounded-3 d-flex align-items-center justify-content-between" style="background: rgba(255,255,255,0.02); border: 1px dashed var(--border);">
+  <div class="container py-4">
+    <div class="row">
+      <!-- Left: Cart -->
+      <div class="col-lg-7 mb-4">
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-dark text-white">
+            <i class="bi bi-cart-fill me-2"></i> Your Cart
+          </div>
+          <ul class="list-group list-group-flush">
+            <% if (cartItems && cartItems.length > 0) { %>
+              <% cartItems.forEach(item => { %>
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                  <div class="d-flex">
+                    <img src="<%= item.product?.images?.[0] || '/images/default-product.png' %>" 
+                         class="img-thumbnail me-3" style="width:100px; height:100px; object-fit:cover;">
                     <div>
-                      <div class="text-muted-2 mb-1">Order total</div>
-                      <div class="fs-5 fw-bold"><%= parseFloat(order.total).toFixed(2) %>/–</div>
+                      <strong><%= item.product?.name || 'Unknown Product' %></strong><br>
+                      <small><%= item.variant?.processor %>, <%= item.variant?.ram %>, <%= item.variant?.storage %></small><br>
+                      <small>Color: <%= item.variant?.color %></small>
                     </div>
-                    <button class="btn btn-brand"><i class="bi bi-box-arrow-in-down me-1"></i> Download Summary</button>
                   </div>
-                </div>
-              </div>
+                  <div class="text-end">
+                    <span>₹<%= item.variant?.price || 0 %></span><br>
+                    <small>Qty: <%= item.quantity %></small><br>
+                    <strong>₹<%= (item.variant?.price || 0) * item.quantity %></strong>
+                  </div>
+                </li>
+              <% }) %>
+            <% } else { %>
+              <li class="list-group-item">Your cart is empty.</li>
+            <% } %>
+          </ul>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="card shadow-sm">
+          <div class="card-header bg-dark text-white">
+            <i class="bi bi-receipt-cutoff me-2"></i> Order Summary
+          </div>
+          <div class="card-body">
+            <p class="d-flex justify-content-between"><span>Subtotal:</span> <span>₹<%= subtotal %></span></p>
+            <p class="d-flex justify-content-between"><span>Tax:</span> <span>₹<%= tax %></span></p>
+            <p class="d-flex justify-content-between"><span>Delivery:</span> <span>₹<%= deliveryCharge %></span></p>
+            <hr>
+            <h5 class="d-flex justify-content-between">
+              <span>Total:</span> 
+              <span class="text-success">₹<%= total %></span>
+            </h5>
+            <div class="mt-3">
+              <input type="text" id="couponCode" class="form-control mb-2" placeholder="Enter coupon code">
+              <button class="btn btn-outline-primary w-100 mb-2" id="applyCouponBtn">
+                <i class="bi bi-ticket-perforated-fill me-1"></i> Apply Coupon
+              </button>
+              <button class="btn btn-danger w-100" id="placeOrderBtn">
+                <i class="bi bi-bag-check-fill me-1"></i> Place Order
+              </button>
             </div>
-          </article>
-        <% }) %>
-      </section>
+          </div>
+        </div>
+      </div>
 
-      <!-- Pagination (dummy) -->
-      <nav aria-label="Orders pagination" class="mt-4">
-        <ul class="pagination pagination-sm mb-0">
-          <li class="page-item disabled"><span class="page-link bg-transparent border-secondary text-muted-2">Previous</span></li>
-          <li class="page-item active"><span class="page-link bg-transparent border-secondary" style="background: rgba(14,165,233,0.12); color:#7dd3fc; border-color: rgba(14,165,233,0.35);">1</span></li>
-          <li class="page-item"><a class="page-link bg-transparent border-secondary text-light" href="#">2</a></li>
-          <li class="page-item"><a class="page-link bg-transparent border-secondary text-light" href="#">3</a></li>
-          <li class="page-item"><a class="page-link bg-transparent border-secondary text-light" href="#">Next</a></li>
-        </ul>
-      </nav>
-    </main>
+      <!-- Right: Address + Payment -->
+      <div class="col-lg-5 mb-4">
+        <div class="card shadow-sm">
+          <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-geo-alt-fill me-2"></i> Delivery Address</span>
+            <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#addAddressModal">+ Add Address</button>
+          </div>
+          <div class="card-body">
+            <% if (addresses && addresses.length > 0) { %>
+              <% addresses.forEach((address, idx) => { %>
+                <div class="form-check mb-3">
+                  <input class="form-check-input" type="radio" 
+                         name="selectedAddress" id="address<%= idx %>" 
+                         value='<%- JSON.stringify(address) %>' <%= idx===0 ? "checked" : "" %>>
+                  <label class="form-check-label" for="address<%= idx %>">
+                    <strong><%= address.fullName %></strong><br>
+                    <%= address.line1 %>, <%= address.city %>, <%= address.state %> - <%= address.pincode %><br>
+                    Phone: <%= address.phone %>
+                  </label>
+                </div>
+              <% }) %>
+            <% } else { %>
+              <p class="text-muted">No addresses available. Please add one.</p>
+            <% } %>
+          </div>
+        </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      const list = document.getElementById('ordersList');
-      const chips = document.querySelectorAll('.filter-chip');
+        <!-- Payment Methods -->
+        <div class="card shadow-sm mt-4">
+          <div class="card-header bg-secondary text-white">
+            <i class="bi bi-credit-card-fill me-2"></i> Payment Methods
+          </div>
+          <div class="card-body d-flex justify-content-around">
+            <div class="form-check text-center">
+              <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="cod" checked>
+              <label class="form-check-label d-block" for="cod">
+                <i class="bi bi-cash-coin" style="font-size: 2.5rem; color: #28a745;"></i><br>
+                Cash on Delivery
+              </label>
+            </div>
+            <div class="form-check text-center">
+              <input class="form-check-input" type="radio" name="paymentMethod" id="online" value="online">
+              <label class="form-check-label d-block" for="online">
+                <i class="bi bi-credit-card" style="font-size: 2.5rem; color: #0d6efd;"></i><br>
+                Online Payment
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-      function applyFilters() {
-        const activeChip = document.querySelector('.filter-chip.active');
-        const status = activeChip ? activeChip.dataset.filter : 'all';
+  <!-- Order Success Modal -->
+  <div class="modal fade" id="orderSuccessModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content text-center">
+        <div class="modal-header bg-secondary text-white">
+          <h5 class="modal-title">Order Success</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <h3 class="text-success mb-3">🎉 Order Placed Successfully!</h3>
+          <p>Your order has been confirmed. Thank you for shopping with TechCart!</p>
+          <div class="d-flex justify-content-center gap-3 mt-3">
+            <a href="/" class="btn btn-light"><i class="bi bi-house-door-fill me-2"></i> Home</a>
+            <a href="/account/orders" class="btn btn-primary"><i class="bi bi-bag-check-fill me-2"></i> My Orders</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        list.querySelectorAll('.order-card').forEach(card => {
-          const cardStatus = card.getAttribute('data-status');
-          card.style.display = (status === 'all' || cardStatus === status) ? '' : 'none';
-        });
+  <script>
+    document.getElementById("placeOrderBtn").addEventListener("click", async () => {
+      const selectedAddressRaw = document.querySelector('input[name="selectedAddress"]:checked')?.value;
+      const selectedPayment = document.querySelector('input[name="paymentMethod"]:checked')?.value;
+
+      if (!selectedAddressRaw) {
+        Swal.fire("No address selected", "Please select a delivery address.", "warning");
+        return;
+      }
+      if (!selectedPayment) {
+        Swal.fire("No payment method", "Please choose a payment method.", "warning");
+        return;
       }
 
-      chips.forEach(chip => {
-        chip.addEventListener('click', () => {
-          chips.forEach(c => c.classList.remove('active'));
-          chip.classList.add('active');
-          applyFilters();
+      const selectedAddress = JSON.parse(selectedAddressRaw);
+
+      // ✅ Convert cartItems into required format
+      const items = <%- JSON.stringify(cartItems) %>.map(ci => ({
+        productId: ci.product?._id || ci.productId,
+        variantId: ci.variant?._id || ci.variantId,
+        quantity: ci.quantity,
+        price: ci.variant?.price || ci.price
+      }));
+
+      try {
+        const res = await axios.post("/cart/checkout/order", {
+          selectedAddress,
+          paymentMethod: selectedPayment,
+          items,
+          subtotal: "<%= subtotal %>",
+          tax: "<%= tax %>",
+          deliveryCharge: "<%= deliveryCharge %>",
+          total: "<%= total %>",
+          couponCode: document.getElementById("couponCode").value.trim()
         });
-      });
 
-      function showAddress(name, phone, line1, city, state, pincode) {
-        alert(`Delivery Address:\n\n${name}\n${phone}\n${line1}\n${city}, ${state} - ${pincode}`);
-      }
-
-      document.addEventListener('click', (e) => {
-        const view = e.target.closest('[data-order]');
-        const track = e.target.closest('[data-track]');
-        const invoice = e.target.closest('[data-invoice]');
-        const cancelBtn = e.target.closest('[data-cancel]');
-
-        if (view) alert('Viewing details for ' + view.getAttribute('data-order') + ' (demo)');
-        if (track) alert('Tracking ' + track.getAttribute('data-track') + ' (demo)');
-        if (invoice) alert('Downloading invoice for ' + invoice.getAttribute('data-invoice') + ' (demo)');
-        if (cancelBtn && confirm('Cancel order ' + cancelBtn.getAttribute('data-cancel') + '?')) {
-          alert('Order ' + cancelBtn.getAttribute('data-cancel') + ' cancelled (demo)');
+        if (res.data.status === "success") {
+          const orderModal = new bootstrap.Modal(document.getElementById("orderSuccessModal"));
+          orderModal.show();
+          confetti({ particleCount: 200, spread: 120, origin: { y: 0.6 } });
+        } else {
+          Swal.fire("Error", res.data.message || "Order failed", "error");
         }
-      });
-    </script>
-  </body>
+      } catch (err) {
+        Swal.fire("Error", "Something went wrong. Try again.", "error");
+      }
+    });
+
+    document.getElementById("applyCouponBtn").addEventListener("click", () => {
+      const code = document.getElementById("couponCode").value.trim();
+      if (!code) return Swal.fire("Enter coupon", "Please enter a coupon code.", "info");
+      Swal.fire("Coupon Applied", "Coupon discount applied successfully.", "success");
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>
