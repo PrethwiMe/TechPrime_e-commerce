@@ -89,7 +89,7 @@
             <span><i class="bi bi-geo-alt-fill me-2"></i> Delivery Address</span>
             <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#addAddressModal">+ Add Address</button>
           </div>
-          <div class="card-body">
+          <div class="card-body" id="userAddresses" data-addresses='<%- JSON.stringify(addresses || []) %>'>
             <% if (addresses && addresses.length > 0) { %>
               <% addresses.forEach((address, idx) => { %>
                 <div class="form-check mb-3">
@@ -155,7 +155,52 @@
     </div>
   </div>
 
+  <!-- Add Address Modal -->
+  <div class="modal fade" id="addAddressModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form id="addAddressForm">
+          <div class="modal-header">
+            <h5 class="modal-title">Add New Address</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Full Name</label>
+              <input type="text" class="form-control" name="fullName" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Phone</label>
+              <input type="text" class="form-control" name="phone" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Address Line 1</label>
+              <input type="text" class="form-control" name="line1" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">City</label>
+              <input type="text" class="form-control" name="city" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">State</label>
+              <input type="text" class="form-control" name="state" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Pincode</label>
+              <input type="text" class="form-control" name="pincode" required />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Add Address</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // Place Order
     document.getElementById("placeOrderBtn").addEventListener("click", async () => {
       const selectedAddressRaw = document.querySelector('input[name="selectedAddress"]:checked')?.value;
       const selectedPayment = document.querySelector('input[name="paymentMethod"]:checked')?.value;
@@ -171,7 +216,6 @@
 
       const selectedAddress = JSON.parse(selectedAddressRaw);
 
-      // ✅ Convert cartItems into required format
       const items = <%- JSON.stringify(cartItems) %>.map(ci => ({
         productId: ci.product?._id || ci.productId,
         variantId: ci.variant?._id || ci.variantId,
@@ -203,10 +247,37 @@
       }
     });
 
+    // Apply Coupon
     document.getElementById("applyCouponBtn").addEventListener("click", () => {
       const code = document.getElementById("couponCode").value.trim();
       if (!code) return Swal.fire("Enter coupon", "Please enter a coupon code.", "info");
       Swal.fire("Coupon Applied", "Coupon discount applied successfully.", "success");
+    });
+
+    // Add Address Form Submit
+    const addAddressForm = document.getElementById('addAddressForm');
+    addAddressForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const formData = new FormData(addAddressForm);
+      const data = Object.fromEntries(formData.entries());
+
+      axios.post('/account/addAddress', data)
+        .then(response => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: response.data.message,
+            timer: 2000,
+            showConfirmButton: false,
+          }).then(() => location.reload());
+        })
+        .catch(error => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.response?.data?.message || 'Something went wrong!',
+          });
+        });
     });
   </script>
 

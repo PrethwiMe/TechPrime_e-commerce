@@ -11,20 +11,20 @@ const { cloudinary } = require('../middleware/cloudinary')
 const streamifier = require("streamifier");
 const streamUpload = require("../middleware/streamHelper");
 const { json } = require('express');
+const PDFDocument = require("pdfkit");
+const path = require("path");
+const fs = require("fs");
+
 
 exports.viewProfile = async (req, res) => {
 
   const userId = req.session.user
   const user = await userModel.fetchUser(userId.email);
-  console.log(userId.email, "email");
-  console.log(user);
   res.render('user-pages/profile.ejs', { user })
 }
 //add address
 exports.addAddress = async (req, res) => {
   const userId = req.session.user.userId
-  console.log(userId);
-  console.log(req.body);
   const { error } = addressValidation(req.body)
   if (error) {
     return res.status(400).json({ message: error.details[0].message })
@@ -42,17 +42,14 @@ exports.addAddress = async (req, res) => {
     pincode,
 
   }
-  console.log(data);
   let result = await userProfileModel.addAddress(data)
   if (result) return res.status(200).json({ message: "address added successfully" })
 }
 //deleteAddress address remove
 exports.deleteAddress = async (req, res) => {
   try {
-    console.log("Delete request body:", req.body);
 
     let result = await userProfileModel.deleteAddress(req.body);
-    console.log("Delete result:", result);
 
     if (result.modifiedCount > 0) {
       return res.status(200).json({ message: "Deleted address successfully" });
@@ -67,7 +64,6 @@ exports.deleteAddress = async (req, res) => {
 //view address
 exports.viewAdress = async (req, res) => {
   let address = await userProfileModel.viewAddress(req.session.user.userId)
-  console.log("adress from contrlr", address);
   res.render('user-pages/address.ejs', {
     user: { addresses: address || [] } // 👈 fixed
   })
@@ -175,12 +171,7 @@ exports.checkoutView = async (req, res) => {
   let deliveryCharge = subtotal > 100000 ? 0 : 100;
 
   let total = subtotal + tax + deliveryCharge;
-console.log(cartItems,
-    JSON.stringify(data,null,2),
-    subtotal,
-    tax,
-    deliveryCharge,
-    total);
+
   const addresses = Array.isArray(data.addresses) ? data.addresses.map(a => a.addresses) : [];
   res.render("user-pages/checkOutPage.ejs", {
     cartItems,
@@ -213,10 +204,225 @@ exports.viewOrder = async (req,res) => {
   try {
     const userId = req.session.user.userId;
     let data = await userProfileModel.showOrder(userId);
-    console.log(JSON.stringify(data,null,2));
     res.render("user-pages/order.ejs", { orders: data });
   } catch(err) {
     console.error(err);
     res.status(500).send("Server Error");
   }
 }
+
+
+exports.invoice = async (req, res) => {
+  try {
+    const userId = req.session.user.userId;
+    const orderId = req.params; 
+    let data = await userProfileModel.invoiceData(userId, orderId);
+
+    if (!data || !data.order) {
+      return res.status(404).send("Invoice data not found");
+    }
+
+    const { buyer, order } = data;
+
+    const invoicesDir = path.join(__dirname, '../invoices');
+    if (!fs.existsSync(invoicesDir)) {
+      fs.mkdirSync(invoicesDir, { recursive: true });
+    }
+
+    const doc = new PDFDocument({ 
+      margin: 30,
+      size: 'A4',
+      info: {
+        Title: `Invoice ${order.orderId}`,
+        Author: 'TechPrime',
+        Subject: 'Invoice',
+        Creator: 'TechPrime E-commerce'
+      }
+    });
+
+    const invoicePath = path.join(
+      __dirname,
+      `../invoices/invoice-${order.orderId}.pdf`
+    );
+    const stream = fs.createWriteStream(invoicePath);
+    doc.pipe(stream);
+    doc.pipe(res); 
+
+   
+    doc.registerFont('Helvetica', 'Helvetica');
+    doc.registerFont('Helvetica-Bold', 'Helvetica-Bold');
+    doc.registerFont('Helvetica-Oblique', 'Helvetica-Oblique');
+
+   
+    doc
+      .fillColor('#1e3a8a')
+      .rect(0, 0, doc.page.width, 80)
+      .fill();
+
+    -
+    doc
+      .fillColor('white')
+      .font('Helvetica-Bold')
+      .fontSize(20)
+      .text('TechPrime', 40, 20)
+      .font('Helvetica')
+      .fontSize(10)
+      .text('E-commerce Solutions', 40, 45)
+      .text('123 Business St, Tech City, TC 12345 | support@techprime.com', 40, 60);
+
+    
+    doc
+      .fillColor('black')
+      .font('Helvetica-Bold')
+      .fontSize(14)
+      .text(`Invoice #${order.orderId}`, 350, 20, { align: 'right' })
+      .font('Helvetica')
+      .fontSize(10)
+      .text(`Date: ${new Date(order.createdAt).toLocaleDateString()}`, 350, 40, { align: 'right' })
+      .text(`Due Date: ${new Date(order.createdAt).toLocaleDateString()}`, 350, 55, { align: 'right' });
+
+  
+    doc
+      .fontSize(50)
+      .fillColor('rgba(0, 0, 0, 0.1)')
+      .text('TechPrime', doc.page.width / 2 - 80, doc.page.height / 2 - 40, {
+        align: 'center',
+        rotate: -45
+      });
+
+    doc
+      .fillColor('black')
+      .font('Helvetica-Bold')
+      .fontSize(12)
+      .text('Billed To:', 40, 100, { underline: true });
+    doc
+      .font('Helvetica')
+      .fontSize(10)
+      .text(`${buyer.firstName} ${buyer.lastName}`, 40, 115)
+      .text(buyer.email, 40, 130)
+      .text(buyer.phone, 40, 145);
+
+    doc
+      .font('Helvetica-Bold')
+      .fontSize(12)
+      .text('Shipping Address:', 300, 100, { underline: true });
+    doc
+      .font('Helvetica')
+      .fontSize(10)
+      .text(order.selectedAddress.fullName, 300, 115)
+      .text(order.selectedAddress.line1, 300, 130)
+      .text(
+        `${order.selectedAddress.city}, ${order.selectedAddress.state} - ${order.selectedAddress.pincode}`,
+        300,
+        145
+      )
+      .text(`Phone: ${order.selectedAddress.phone}`, 300, 160);
+
+    doc
+      .font('Helvetica-Bold')
+      .fontSize(12)
+      .fillColor('black')
+      .text('Order Summary:', 40, 190, { underline: true });
+
+    const tableTop = 210;
+    const itemX = 40,
+          descX = 140,
+          qtyX = 340,
+          priceX = 400,
+          totalX = 460;
+    const rowHeight = 20;
+    const tableWidth = totalX + 60 - itemX;
+
+    doc
+      .fillColor('#e5e7eb')
+      .rect(itemX, tableTop, tableWidth, rowHeight)
+      .fill();
+
+    doc
+      .fillColor('black')
+      .font('Helvetica-Bold')
+      .fontSize(10)
+      .text('Item', itemX + 5, tableTop + 5)
+      .text('Description', descX + 5, tableTop + 5)
+      .text('Qty', qtyX + 5, tableTop + 5)
+      .text('Price', priceX + 5, tableTop + 5)
+      .text('Total', totalX + 5, tableTop + 5);
+
+    doc
+      .lineWidth(1)
+      .strokeColor('#d1d5db')
+      .rect(itemX, tableTop, tableWidth, rowHeight)
+      .stroke();
+
+    let i = 0;
+    order.items.forEach((item, index) => {
+      const y = tableTop + (i + 1) * rowHeight;
+      // Alternating row colors
+      if (index % 2 === 0) {
+        doc
+          .fillColor('#f9fafb')
+          .rect(itemX, y, tableWidth, rowHeight)
+          .fill();
+      }
+      doc
+        .fillColor('black')
+        .font('Helvetica')
+        .fontSize(9)
+        .text(item.productName, itemX + 5, y + 5, { width: 90, ellipsis: true })
+        .text(`${item.processor} / ${item.ram} / ${item.storage}`, descX + 5, y + 5, { width: 190, ellipsis: true })
+        .text(item.quantity, qtyX + 5, y + 5, { align: 'center', width: 50 })
+        .text(`₹${Number(item.price).toLocaleString('en-IN')}`, priceX + 5, y + 5, { align: 'right', width: 50 })
+        .text(`₹${(item.quantity * item.price).toLocaleString('en-IN')}`, totalX + 5, y + 5, { align: 'right', width: 60 });
+
+      doc
+        .rect(itemX, y, tableWidth, rowHeight)
+        .stroke();
+      i++;
+    });
+
+    [itemX, descX, qtyX, priceX, totalX, totalX + 60].forEach((x) => {
+      doc
+        .moveTo(x, tableTop)
+        .lineTo(x, tableTop + (i + 1) * rowHeight)
+        .stroke();
+    });
+
+    const totalsTop = tableTop + (i + 1) * rowHeight + 10;
+    doc
+      .font('Helvetica-Bold')
+      .fontSize(10)
+      .fillColor('black')
+      .text(`Subtotal: ₹${Number(order.subtotal).toLocaleString('en-IN')}`, 350, totalsTop, { align: 'right' })
+      .text(`Tax: ₹${Number(order.tax).toLocaleString('en-IN')}`, 350, totalsTop + 15, { align: 'right' })
+      .text(`Delivery: ₹${Number(order.deliveryCharge).toLocaleString('en-IN')}`, 350, totalsTop + 30, { align: 'right' })
+      .text(`Grand Total: ₹${Number(order.total).toLocaleString('en-IN')}`, 350, totalsTop + 45, { align: 'right' });
+
+    doc
+      .lineWidth(1)
+      .strokeColor('#d1d5db')
+      .rect(350, totalsTop - 5, 175, 65)
+      .stroke();
+
+    doc
+      .font('Helvetica-Oblique')
+      .fontSize(9)
+      .fillColor('#4b5563')
+      .text('Thank you for shopping with TechPrime!', 40, doc.page.height - 60, { align: 'center' })
+      .text('support@techprime.com | +91 123 456 7890', 40, doc.page.height - 45, { align: 'center' });
+
+    doc
+      .lineWidth(1)
+      .strokeColor('#1e3a8a')
+      .rect(15, 15, doc.page.width - 30, doc.page.height - 30)
+      .stroke();
+
+    doc.end();
+
+    stream.on("finish", () => {
+      console.log("Invoice saved:", invoicePath);
+    });
+  } catch (error) {
+    console.error("Invoice error:", error);
+    res.status(500).send("Error generating invoice");
+  }
+};

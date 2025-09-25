@@ -139,9 +139,7 @@ exports.checkOutView = async (userId) => {
       }
     ];
 
-
     const cartItems = await db.collection(dbVariables.cartCollection).aggregate(pipeline).toArray();
-
 
     const pipe =
       [
@@ -179,22 +177,100 @@ exports.addNewOrder = async (userId, data) => {
 exports.showOrder = async (userId) => {
   const db = await getDB();
 
-  // Fetch all orders for the user
-  const orders = await db.collection(dbVariables.orderCollection)
-    .find({ userId })
-    .toArray();
+  const orders = await db.collection(dbVariables.orderCollection).find({ userId }).toArray();
 
   for (let order of orders) {
     for (let item of order.items) {
-      const product = await db.collection(dbVariables.productCollection)
-        .findOne({ _id: new ObjectId(item.productId) }) || {};
-      const variant = await db.collection(dbVariables.variantCollection)
-        .findOne({ _id: new ObjectId(item.variantId) }) || {};
+      const product = await db.collection(dbVariables.productCollection).findOne({ _id: new ObjectId(item.productId) }) || {};
+      const variant = await db.collection(dbVariables.variantCollection).findOne({ _id: new ObjectId(item.variantId) }) || {};
 
       item.product = product;
       item.variant = variant;
     }
   }
-  // Return full orders array with populated data
   return orders;
+};
+
+
+
+exports.invoiceData = async (userId, orderNumber) => {
+  const db = await getDB();
+  const buyer = await db.collection(dbVariables.userCollection).findOne({ _id: new ObjectId(userId) });
+
+  if (!buyer) {
+    throw new Error("User not found");
+  }
+  const pipeline = [
+    { $match: { orderId: String(orderNumber.orderId),userId: String(userId) }},
+    { $unwind: "$items" },
+
+    { $addFields: {
+        "items.productIdObj": { $toObjectId: "$items.productId" },
+        "items.variantIdObj": { $toObjectId: "$items.variantId" }
+      }
+    },
+
+    {$lookup: {
+        from: dbVariables.productCollection,
+        localField: "items.productIdObj",
+        foreignField: "_id",
+        as: "product"
+      }
+    },
+    { $unwind: "$product" },
+
+    {$lookup: {
+        from: dbVariables.variantCollection,
+        localField: "items.variantIdObj",
+        foreignField: "_id",
+        as: "variant"
+      }
+    },
+    { $unwind: "$variant" },
+
+    {$group: {
+        _id: "$_id",
+        orderId: { $first: "$orderId" },
+        userId: { $first: "$userId" },
+        selectedAddress: { $first: "$selectedAddress" },
+        paymentMethod: { $first: "$paymentMethod" },
+        subtotal: { $first: "$subtotal" },
+        tax: { $first: "$tax" },
+        deliveryCharge: { $first: "$deliveryCharge" },
+        total: { $first: "$total" },
+        createdAt: { $first: "$createdAt" },
+        status: { $first: "$status" },
+        items: {
+          $push: {
+            productId: "$items.productId",
+            variantId: "$items.variantId",
+            quantity: "$items.quantity",
+            price: "$items.price",
+            productName: "$product.name",
+            productImages: "$product.images",
+            company: "$product.companyDetails",
+            processor: "$variant.processor",
+            ram: "$variant.ram",
+            storage: "$variant.storage",
+            graphics: "$variant.graphics",
+            color: "$variant.color",
+            display: "$variant.display",
+            variantPrice: "$variant.price"
+          }
+        }
+      }
+    }
+  ];
+
+  const data = await db
+    .collection(dbVariables.orderCollection)
+    .aggregate(pipeline)
+    .toArray();
+
+  const invoice = data[0] || null;
+
+  return {
+    buyer, 
+    order: invoice
+  };
 };

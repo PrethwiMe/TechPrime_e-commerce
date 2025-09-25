@@ -42,37 +42,37 @@ exports.renderLoginPage = (req, res) => {
 exports.loginAccess = async (req, res) => {
   try {
     const { email, password } = req.body;
-console.log(req.body);
+
     const { error } = joi.loginValidation({ email, password });
     if (error) {
-      return res.render('user-pages/login', { error: error.details[0].message });
+      return res.status(400).json({ error: error.details[0].message });
     }
 
     const user = await userModel.fetchUser(email);
-
-
     if (!user) {
-      return res.render('user-pages/login', { error: 'User not found.' });
+      return res.status(404).json({ error: 'User not found.' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-     
-      return res.render('user-pages/login', { error: 'Invalid email or password.' });
+      return res.status(401).json({ error: 'Invalid email or password.' });
     }
-         req.session.user = {
+
+    req.session.user = {
       userId: user._id,
       firstName: user.firstName,
       email: user.email,
       phone: user.phone,
       role: user.role
     };
-    return res.redirect('/');
+
+    return res.json({ success: true, redirect: '/' });
   } catch (error) {
     console.error('Login error:', error);
-    return res.render('user-pages/login', { error: 'Server error. Please try again.' });
+    return res.status(500).json({ error: 'Server error. Please try again.' });
   }
 };
+
 exports.renderSignupPage = (req, res) => {
   res.render('user-pages/signup', { error: null });
 };

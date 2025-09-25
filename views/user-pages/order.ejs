@@ -212,7 +212,10 @@
                       <div class="text-muted mb-1">Order total</div>
                       <div class="fs-5 fw-bold"><%= parseFloat(order.total).toFixed(2) %>/-</div>
                     </div>
-                    <button class="btn btn-primary"><i class="bi bi-box-arrow-in-down me-1"></i> Download Summary</button>
+                    <a href="/account/orders/invoice/<%= order.orderId %>" class="btn btn-primary">
+  <i class="bi bi-box-arrow-in-down me-1"></i> Download Invoice
+</a>
+
                   </div>
                 </div>
               </div>
