@@ -147,14 +147,14 @@ exports.viewOrders = async () => {
     throw error;
   }
 };
-
-exports.updateOrderStatus = async (orderId, status) => {
+// update order status
+exports.updateOrderStatus = async (orderId, st) => {
     try {
         const db = await getDB();
 
         const result = await db.collection(dbVariables.orderCollection).updateOne(
             { _id: new ObjectId(orderId) },
-            { $set: { status } }
+            { $set: { status:st } }
         );
 
         return result;
@@ -162,5 +162,13 @@ exports.updateOrderStatus = async (orderId, status) => {
         throw new Error('Failed to update order status: ' + err.message);
     }
 };
+//accept order
+exports.returnAccept = async (id,st) => {
+  console.log(id,"  ",st);
+  const db = await getDB();
+  const update = await db.collection(dbVariables.orderCollection)
+  .updateOne({_id: new ObjectId(id)},{$set:{returnOrder:st}})
 
+  return update;
+}
 

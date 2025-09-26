@@ -174,6 +174,10 @@ exports.addNewOrder = async (userId, data) => {
   const addData = await db.collection(dbVariables.orderCollection).insertOne(orderDoc);
   return addData;
 };
+exports.deleteCart = async (userId) =>{
+  const db = await getDB();
+  const dlt = await db.collection(dbVariables.cartCollection).deleteOne({userId:userId})
+}
 exports.showOrder = async (userId) => {
   const db = await getDB();
 
@@ -192,11 +196,8 @@ exports.showOrder = async (userId) => {
 };
 exports.invoiceData = async (userId, orderNumber) => {
   const db = await getDB();
-  const buyer = await db.collection(dbVariables.userCollection).findOne({ _id: new ObjectId(userId) });
 
-  if (!buyer) {
-    throw new Error("User not found");
-  }
+
   const pipeline = [
     { $match: { orderId: String(orderNumber.orderId),userId: String(userId) }},
     { $unwind: "$items" },
@@ -259,11 +260,15 @@ exports.invoiceData = async (userId, orderNumber) => {
     }
   ];
 
-    const orders = await db.collection(dbVariables.orderCollection).find({ userId }).toArray();
+  const orders = await db.collection(dbVariables.orderCollection).aggregate(pipeline).toArray();
+  //userdata
+  const buyer = await db.collection(dbVariables.userCollection).findOne({ _id: new ObjectId(userId) });
 
 
-  const invoice = data[0] || null;
-
+  const invoice = orders[0] || null;
+  if (!buyer) {
+    throw new Error("User not found");
+  }
   return {
     buyer, 
     order: invoice,
@@ -271,3 +276,26 @@ exports.invoiceData = async (userId, orderNumber) => {
 
   };
 };
+exports.cancelOrderModal = async (orderId) => {
+
+  const db = await getDB();
+  const update = await db.collection(dbVariables.orderCollection).updateOne({orderId:orderId},{$set:{status:"Cancelled"}})
+return update
+}
+exports.cancellAllOrder = async (ids) => {
+  const db = await getDB()
+
+const result = await Promise.all(ids.map(async (id)=>{
+   
+    const databse= await db.collection(dbVariables.orderCollection).updateOne({orderId:id,status:"Pending"},{$set:{status:"Cancelled"}})
+    return databse
+
+}))
+return result
+}
+exports.returnData = async (data) => {
+  const db = await getDB();
+  const {orderId,reason,returnStatus} = data; 
+  const updateData = await db.collection(dbVariables.orderCollection).updateOne({orderId:orderId},{$set:{returnReason:reason,returnOrder:returnStatus}});
+  return updateData
+}

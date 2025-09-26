@@ -184,7 +184,7 @@ exports.checkoutView = async (req, res) => {
     total
   });
 };
-
+//add to order
 exports.addToOrder = async (req, res) => {
 
   const order = req.body;
@@ -195,26 +195,26 @@ exports.addToOrder = async (req, res) => {
       const userId = req.session.user.userId
 
 const result = await userProfileModel.addNewOrder(userId,order);
+const dltCart = await userProfileModel.deleteCart(userId)
 if(result.acknowledged) return res.status(200).json({ status: "success", message: "OrederPlaced successfully" })
 else return res.status(400).json({status:"error",message:"failed please try after sometime"})
   } else {
     res.send("inProgress")
   }
 }
-
+// view order user
 exports.viewOrder = async (req,res) => {
   try {
     const userId = req.session.user.userId;
     let data = await userProfileModel.showOrder(userId);
-    // console.log(JSON.stringify(data,null,2));
-    res.render("user-pages/order.ejs", { orders: data });
+     user=req.session.user
+    res.render("user-pages/order.ejs", { orders: data,user });
   } catch(err) {
     console.error(err);
     res.status(500).send("Server Error");
   }
 }
-
-
+//to download the pdf
 exports.invoice = async (req, res) => {
   try {
     const userId = req.session.user.userId;
@@ -429,3 +429,35 @@ exports.invoice = async (req, res) => {
     res.status(500).send("Error generating invoice");
   }
 };
+//cancel order
+exports.cancelOrder = async (req,res) => {
+const orderId = req.body.orderId;
+
+const update = await userProfileModel.cancelOrderModal(orderId)
+if (update. modifiedCount> 0) {
+ return res.status(200).json({success:true,message:"your order is cancelled..!!"})
+}else{
+return res.status(400).json({success:false,message:"Can not cancel at the moment"})
+}
+}
+//cancel all order
+exports.cancelAllOrder = async (req,res) => {
+  let data = req.body.orderIds
+
+  let result = await userProfileModel.cancellAllOrder(data)
+
+  if (result) {
+  return  res.status(200).json({success:true, message:"Your All orders Are cancelled"})
+  }
+    return  res.status(400).json({success:false, message:"Error, Try after some time"})
+
+}
+//return order
+exports.returnOrder = async (req,res) => {
+  console.log(req.body);
+  let data = await userProfileModel.returnData(req.body)
+
+  if (data) return res.status(200).json({success:true,message:"return requsted waiting for approvel"})
+    else
+  return res.status(400).json({success:false,message:"return requst not complete"})
+}

@@ -142,10 +142,23 @@ exports.editOrderStatus = async (req, res) => {
 
         await adminModel.updateOrderStatus(orderId, status);
 
-         res.json({ success: true, status });
+     return res.status(200).json({success:true,message:"Done"})
 
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: 'Server Error' });
     }
 };
+//accept return
+exports.orderAccept = async(req,res) => {
+  console.log(req.body);
+  //ojectid
+  const id = req.body.orderId;
+  const status = req.body.returnStatus
+
+  const result = await adminModel.returnAccept(id,status)
+
+  if(result) return res.status(200).json({success:true,message:"product Accepted"})
+    else return res.status(400).json({success:false, message:"failed to accept product"})
+
+}

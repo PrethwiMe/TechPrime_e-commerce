@@ -11,7 +11,6 @@ const {uploadUser} = require('../middleware/cloudinary')
 console.log('!!!!!@@ user route reloaded', new Date().toLocaleTimeString());
 
 router.get('/',userController.loadHome)
-
 router.get('/signup',isUserLoggedIn,userController.renderSignupPage);
 //signUP
 router.post('/signupData',userController.handleSignup)
@@ -19,7 +18,6 @@ router.post('/signupData',userController.handleSignup)
 router.post('/resend-otp',userController.resendOtp)
 //verify otp
 router.post('/verify-email',userController.verifyUserOtp)
-
 //loginpage with session
 router.get('/login',isUserLoggedIn,userController.renderLoginPage)
 router.post('/login-req',userController.loginAccess)
@@ -82,5 +80,11 @@ router.post('/cart/checkout/order',userConfirmed,userProfileController.addToOrde
 router.get('/account/orders',userConfirmed,userProfileController.viewOrder)
 //download invoice
 router.get('/account/orders/invoice/:orderId',userConfirmed,userProfileController.invoice)
+//cancel order
+router.post('/account/orders/cancel',userConfirmed,userProfileController.cancelOrder)
+//cancel all order
+router.post('/account/orders/cancel-all',userConfirmed,userProfileController.cancelAllOrder)
+//return
+router.post('/account/orders/return', userConfirmed,userProfileController.returnOrder)
 module.exports = router;
   

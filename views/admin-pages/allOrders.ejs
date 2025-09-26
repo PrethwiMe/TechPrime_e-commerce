@@ -45,6 +45,7 @@
               <th>Variant</th>
               <th>Total</th>
               <th>Status</th>
+              <th>Return Status</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -78,19 +79,23 @@
                   <% }) %>
                 </td>
                 <td>₹ <%= parseFloat(order.total).toLocaleString() %></td>
-
-                <!-- Status Drop-down -->
                 <td>
-                  <select class="form-select form-select-sm order-status" data-id="<%= order._id %>">
+                  <select class="form-select form-select-sm order-status" data-id="<%= order._id %>" <%= order.returnOrder ? '' : '' %>>
                     <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
-                    <option value="Processing" <%= order.status === 'Processing' ? 'selected' : '' %>>Processing</option>
                     <option value="Shipped" <%= order.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
                     <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
                     <option value="Cancelled" <%= order.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
                   </select>
                 </td>
-
-                <!-- Actions -->
+                <td>
+                  <% if (order.returnOrder) { %>
+                    <span class="badge <%= order.returnOrder === 'Pending' ? 'bg-warning text-dark' : order.returnOrder === 'Accepted' ? 'bg-success text-white' : 'bg-danger text-white' %>">
+                      <%= order.returnOrder %>
+                    </span>
+                  <% } else { %>
+                    <span>Not Returned</span>
+                  <% } %>
+                </td>
                 <td>
                   <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editOrderModal-<%= order._id %>">
                     <i class="bi bi-eye"></i>
@@ -105,12 +110,10 @@
   </div>
 
 <!-- Order Modals -->
-
 <% orders.forEach(order => { %>
   <div class="modal fade" id="editOrderModal-<%= order._id %>" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl">
       <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-        
         <!-- Header -->
         <div class="modal-header bg-dark text-white">
           <h5 class="modal-title fw-bold">
@@ -122,7 +125,6 @@
         <!-- Body -->
         <div class="modal-body p-4">
           <div class="row g-4">
-            
             <!-- Order Summary -->
             <div class="col-md-4 border-end">
               <h6 class="fw-bold text-secondary mb-3">Order Summary</h6>
@@ -159,7 +161,7 @@
               </ul>
             </div>
 
-            <!-- Order Items -->
+            <!-- Order Items and Return Details -->
             <div class="col-md-4">
               <h6 class="fw-bold text-secondary mb-3">Order Items</h6>
               <div class="table-responsive small">
@@ -190,13 +192,36 @@
                   </tbody>
                 </table>
               </div>
-            </div>
 
+              <h6 class="fw-bold text-secondary mt-4 mb-3">Return Details</h6>
+              <ul class="list-group list-group-flush small">
+                <li class="list-group-item">
+                  <strong>Return Status:</strong> 
+                  <% if (order.returnOrder) { %>
+                    <span class="badge <%= order.returnOrder === 'Pending' ? 'bg-warning text-dark' : order.returnOrder === 'Accepted' ? 'bg-success text-white' : 'bg-danger text-white' %>">
+                      <%= order.returnOrder %>
+                    </span>
+                  <% } else { %>
+                    <span>Not Returned</span>
+                  <% } %>
+                </li>
+                <% if (order.returnOrder) { %>
+                  <li class="list-group-item"><strong>Return Reason:</strong> <%= order.returnReason || 'N/A' %></li>
+                <% } %>
+              </ul>
+            </div>
           </div>
         </div>
 
         <!-- Footer -->
         <div class="modal-footer bg-light d-flex justify-content-between">
+          <% if (order.returnOrder) { %>
+            <select class="form-select form-select-sm return-action-select" data-id="<%= order._id %>" data-reason="<%= order.returnReason %>">
+              <option value="Pending" <%= order.returnOrder === 'Pending' ? 'selected' : '' %>>Pending</option>
+              <option value="Accepted" <%= order.returnOrder === 'Accepted' ? 'selected' : '' %>>Accepted</option>
+              <option value="Rejected" <%= order.returnOrder === 'Rejected' ? 'selected' : '' %>>Rejected</option>
+            </select>
+          <% } %>
           <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">
             <i class="bi bi-x-circle me-1"></i> Close
           </button>
@@ -221,6 +246,7 @@
     // Handle status change via AJAX
     document.querySelectorAll('.order-status').forEach(select => {
       select.addEventListener('change', async function() {
+        if (this.disabled) return; // Prevent changes if disabled
         const orderId = this.dataset.id;
         const status = this.value;
 
@@ -250,6 +276,72 @@
         }
       });
     });
+
+    // Handle Return Action Dropdown
+    document.querySelectorAll('.return-action-select').forEach(select => {
+      select.addEventListener('change', async function() {
+        const orderId = this.dataset.id;
+        const returnReason = this.dataset.reason;
+        const returnStatus = this.value;
+
+        if (!returnStatus) return; // Ignore if no valid status is selected
+
+        const actionText = returnStatus.toLowerCase();
+        const result = await Swal.fire({
+          title: `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} Return Request`,
+          text: `Are you sure you want to set the return status to "${returnStatus}" for order ${orderId}? Reason: ${returnReason || 'N/A'}`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: returnStatus === 'Accepted' ? '#28a745' : returnStatus === 'Rejected' ? '#dc3545' : '#ffc107',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: `Yes, set to ${returnStatus}`,
+          cancelButtonText: 'No, cancel'
+        });
+
+        if (result.isConfirmed) {
+          try {
+            const response = await axios.post('/admin/orders/update-return-status', {
+              orderId,
+              returnStatus,
+              returnReason
+            });
+
+            if (response.data.success) {
+              await Swal.fire({
+                icon: 'success',
+                title: `Return ${returnStatus}`,
+                text: `The return status has been set to ${returnStatus}.`,
+                timer: 1500,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+              });
+              window.location.reload();
+            } else {
+              await Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: `Failed to set return status to ${returnStatus}.`,
+                toast: true,
+                position: 'top-end'
+              });
+            }
+          } catch (error) {
+            console.error(`Error setting return status to ${returnStatus}:`, error);
+            await Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: `An error occurred while setting the return status to ${returnStatus}.`,
+              toast: true,
+              position: 'top-end'
+            });
+          }
+        }
+
+        // Reset dropdown to current status to reflect server state
+        this.value = returnStatus;
+      });
+    });
   </script>
 
   <style>
@@ -266,10 +358,44 @@
       display: flex;
       align-items: center;
     }
+    .return-action-select {
+      width: 200px;
+      border: 1px solid #dee2e6;
+      border-radius: 0.5rem;
+      background-color: #fff;
+      transition: all 0.2s ease;
+    }
+    .return-action-select:hover {
+      border-color: #0d6efd;
+      box-shadow: 0 0 5px rgba(13, 110, 253, 0.3);
+    }
+    .return-action-select:focus {
+      border-color: #0d6efd;
+      box-shadow: 0 0 5px rgba(13, 110, 253, 0.5);
+      outline: none;
+    }
+    .return-action-select option[value="Pending"] {
+      color: #856404;
+      background-color: #fff3cd;
+    }
+    .return-action-select option[value="Accepted"] {
+      color: #28a745;
+      background-color: #e6f4ea;
+    }
+    .return-action-select option[value="Rejected"] {
+      color: #dc3545;
+      background-color: #f8d7da;
+    }
+    .order-status:disabled {
+      background-color: #e9ecef;
+      cursor: not-allowed;
+      opacity: 0.65;
+    }
     @media (max-width: 768px) {
       .d-flex { flex-direction: column; }
       .form-select, .input-group { width: 100% !important; }
       .modal-dialog-right { position: relative; width: 100%; margin: 0 auto; }
+      .return-action-select { width: 100%; }
     }
   </style>
 </div>
