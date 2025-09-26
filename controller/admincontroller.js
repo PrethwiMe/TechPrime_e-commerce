@@ -110,7 +110,6 @@ exports.displayUsers = async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 };
-
 //disable or enable user
 exports.controleUser =async (req,res) => {
 
@@ -120,4 +119,33 @@ exports.controleUser =async (req,res) => {
   let userData =await adminModel.userControll(userId)
   res.redirect('/admin/users')
 }
+exports.orderPage = async (req, res) => {
+  try {
+    const data = await adminModel.viewOrders(); 
+    const filter = req.query.filter || 'Order status';
+    res.render('admin-pages/allOrders', {
+      orders: data.ordersWithDetails, 
+      filter,
+      search: req.query.search || ''
+    });
+  } catch (error) {
+    console.error('Error rendering order page:', error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+//edit order page
+exports.editOrderStatus = async (req, res) => {
+    try {
+        const { orderId, status } = req.body;
 
+        console.log(req.body); // Debugging
+
+        await adminModel.updateOrderStatus(orderId, status);
+
+         res.json({ success: true, status });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
+};

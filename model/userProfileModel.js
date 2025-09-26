@@ -190,9 +190,6 @@ exports.showOrder = async (userId) => {
   }
   return orders;
 };
-
-
-
 exports.invoiceData = async (userId, orderNumber) => {
   const db = await getDB();
   const buyer = await db.collection(dbVariables.userCollection).findOne({ _id: new ObjectId(userId) });
@@ -262,15 +259,15 @@ exports.invoiceData = async (userId, orderNumber) => {
     }
   ];
 
-  const data = await db
-    .collection(dbVariables.orderCollection)
-    .aggregate(pipeline)
-    .toArray();
+    const orders = await db.collection(dbVariables.orderCollection).find({ userId }).toArray();
+
 
   const invoice = data[0] || null;
 
   return {
     buyer, 
-    order: invoice
+    order: invoice,
+    
+
   };
 };

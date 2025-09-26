@@ -42,4 +42,8 @@ router.post('/edit-product/:productId', sessionHandle.adminConfirmed, upload.arr
 //edit categories view edit pages
 router.get('/categories/edit/:Id', sessionHandle.adminConfirmed, productController.editCategories)
 router.post('/categories/edit-req', sessionHandle.adminConfirmed, productController.editDataCategories)
+//all orders
+router.get('/orders',sessionHandle.adminConfirmed,adminController.orderPage)
+//edit order
+/router.post('/order/updateOrderStatus',sessionHandle.adminConfirmed,adminController.editOrderStatus)
 module.exports = router;

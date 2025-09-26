@@ -1,0 +1,275 @@
+<div class="d-flex">
+  <%- include('partials/sidebar') %>
+
+  <div class="flex-grow-1 bg-white text-dark" style="min-height: 100vh;">
+    <!-- Topbar -->
+    <div class="border-bottom shadow-sm">
+      <%- include('partials/topbar') %>
+    </div>
+
+    <!-- Page Content -->
+    <div class="p-4">
+      <!-- Header & Search -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold mb-0">Order Lists</h3>
+        <div class="d-flex gap-3 align-items-center">
+          <form id="searchForm" class="d-flex" method="GET" action="/admin/orders" role="search">
+            <div class="input-group">
+              <input
+                type="text"
+                id="searchInput"
+                name="search"
+                class="form-control"
+                placeholder="Search by ID, Name, or Product..."
+                value="<%= typeof search !== 'undefined' ? search : '' %>"
+              />
+              <button type="submit" class="btn btn-outline-primary">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+          </form>
+          <button id="clearSearchBtn" class="btn btn-outline-secondary">Clear</button>
+        </div>
+      </div>
+
+      <!-- Orders Table -->
+      <div class="table-responsive rounded shadow">
+        <table class="table table-bordered table-hover align-middle text-center">
+          <thead class="table-dark">
+            <tr>
+              <th>Order ID</th>
+              <th>Buyer Name</th>
+              <th>Address</th>
+              <th>Date</th>
+              <th>Product</th>
+              <th>Variant</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% orders.forEach(order => { %>
+              <tr>
+                <td><%= order.orderId %></td>
+                <td><%= order.buyer.fullName %></td>
+                <td>
+                  <%= order.selectedAddress.line1 %>, 
+                  <%= order.selectedAddress.city %>, 
+                  <%= order.selectedAddress.state %> - 
+                  <%= order.selectedAddress.pincode %>
+                </td>
+                <td><%= new Date(order.createdAt).toLocaleString() %></td>
+                <td>
+                  <% order.items.forEach(item => { %>
+                    <div><%= item.productName %> (<%= item.productCompany %>)</div>
+                  <% }) %>
+                </td>
+                <td>
+                  <% order.items.forEach(item => { %>
+                    <% if (item.variantDetails) { %>
+                      <div>
+                        <%= item.variantDetails.processor %>, 
+                        <%= item.variantDetails.ram %>, 
+                        <%= item.variantDetails.storage %>, 
+                        <%= item.variantDetails.color %>
+                      </div>
+                    <% } %>
+                  <% }) %>
+                </td>
+                <td>₹ <%= parseFloat(order.total).toLocaleString() %></td>
+
+                <!-- Status Drop-down -->
+                <td>
+                  <select class="form-select form-select-sm order-status" data-id="<%= order._id %>">
+                    <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
+                    <option value="Processing" <%= order.status === 'Processing' ? 'selected' : '' %>>Processing</option>
+                    <option value="Shipped" <%= order.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                    <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                    <option value="Cancelled" <%= order.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                  </select>
+                </td>
+
+                <!-- Actions -->
+                <td>
+                  <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editOrderModal-<%= order._id %>">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<!-- Order Modals -->
+
+<% orders.forEach(order => { %>
+  <div class="modal fade" id="editOrderModal-<%= order._id %>" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+        
+        <!-- Header -->
+        <div class="modal-header bg-dark text-white">
+          <h5 class="modal-title fw-bold">
+            <i class="bi bi-receipt me-2"></i> Order #<%= order.orderId %>
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body p-4">
+          <div class="row g-4">
+            
+            <!-- Order Summary -->
+            <div class="col-md-4 border-end">
+              <h6 class="fw-bold text-secondary mb-3">Order Summary</h6>
+              <ul class="list-group list-group-flush small">
+                <li class="list-group-item"><strong>Order ID:</strong> <%= order.orderId %></li>
+                <li class="list-group-item"><strong>Date:</strong> <%= new Date(order.createdAt).toLocaleString() %></li>
+                <li class="list-group-item"><strong>Payment:</strong> <%= order.paymentMethod %></li>
+                <li class="list-group-item"><strong>Status:</strong> <span class="badge bg-info"><%= order.status %></span></li>
+                <li class="list-group-item"><strong>Subtotal:</strong> ₹ <%= parseFloat(order.subtotal).toLocaleString() %></li>
+                <li class="list-group-item"><strong>Tax:</strong> ₹ <%= parseFloat(order.tax).toLocaleString() %></li>
+                <li class="list-group-item"><strong>Delivery:</strong> ₹ <%= parseFloat(order.deliveryCharge).toLocaleString() %></li>
+                <% if(order.couponCode){ %>
+                  <li class="list-group-item"><strong>Coupon:</strong> <%= order.couponCode %></li>
+                <% } %>
+                <li class="list-group-item"><strong>Total:</strong> ₹ <%= parseFloat(order.total).toLocaleString() %></li>
+                <li class="list-group-item"><strong>Items:</strong> <%= order.items.length %></li>
+              </ul>
+            </div>
+
+            <!-- Customer Details -->
+            <div class="col-md-4 border-end">
+              <h6 class="fw-bold text-secondary mb-3">Customer</h6>
+              <ul class="list-group list-group-flush small">
+                <li class="list-group-item"><strong>Buyer:</strong> <%= order.buyer.fullName %></li>
+                <li class="list-group-item"><strong>Email:</strong> <%= order.buyer.email %></li>
+                <li class="list-group-item"><strong>Phone:</strong> <%= order.buyer.phone %></li>
+                <li class="list-group-item">
+                  <strong>Delivery Address:</strong><br>
+                  <%= order.selectedAddress.fullName %><br>
+                  <%= order.selectedAddress.line1 %>, <%= order.selectedAddress.city %><br>
+                  <%= order.selectedAddress.state %> - <%= order.selectedAddress.pincode %><br>
+                  <small>Phone: <%= order.selectedAddress.phone %></small>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Order Items -->
+            <div class="col-md-4">
+              <h6 class="fw-bold text-secondary mb-3">Order Items</h6>
+              <div class="table-responsive small">
+                <table class="table table-sm align-middle">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Product</th>
+                      <th>Qty</th>
+                      <th>Price</th>
+                      <th>Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% order.items.forEach(item => { %>
+                      <tr>
+                        <td>
+                          <img src="<%= item.firstImage %>" 
+                               class="rounded me-2 border" 
+                               style="width:40px;height:40px;object-fit:cover;">
+                          <div><%= item.productName %></div>
+                          <small class="text-muted"><%= item.variantDetails.processor %>, <%= item.variantDetails.ram %></small>
+                        </td>
+                        <td><%= item.quantity %></td>
+                        <td>₹ <%= item.price.toLocaleString() %></td>
+                        <td>₹ <%= (item.quantity * item.price).toLocaleString() %></td>
+                      </tr>
+                    <% }) %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer bg-light d-flex justify-content-between">
+          <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle me-1"></i> Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+<% }) %>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <script>
+    // Clear Search Button
+    document.getElementById('clearSearchBtn')?.addEventListener('click', function(e) {
+      e.preventDefault();
+      window.location.href = '/admin/orders';
+    });
+
+    // Handle status change via AJAX
+    document.querySelectorAll('.order-status').forEach(select => {
+      select.addEventListener('change', async function() {
+        const orderId = this.dataset.id;
+        const status = this.value;
+
+        try {
+          const response = await axios.post('/admin/order/updateOrderStatus', { orderId, status });
+
+          if (response.data.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Status Updated',
+              text: `Order status changed to "${status}"`,
+              timer: 1500,
+              showConfirmButton: false,
+              toast: true,
+              position: 'top-end'
+            });
+          }
+        } catch (err) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to update status!',
+            toast: true,
+            position: 'top-end'
+          });
+          console.error(err);
+        }
+      });
+    });
+  </script>
+
+  <style>
+    .table thead th {
+      border-top: none;
+      border-bottom: 2px solid #fff;
+    }
+    .modal-dialog-right {
+      position: fixed;
+      top: 0;
+      right: 0;
+      margin: 0;
+      height: 100%;
+      display: flex;
+      align-items: center;
+    }
+    @media (max-width: 768px) {
+      .d-flex { flex-direction: column; }
+      .form-select, .input-group { width: 100% !important; }
+      .modal-dialog-right { position: relative; width: 100%; margin: 0 auto; }
+    }
+  </style>
+</div>

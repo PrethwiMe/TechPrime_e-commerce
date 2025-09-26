@@ -55,9 +55,9 @@
         font-weight: 600;
         letter-spacing: .02em;
       }
+      .badge-status.pending { background-color: #fff3cd; color: #856404; }
       .badge-status.shipped { background-color: #e7f3fe; color: #0d6efd; }
       .badge-status.delivered { background-color: #e6f4ea; color: #198754; }
-      .badge-status.processing { background-color: #fff3cd; color: #856404; }
       .badge-status.cancelled { background-color: #f8d7da; color: #842029; }
 
       .filter-chip {
@@ -121,7 +121,7 @@
         </div>
         <div class="d-flex align-items-center gap-2">
           <button class="btn filter-chip active" data-filter="all"><i class="bi bi-card-list me-1"></i> All</button>
-          <button class="btn filter-chip" data-filter="processing"><i class="bi bi-hourglass-split me-1"></i> Processing</button>
+          <button class="btn filter-chip" data-filter="pending"><i class="bi bi-hourglass-split me-1"></i> Pending</button>
           <button class="btn filter-chip" data-filter="shipped"><i class="bi bi-truck me-1"></i> Shipped</button>
           <button class="btn filter-chip" data-filter="delivered"><i class="bi bi-check2-circle me-1"></i> Delivered</button>
           <button class="btn filter-chip" data-filter="cancelled"><i class="bi bi-x-circle me-1"></i> Cancelled</button>
@@ -137,9 +137,9 @@
                 <div class="d-flex flex-wrap align-items-center gap-3">
                   <span class="badge badge-status <%= order.status.toLowerCase() %> text-uppercase">
                     <i class="bi me-1
-                      <%= order.status === 'processing' ? 'bi-hourglass-split' :
-                          order.status === 'shipped' ? 'bi-truck' :
-                          order.status === 'delivered' ? 'bi-check2-circle' : 'bi-x-circle' %>"></i>
+                      <%= order.status.toLowerCase() === 'pending' ? 'bi-hourglass-split' :
+                          order.status.toLowerCase() === 'shipped' ? 'bi-truck' :
+                          order.status.toLowerCase() === 'delivered' ? 'bi-check2-circle' : 'bi-x-circle' %>"></i>
                     <%= order.status %>
                   </span>
                   <span class="text-muted">Order ID</span>
@@ -149,16 +149,31 @@
                 </div>
 
                 <div class="order-actions d-flex align-items-center gap-2">
-                  <button class="btn btn-outline-secondary" data-order="<%= order.orderId %>"><i class="bi bi-eye me-1"></i> View</button>
-                  <% if (['shipped','processing'].includes(order.status.toLowerCase())) { %>
-                    <button class="btn btn-outline-secondary" data-track="<%= order.orderId %>"><i class="bi bi-geo-alt me-1"></i> Track</button>
+                  <!-- View Details Button (always shown) -->
+                  <button class="btn btn-outline-secondary" data-order="<%= order.orderId %>">
+                    <i class="bi bi-eye me-1"></i> View Details
+                  </button>
+
+                  <!-- Status-specific buttons -->
+                  <% if (order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped') { %>
+                    <button class="btn btn-outline-danger" data-cancel="<%= order.orderId %>">
+                      <i class="bi bi-x-circle me-1"></i> Cancel
+                    </button>
+                  <% } else if (order.status.toLowerCase() === 'delivered') { %>
+                    <button class="btn btn-outline-warning" data-return="<%= order.orderId %>">
+                      <i class="bi bi-arrow-return-left me-1"></i> Return
+                    </button>
+                    <button class="btn btn-outline-secondary" data-invoice="<%= order.orderId %>">
+                      <i class="bi bi-receipt me-1"></i> Invoice
+                    </button>
                   <% } %>
-                  <% if (order.status.toLowerCase() === 'delivered') { %>
-                    <button class="btn btn-outline-secondary" data-invoice="<%= order.orderId %>"><i class="bi bi-receipt me-1"></i> Invoice</button>
+                  <!-- Track button for pending and shipped -->
+                  <% if (['pending', 'shipped'].includes(order.status.toLowerCase())) { %>
+                    <button class="btn btn-outline-secondary" data-track="<%= order.orderId %>">
+                      <i class="bi bi-geo-alt me-1"></i> Track
+                    </button>
                   <% } %>
-                  <% if (order.status.toLowerCase() === 'processing') { %>
-                    <button class="btn btn-outline-danger" data-cancel="<%= order.orderId %>"><i class="bi bi-x-circle me-1"></i> Cancel</button>
-                  <% } %>
+                  <!-- View Address button (always shown) -->
                   <button class="btn btn-outline-info view-address-btn" data-bs-toggle="modal" data-bs-target="#addressModal" data-address='<%= JSON.stringify(order.selectedAddress) %>' data-order-id="<%= order.orderId %>">
                     <i class="bi bi-geo-alt me-1"></i> View Address
                   </button>
@@ -213,9 +228,8 @@
                       <div class="fs-5 fw-bold"><%= parseFloat(order.total).toFixed(2) %>/-</div>
                     </div>
                     <a href="/account/orders/invoice/<%= order.orderId %>" class="btn btn-primary">
-  <i class="bi bi-box-arrow-in-down me-1"></i> Download Invoice
-</a>
-
+                      <i class="bi bi-box-arrow-in-down me-1"></i> Download Invoice
+                    </a>
                   </div>
                 </div>
               </div>
@@ -360,6 +374,7 @@
               countryContainer.style.display = 'none';
             }
             
+           いや
             const phoneContainer = document.getElementById('phoneContainer');
             const modalPhone = document.getElementById('modalPhone');
             if (addressData.phone) {

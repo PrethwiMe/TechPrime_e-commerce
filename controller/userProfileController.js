@@ -173,6 +173,8 @@ exports.checkoutView = async (req, res) => {
   let total = subtotal + tax + deliveryCharge;
 
   const addresses = Array.isArray(data.addresses) ? data.addresses.map(a => a.addresses) : [];
+
+
   res.render("user-pages/checkOutPage.ejs", {
     cartItems,
     addresses,
@@ -204,6 +206,7 @@ exports.viewOrder = async (req,res) => {
   try {
     const userId = req.session.user.userId;
     let data = await userProfileModel.showOrder(userId);
+    // console.log(JSON.stringify(data,null,2));
     res.render("user-pages/order.ejs", { orders: data });
   } catch(err) {
     console.error(err);
