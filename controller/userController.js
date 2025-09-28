@@ -351,7 +351,6 @@ exports.searchProduct = async (req, res) => {
 
     const products = await productModel.getFilteredProducts(query);
     const categories = await productModel.getAllCategoriesForUser();
-console.log("products:",JSON.stringify(products,null,2));
 
     // Pagination
     const page = Number(req.body.page) || 1;

@@ -66,54 +66,78 @@ exports.updatePassword = async (mail, hashedPassword) => {
 }
 //cart logic
 exports.addToCartdb = async (userId, productId, variantId, productName) => {
-
   const db = await getDB();
 
-  // find cart
+  // find cart for this user
   const userCart = await db.collection(dbVariables.cartCollection).findOne({ userId });
 
+  // find variant stock
+  const variantData = await db.collection(dbVariables.variantCollection)
+    .findOne({ _id: new ObjectId(variantId) });
+
+  if (!variantData) {
+    return { success: false, message: "Variant not found" };
+  }
+
+  const stock = variantData.stock;
+
   if (userCart) {
-    // check if same product , variant already 
-    const itemExists = userCart.items.some(item =>
-      item.productId === productId && item.variantId === variantId
+    // check if same product + variant already exists
+    const existingItem = userCart.items.find(
+      item => item.productId === productId && item.variantId === variantId
     );
 
-    if (itemExists) {
-      //increase quantity
-      const result = await db.collection(dbVariables.cartCollection).updateOne(
-        { userId, "items.productId": productId, "items.variantId": variantId },
-        { $inc: { "items.$.quantity": 1 } }
-      );
-      return result.modifiedCount > 0
-        ? { success: true, message: "Quantity updated in cart" }
-        : { success: false, message: "Failed to update cart" };
+    if (existingItem) {
+      console.log("itemExists true, quantity:", existingItem.quantity, "stock:", stock);
+
+      if (existingItem.quantity < stock) {
+        // increase quantity by 1
+        const result = await db.collection(dbVariables.cartCollection).updateOne(
+          { userId, "items.productId": productId, "items.variantId": variantId },
+          { $inc: { "items.$.quantity": 1 } }
+        );
+
+        return result.modifiedCount > 0
+          ? { success: true, message: "Quantity updated in cart" }
+          : { success: false, message: "Failed to update cart" };
+      } else {
+        // already at stock limit
+        return { success: false, message: "Cannot add more, stock limit reached" };
+      }
     } else {
-      //add product and variant to cart
-      const result = await db.collection(dbVariables.cartCollection).updateOne(
-        { userId },
-        {
-          $push: {
-            items: { productId, variantId, quantity: 1, productName }
-          }
-        }
-      );
-      return result.modifiedCount > 0
-        ? { success: true, message: "Product added to cart" }
-        : { success: false, message: "Failed to add product to cart" };
+      // product+variant not in cart → check stock before adding
+      if (stock > 0) {
+        const result = await db.collection(dbVariables.cartCollection).updateOne(
+          { userId },
+          { $push: { items: { productId, variantId, quantity: 1, productName } } }
+        );
+
+        return result.modifiedCount > 0
+          ? { success: true, message: "Product added to cart" }
+          : { success: false, message: "Failed to add product to cart" };
+      } else {
+        return { success: false, message: "Product is out of stock" };
+      }
     }
   }
 
-  // no cart for this user create new cart
-  const newCart = {
-    userId,
-    items: [{ productId, variantId, quantity: 1, productName }]
-  };
-  const insertResult = await db.collection(dbVariables.cartCollection).insertOne(newCart);
+  // no cart for this user → create new cart
+  if (stock > 0) {
+    const newCart = {
+      userId,
+      items: [{ productId, variantId, quantity: 1, productName }]
+    };
 
-  return insertResult.insertedId
-    ? { success: true, message: "New cart created and product added" }
-    : { success: false, message: "Failed to create new cart" };
+    const insertResult = await db.collection(dbVariables.cartCollection).insertOne(newCart);
+
+    return insertResult.insertedId
+      ? { success: true, message: "New cart created and product added" }
+      : { success: false, message: "Failed to create new cart" };
+  } else {
+    return { success: false, message: "Product is out of stock" };
+  }
 };
+
 exports.viewCartData = async (userId) => {
   const db = await getDB();
 
@@ -205,7 +229,6 @@ exports.viewCartData = async (userId) => {
     .collection(dbVariables.cartCollection)
     .aggregate(query)
     .toArray();
-
   return data[0] || null; // return null if no cart
 };
 //contol cart function
