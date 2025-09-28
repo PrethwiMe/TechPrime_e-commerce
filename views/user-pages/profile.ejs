@@ -76,47 +76,92 @@
 
   <!-- Password Update Form Handling -->
   <script>
-    // Form validation and submission with SweetAlert
-    document.getElementById("updatePasswordForm").addEventListener("submit", function (e) {
-      e.preventDefault(); // Prevent the default form submission
+    document.getElementById("updatePasswordForm").addEventListener("submit", async function (e) {
+      e.preventDefault(); // Prevent default form submission
 
       const currentPassword = document.getElementById("currentPassword").value;
       const newPassword = document.getElementById("newPassword").value;
       const confirmPassword = document.getElementById("confirmPassword").value;
+      const firstName = document.getElementById("firstName").value;
+      const email = document.getElementById("email").value;
+      const phone = document.getElementById("phone").value;
 
       // Regular expression for password validation
       const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+={}\[\]|;:'",<>\./?`~\\\-]).{8,}$/;
 
-      // Validate form inputs
+      // Client-side validation
       if (!currentPassword || !newPassword || !confirmPassword) {
         Swal.fire({
-          icon: 'error',
-          title: 'Validation Error',
-          text: 'All fields are required!',
+          icon: "error",
+          title: "Validation Error",
+          text: "All fields are required!",
         });
         return;
       }
 
       if (newPassword !== confirmPassword) {
         Swal.fire({
-          icon: 'error',
-          title: 'Password Mismatch',
-          text: 'New password and confirmation do not match!',
+          icon: "error",
+          title: "Password Mismatch",
+          text: "New password and confirmation do not match!",
         });
         return;
       }
 
       if (!passwordRegex.test(newPassword)) {
         Swal.fire({
-          icon: 'error',
-          title: 'Weak Password',
-          text: 'Password should be at least 8 characters long, with a mix of uppercase, lowercase, numbers, and special characters!',
+          icon: "error",
+          title: "Weak Password",
+          text: "Password should be at least 8 characters long, with a mix of uppercase, lowercase, numbers, and special characters!",
         });
         return;
       }
 
-      // If everything is valid, submit the form normally
-      this.submit(); // This will trigger the form's POST action
+      // Prepare form data
+      const formData = {
+        firstName,
+        email,
+        phone,
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      };
+
+      try {
+        const response = await fetch("/account/updatePassword", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+
+        const result = await response.json();
+
+        if (response.status === 200) {
+          Swal.fire({
+            icon: "success",
+            title: "Success",
+            text: result.message, // "Password updated successfully!"
+            confirmButtonText: "OK",
+          }).then(() => {
+            // Optionally reset the form
+            document.getElementById("updatePasswordForm").reset();
+          });
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: result.message, // Handles all error messages from backend
+          });
+        }
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Server Error",
+          text: "An error occurred while updating the password. Please try again later.",
+        });
+      }
     });
   </script>
 </body>

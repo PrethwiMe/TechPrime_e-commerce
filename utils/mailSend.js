@@ -6,7 +6,8 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.OWNER_MAIL,
     pass: process.env.OWNER_PASS,
-  },  tls: {
+  },
+  tls: {
     rejectUnauthorized: false,
   },
 });
@@ -14,22 +15,31 @@ const transporter = nodemailer.createTransport({
 /**
  * @param {string} toEmail - Recipient email address
  * @param {string} code - Verification/OTP code
- * @param {string} type - "signup" or "forgot"
+ * @param {string} type - "signup", "forgot", or "emailChange"
  */
 async function sendVerificationMail(toEmail, code, type) {
   // Define dynamic text
-  const isSignup = type === 'signup';
-  const subject = isSignup
-    ? 'Welcome to TechPrime - Verify Your Email'
-    : 'TechPrime - Password  Verification';
-  
-  const title = isSignup
-    ? 'Welcome to TechPrime!'
-    : 'Password Reset Request';
-  
-  const message = isSignup
-    ? `Thanks for signing up with <strong>TechPrime</strong>, your trusted laptop store. Please use the verification code below to complete your registration.`
-    : `We received a request to reset your password for your <strong>TechPrime</strong> account. Please use the verification code below to proceed.`;
+  let subject, title, Ascending, message;
+
+  switch (type) {
+    case 'signup':
+      subject = 'Welcome to TechPrime - Verify Your Email';
+      title = 'Welcome to TechPrime!';
+      message = `Thanks for signing up with <strong>TechPrime</strong>, your trusted laptop store. Please use the verification code below to complete your registration.`;
+      break;
+    case 'forgot':
+      subject = 'TechPrime - Password Verification';
+      title = 'Password Reset Request';
+      message = `We received a request to reset your password for your <strong>TechPrime</strong> account. Please use the verification code below to proceed.`;
+      break;
+    case 'emailChange':
+      subject = 'TechPrime - Verify Your New Email Address';
+      title = 'Email Address Change Verification';
+      message = `You have requested to change your email address for your <strong>TechPrime</strong> account. Please use the verification code below to verify your new email address.`;
+      break;
+    default:
+      throw new Error('Invalid verification type');
+  }
 
   const mailOptions = {
     from: `TechPrime <${process.env.OWNER_MAIL}>`,
@@ -62,12 +72,10 @@ async function sendVerificationMail(toEmail, code, type) {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log(` ${type} email sent to ${toEmail}`);
+    console.log(`${type} email sent to ${toEmail}`);
     return true;
   } catch (error) {
-    console.error(' Error sending email:', error);
+    console.error('Error sending email:', error);
     return false;
   }
-}
-
-module.exports = sendVerificationMail;
+}module.exports = sendVerificationMail;

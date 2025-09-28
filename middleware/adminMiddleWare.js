@@ -2,7 +2,7 @@ const { ObjectId } = require('mongodb'); // or use mongoose.Types.ObjectId for t
 
 
 const isUserLoggedIn = (req, res, next) => {
-req.session.admin = 1
+// req.session.admin = 1
   if (req.session.admin || null) {
     return res.redirect('/admin/dashboard')
   }
@@ -11,7 +11,7 @@ req.session.admin = 1
 };
 
 const adminConfirmed = (req, res, next) => {
-req.session.admin = 1
+// req.session.admin = 1
 
   if (req.session.admin || null) {
     return next();

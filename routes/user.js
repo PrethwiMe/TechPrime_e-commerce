@@ -67,8 +67,12 @@ router.post('/account/deleteAddress',userConfirmed,userProfileController.deleteA
 router.post('/account/editAddress',userConfirmed,userProfileController.updateAddress)
 //edit details
 router.get('/account/edit',userConfirmed,userProfileController.viewUserEditpage)
+//update details
+router.post('/account/edit/email',userConfirmed,userProfileController.emailVerificetion)
+//very otp
+router.post('/account/verify-otp',userConfirmed,userProfileController.verifyEmailOtp)
 //  image  pending user profile
-//router.post('/account/uploadImage',uploadUser.single('profileImage'),userProfileController.userImage);
+router.post('/account/uploadImage',uploadUser.single('profileImage'),userProfileController.userImage);
 
 //update password
 router.post('/account/updatePassword',userConfirmed,userProfileController.updatePassword)

@@ -20,8 +20,7 @@ exports.loadHome = async (req, res) => {
 
     // }); 
     const categories = await productModel.getAllCategories();
-    res.render('user-pages/home', {
-      user: req.session.user || null,
+      res.render('user-pages/home', {
       products,
       categories
     });
@@ -63,7 +62,8 @@ exports.loginAccess = async (req, res) => {
       firstName: user.firstName,
       email: user.email,
       phone: user.phone,
-      role: user.role
+      role: user.role,
+      profileImage:user.profileImage.url
     };
 
     return res.json({ success: true, redirect: '/' });

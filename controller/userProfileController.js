@@ -7,19 +7,36 @@ const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
 const upload = require('../middleware/multer');
 const { getDB } = require('../config/mongodb');
-const { cloudinary } = require('../middleware/cloudinary')
+const { cloudinary, uploadToCloudinary } = require('../middleware/cloudinary')
 const streamifier = require("streamifier");
 const streamUpload = require("../middleware/streamHelper");
 const { json } = require('express');
 const PDFDocument = require("pdfkit");
 const path = require("path");
 const fs = require("fs");
+const { fail } = require('assert');
+const { error } = require('console');
+const joi = require('../utils/validation')
+const { ObjectId } = require("mongodb");
+
 
 
 exports.viewProfile = async (req, res) => {
 
   const userId = req.session.user
   const user = await userModel.fetchUser(userId.email);
+
+  if (req.session.user) {
+    const id = req.session.user.userId
+    const query = {
+      _id: new ObjectId(id)
+    }
+    let data = await userModel.userCheck(query)
+    return res.render('user-pages/profile.ejs', {
+      user, image: data || null
+    })
+  }
+
   res.render('user-pages/profile.ejs', { user })
 }
 //add address
@@ -64,8 +81,18 @@ exports.deleteAddress = async (req, res) => {
 //view address
 exports.viewAdress = async (req, res) => {
   let address = await userProfileModel.viewAddress(req.session.user.userId)
+  if (req.session.user) {
+    const id = req.session.user.userId
+    const query = {
+      _id: new ObjectId(id)
+    }
+    let data = await userModel.userCheck(query)
+    return res.render('user-pages/address.ejs', {
+      user: { addresses: address || [] }, image: data || null
+    })
+  }
   res.render('user-pages/address.ejs', {
-    user: { addresses: address || [] } // 👈 fixed
+    user: { addresses: address || [] }
   })
 }
 //updateAddress
@@ -83,39 +110,99 @@ exports.viewUserEditpage = async (req, res) => {
   const email = req.session.user.email
 
   let data = await userModel.fetchUser(email)
-  res.render('user-pages/editUserData.ejs', { user: data })
+  console.log(data);
+ res.render('user-pages/editUserData.ejs', {
+      user: data || null,
+      image: data || null 
+    });
 
 }
-///////////////////////////////////////////////////////////////////////
+//for verification sending email
+exports.emailVerificetion = async (req, res) => {
+  const mail = req.body.email
+  console.log(mail);
+  const userdata = await userModel.fetchUser(mail);
+
+  if (userdata) {
+    return res.status(400).json({ error: fail, message: "mail alredy exists" })
+  }
+  const email = req.body.email
+  const userId = req.session.user.userId;
+  let otp = Math.floor(100000 + Math.random() * 900000).toString();
+  let updateOtp = await userProfileModel.newOtp(otp, userId, email)
+
+  let sendotp = await sendMail(mail, otp, "emailChange")
+  console.log("otp", otp);
+  if (updateOtp && otp && sendotp) {
+    return res.status(200).json({ success: true, message: "otp send successfully" })
+  } else {
+    return res.status(400).json({ success: false, message: "some error" })
+
+  }
+}
+//verify the mail
+exports.verifyEmailOtp = async (req, res) => {
+  console.log(req.body);
+  const { email, otp, id } = req.body;
+  let response = await userModel.userDataEmailVerification(id);
+
+  if (response.otp === otp) {
+    const upadateEmail = await userModel.updateEmail(id, email)
+    req.session.user.email = email
+    if (upadateEmail) {
+      res.status(200).json({ success: true, message: "email changed" })
+    }
+  } else {
+    return res.status(400).json({ success: false, message: "error" })
+  }
+
+}
 //image adding
-// exports.userImage = async (req, res) => {
-//   try {
-//     if (!req.file) {
-//       console.log("⚠️ No file attached in request");
-//       return res.status(400).json({ message: "No file uploaded" });
-//     }
+exports.userImage = async (req, res) => {
+  try {
+    const { error } = joi.userProfileValidation(req.body);
+    console.log("error        :", error);
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation error",
+        errors: error.details.map((err) => err.message),
+      });
+    }
 
-//     console.log(" File received:", {
-//       fieldname: req.file.fieldname,
-//       mimetype: req.file.mimetype,
-//       size: req.file.size,
-//       buffer: req.file.buffer?.length
-//     });
+    const { firstName, lastName, phone, id } = req.body;
 
-//     // Upload to Cloudinary using buffer
-//     const result = await streamUpload(req.file.buffer);
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+    const result = await uploadToCloudinary(req.file.buffer);
+    const { public_id, secure_url, created_at } = result;
 
-//     console.log(" Uploaded to Cloudinary:", result.secure_url);
+    const data = {
+      firstName, lastName, phone, id,
+      profileImage: {
+        public_id,
+        url: secure_url,
+        uploadedAt: created_at
+      },
+    };
 
-//     // Save Cloudinary URL in DB
-//     await userModel.updateProfileImage(req.session.user.userId, result.secure_url);
+    const updateProfile = await userProfileModel.updateUser(data);
 
-//     res.json({ success: true, url: result.secure_url });
-//   } catch (err) {
-//     console.error(" Cloudinary upload error:", err);
-//     res.status(500).json({ message: "Upload failed" });
-//   }
-// };
+    return res.json({
+      success: true,
+      message: "Profile updated successfully",
+      data: updateProfile
+    });
+
+  } catch (error) {
+    console.error("Error in userImage:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server error"
+    });
+  }
+};
 
 ////////////////////////////////////////////////////////////////////////
 exports.updatePassword = async (req, res) => {
@@ -192,24 +279,37 @@ exports.addToOrder = async (req, res) => {
 
   if (paymentMethod === "cod") {
     //pass order and userId
-      const userId = req.session.user.userId
+    const userId = req.session.user.userId
 
-const result = await userProfileModel.addNewOrder(userId,order);
-const dltCart = await userProfileModel.deleteCart(userId)
-if(result.acknowledged) return res.status(200).json({ status: "success", message: "OrederPlaced successfully" })
-else return res.status(400).json({status:"error",message:"failed please try after sometime"})
+    const result = await userProfileModel.addNewOrder(userId, order);
+    const dltCart = await userProfileModel.deleteCart(userId)
+    if (result.acknowledged) return res.status(200).json({ status: "success", message: "OrederPlaced successfully" })
+    else return res.status(400).json({ status: "error", message: "failed please try after sometime" })
   } else {
     res.send("inProgress")
   }
 }
 // view order user
-exports.viewOrder = async (req,res) => {
+exports.viewOrder = async (req, res) => {
   try {
+
     const userId = req.session.user.userId;
+
     let data = await userProfileModel.showOrder(userId);
-     user=req.session.user
-    res.render("user-pages/order.ejs", { orders: data,user });
-  } catch(err) {
+    user = req.session.user
+    //for image
+    if (req.session.user) {
+      const id = req.session.user.userId
+      const query = {
+        _id: new ObjectId(id)
+      }
+      let imagedata = await userModel.userCheck(query)
+      return res.render("user-pages/order.ejs", {
+        orders: data, user, image: imagedata || null
+      })
+    }
+    res.render("user-pages/order.ejs", { orders: data, user });
+  } catch (err) {
     console.error(err);
     res.status(500).send("Server Error");
   }
@@ -218,7 +318,7 @@ exports.viewOrder = async (req,res) => {
 exports.invoice = async (req, res) => {
   try {
     const userId = req.session.user.userId;
-    const orderId = req.params; 
+    const orderId = req.params;
     let data = await userProfileModel.invoiceData(userId, orderId);
 
     if (!data || !data.order) {
@@ -232,7 +332,7 @@ exports.invoice = async (req, res) => {
       fs.mkdirSync(invoicesDir, { recursive: true });
     }
 
-    const doc = new PDFDocument({ 
+    const doc = new PDFDocument({
       margin: 30,
       size: 'A4',
       info: {
@@ -249,31 +349,31 @@ exports.invoice = async (req, res) => {
     );
     const stream = fs.createWriteStream(invoicePath);
     doc.pipe(stream);
-    doc.pipe(res); 
+    doc.pipe(res);
 
-   
+
     doc.registerFont('Helvetica', 'Helvetica');
     doc.registerFont('Helvetica-Bold', 'Helvetica-Bold');
     doc.registerFont('Helvetica-Oblique', 'Helvetica-Oblique');
 
-   
+
     doc
       .fillColor('#1e3a8a')
       .rect(0, 0, doc.page.width, 80)
       .fill();
 
     -
-    doc
-      .fillColor('white')
-      .font('Helvetica-Bold')
-      .fontSize(20)
-      .text('TechPrime', 40, 20)
-      .font('Helvetica')
-      .fontSize(10)
-      .text('E-commerce Solutions', 40, 45)
-      .text('123 Business St, Tech City, TC 12345 | support@techprime.com', 40, 60);
+      doc
+        .fillColor('white')
+        .font('Helvetica-Bold')
+        .fontSize(20)
+        .text('TechPrime', 40, 20)
+        .font('Helvetica')
+        .fontSize(10)
+        .text('E-commerce Solutions', 40, 45)
+        .text('123 Business St, Tech City, TC 12345 | support@techprime.com', 40, 60);
 
-    
+
     doc
       .fillColor('black')
       .font('Helvetica-Bold')
@@ -284,7 +384,7 @@ exports.invoice = async (req, res) => {
       .text(`Date: ${new Date(order.createdAt).toLocaleDateString()}`, 350, 40, { align: 'right' })
       .text(`Due Date: ${new Date(order.createdAt).toLocaleDateString()}`, 350, 55, { align: 'right' });
 
-  
+
     doc
       .fontSize(50)
       .fillColor('rgba(0, 0, 0, 0.1)')
@@ -329,10 +429,10 @@ exports.invoice = async (req, res) => {
 
     const tableTop = 210;
     const itemX = 40,
-          descX = 140,
-          qtyX = 340,
-          priceX = 400,
-          totalX = 460;
+      descX = 140,
+      qtyX = 340,
+      priceX = 400,
+      totalX = 460;
     const rowHeight = 20;
     const tableWidth = totalX + 60 - itemX;
 
@@ -430,34 +530,34 @@ exports.invoice = async (req, res) => {
   }
 };
 //cancel order
-exports.cancelOrder = async (req,res) => {
-const orderId = req.body.orderId;
+exports.cancelOrder = async (req, res) => {
+  const orderId = req.body.orderId;
 
-const update = await userProfileModel.cancelOrderModal(orderId)
-if (update. modifiedCount> 0) {
- return res.status(200).json({success:true,message:"your order is cancelled..!!"})
-}else{
-return res.status(400).json({success:false,message:"Can not cancel at the moment"})
-}
+  const update = await userProfileModel.cancelOrderModal(orderId)
+  if (update.modifiedCount > 0) {
+    return res.status(200).json({ success: true, message: "your order is cancelled..!!" })
+  } else {
+    return res.status(400).json({ success: false, message: "Can not cancel at the moment" })
+  }
 }
 //cancel all order
-exports.cancelAllOrder = async (req,res) => {
+exports.cancelAllOrder = async (req, res) => {
   let data = req.body.orderIds
 
   let result = await userProfileModel.cancellAllOrder(data)
 
   if (result) {
-  return  res.status(200).json({success:true, message:"Your All orders Are cancelled"})
+    return res.status(200).json({ success: true, message: "Your All orders Are cancelled" })
   }
-    return  res.status(400).json({success:false, message:"Error, Try after some time"})
+  return res.status(400).json({ success: false, message: "Error, Try after some time" })
 
 }
 //return order
-exports.returnOrder = async (req,res) => {
+exports.returnOrder = async (req, res) => {
   console.log(req.body);
   let data = await userProfileModel.returnData(req.body)
 
-  if (data) return res.status(200).json({success:true,message:"return requsted waiting for approvel"})
-    else
-  return res.status(400).json({success:false,message:"return requst not complete"})
+  if (data) return res.status(200).json({ success: true, message: "return requsted waiting for approvel" })
+  else
+    return res.status(400).json({ success: false, message: "return requst not complete" })
 }

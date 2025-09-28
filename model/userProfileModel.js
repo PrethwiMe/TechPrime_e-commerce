@@ -181,7 +181,7 @@ exports.deleteCart = async (userId) =>{
 exports.showOrder = async (userId) => {
   const db = await getDB();
 
-  const orders = await db.collection(dbVariables.orderCollection).find({ userId }).toArray();
+  const orders = await db.collection(dbVariables.orderCollection).find({ userId }) .sort({ createdAt: -1 }) .toArray();
 
   for (let order of orders) {
     for (let item of order.items) {
@@ -299,3 +299,37 @@ exports.returnData = async (data) => {
   const updateData = await db.collection(dbVariables.orderCollection).updateOne({orderId:orderId},{$set:{returnReason:reason,returnOrder:returnStatus}});
   return updateData
 }
+exports.newOtp = async (otp,id,emil) =>{
+  const db = await getDB();
+  const updateOtp = await db.collection(dbVariables.userCollection).updateOne(
+    {_id:new ObjectId(id)},{$set:{otp:otp,otpCreated:new Date(),tempmail:emil}}
+  )
+  return updateOtp;
+}
+exports.updateUser = async (data) => {
+  try {
+    const db = await getDB();
+
+    const { id, firstName, lastName, phone, profileImage } = data;
+
+    const result = await db
+      .collection(dbVariables.userCollection)
+      .updateOne(
+        { _id: new ObjectId(id) }, 
+        {
+          $set: {
+            firstName,
+            lastName,
+            phone,
+            profileImage,
+            updatedAt: new Date()
+          }
+        }
+      );
+
+    return result;
+  } catch (err) {
+    console.error("❌ Error updating user:", err);
+    throw err;
+  }
+};

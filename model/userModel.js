@@ -25,9 +25,7 @@ exports.fetchUser = async (email) => {
     let data = await db
       .collection(dbVariables.userCollection)
       .findOne(
-        { email: email, isActive: true },
-        { projection: { password: 1, firstName: 1, email: 1, phone: 1, role: 1,referralCode:1,lastName:1 } }
-      );
+        { email: email, isActive: true });
     return data;
   } catch (error) {
     console.log(error);
@@ -37,9 +35,8 @@ exports.fetchUser = async (email) => {
 exports.userCheck = async (query) =>{
   try {
     const db = getDB();
-    let data = await db
-      .collection(dbVariables.userCollection)
-      .findOne(query);
+    console.log(query);
+    let data = await db.collection(dbVariables.userCollection).findOne(query);
     return data;
   } catch (error) {
     console.log(error);
@@ -291,3 +288,22 @@ exports.viewWishList = async (userId) => {
 
   return wishlistWithVariants;
 };
+exports.userDataEmailVerification = async (id) => {
+  try {
+    const db = getDB();
+    let data = await db
+      .collection(dbVariables.userCollection)
+      .findOne(
+        { _id: new ObjectId(id), isActive: true },
+        { projection: { password: 1, firstName: 1, email: 1, phone: 1, role: 1,referralCode:1,lastName:1,otp:1,otpCreated:1 } }
+      );
+    return data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+exports.updateEmail = async (id,email) => {
+  const db = await getDB();
+  const update = await db.collection(dbVariables.userCollection).updateOne({_id:new ObjectId(id)},{$set:{email:email}});
+  return update;
+}

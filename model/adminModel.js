@@ -89,7 +89,7 @@ exports.viewOrders = async () => {
   try {
     const db = await getDB();
 
-    const orderData = await db.collection(dbVariables.orderCollection).find().toArray();
+    const orderData = await db.collection(dbVariables.orderCollection).find() .sort({ createdAt: -1 }) .toArray();
     if (!orderData) throw new Error('No orders found or query failed');
 
     const ordersWithDetails = await Promise.all(orderData.map(async (order) => {
