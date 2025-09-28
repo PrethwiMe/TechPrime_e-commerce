@@ -351,6 +351,7 @@ exports.searchProduct = async (req, res) => {
 
     const products = await productModel.getFilteredProducts(query);
     const categories = await productModel.getAllCategoriesForUser();
+console.log("products:",JSON.stringify(products,null,2));
 
     // Pagination
     const page = Number(req.body.page) || 1;
@@ -386,13 +387,20 @@ exports.sortAndSearchProducts = async (req, res) => {
       query.catagoriesId = { $in: categories.map(c => c.trim()) };
     }
 
-    if (minPrice || maxPrice) {
-      query.originalPrice = {};
-      if (minPrice) query.originalPrice.$gte = Number(minPrice);
-      if (maxPrice) query.originalPrice.$lte = Number(maxPrice);
-    }
+        let products = await productModel.getFilteredProducts(query);
 
-    let products = await productModel.getFilteredProducts(query);
+
+   if (minPrice || maxPrice) {
+  products = products.filter(p =>
+    p.fullProduct.some(v => {
+      const price = Number(v.price);
+      if (minPrice && price < minPrice) return false;
+      if (maxPrice && price > maxPrice) return false;
+      return true;
+    })
+  );
+}
+
 
     if (sort === "low-high") products.sort((a, b) => a.originalPrice - b.originalPrice);
     if (sort === "high-low") products.sort((a, b) => b.originalPrice - a.originalPrice);

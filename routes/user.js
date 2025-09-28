@@ -39,9 +39,10 @@ router.get('/auth/google/callback',userController.googleCallback,userController.
 // Logout
 router.get('/logout', userController.logoutUser);
 //search
+
 router.get('/search', userController.searchProduct);
 //  filter + sort + search 
-router.post('/search/data',userController.sortAndSearchProducts)
+router.post('/search/data', userController.sortAndSearchProducts);
 router.get('/all-product/product-details/:id',userController.loadProductDetails)
 //add to cart
 router.post("/cart/add",userConfirmed,userController.addToCart)
