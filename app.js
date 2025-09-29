@@ -10,6 +10,7 @@ const session = require('express-session');
 require('dotenv').config();
 const passport = require('./config/passport');
 const limitTextLength = require("./middleware/limitChar");
+const Razorpay = require('razorpay');
 
 var app = express()
 
@@ -94,6 +95,16 @@ app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+
+// // Initialize Razorpay
+// const razorpay = new Razorpay({
+//   key_id: process.env.RAZORPAY_KEY_ID,
+//   key_secret: process.env.RAZORPAY_KEY_SECRET,
+// });
+
+// // Make razorpay instance available to routes
+// app.locals.razorpay = razorpay;
 
 
 // Middleware: block fields with more than 100 characters

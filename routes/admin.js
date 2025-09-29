@@ -48,4 +48,6 @@ router.get('/orders',sessionHandle.adminConfirmed,adminController.orderPage)
 /router.post('/order/updateOrderStatus',sessionHandle.adminConfirmed,adminController.editOrderStatus)
 //accept return 
 router.post('/orders/update-return-status',sessionHandle.adminConfirmed,adminController.orderAccept)
+//update each product
+router.post("/orders/update-item-status",sessionHandle.adminConfirmed,adminController.updateItems)
 module.exports = router;

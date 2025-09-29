@@ -6,6 +6,7 @@ const saltRounds = 10;
 const myPlaintextPassword = 's0/\/\P4$$w0rD';
 const someOtherPlaintextPassword = 'not_bacon';
 const paginate = require('../utils/paginate');
+const { json } = require('express');
 
 
 // clear-require-cache.js
@@ -161,4 +162,13 @@ exports.orderAccept = async(req,res) => {
   if(result) return res.status(200).json({success:true,message:"product Accepted"})
     else return res.status(400).json({success:false, message:"failed to accept product"})
 
+}
+//item controll
+exports.updateItems = async (req,res) => {
+
+  console.log(req.body);
+
+const response = await adminModel.updateItemStatus(req.body);
+if(response) return res.status(200).json({success:true})
+else return res.status(400).json({success:false})
 }

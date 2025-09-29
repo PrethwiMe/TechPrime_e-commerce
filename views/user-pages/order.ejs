@@ -1,18 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- Meta -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>My Orders • Account</title>
-
-    <!-- Bootstrap + Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
-
-    <!-- SweetAlert2 -->
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
-    
     <style>
       body {
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -24,7 +18,6 @@
         text-decoration: none;
         transition: color 0.2s ease;
       }
-
       .content-wrapper {
         margin-left: 260px;
         padding: 2rem;
@@ -36,7 +29,6 @@
           padding: 1.5rem;
         }
       }
-
       .page-header {
         border-bottom: 1px solid #dee2e6;
         margin-bottom: 1.5rem;
@@ -53,7 +45,6 @@
       .page-header p {
         font-size: 0.95rem;
       }
-
       .card-light {
         background: #fff;
         border: none;
@@ -65,7 +56,6 @@
         transform: translateY(-5px);
         box-shadow: 0 6px 16px rgba(0,0,0,0.15);
       }
-
       .table-lightish {
         --bs-table-bg: transparent;
         --bs-table-striped-bg: rgba(0,0,0,0.03);
@@ -82,7 +72,6 @@
       .table-lightish tbody tr:hover {
         background-color: var(--bs-table-hover-bg);
       }
-
       .badge-status {
         font-weight: 600;
         letter-spacing: .02em;
@@ -97,7 +86,6 @@
       .badge-status.return-pending { background-color: #fff3cd; color: #856404; }
       .badge-status.return-accepted { background-color: #e6f4ea; color: #198754; }
       .badge-status.return-rejected { background-color: #f8d7da; color: #dc3545; }
-
       .filter-chip {
         border: 1px solid #dee2e6;
         background: #fff;
@@ -117,7 +105,6 @@
         color: #fff;
         border-color: #0d6efd;
       }
-
       .cancel-all-btn {
         border: 1px solid #dc3545;
         background: #fff;
@@ -132,7 +119,6 @@
         color: #fff;
         border-color: #dc3545;
       }
-
       .order-item-thumb {
         width: 72px;
         height: 72px;
@@ -144,14 +130,12 @@
       .order-item-thumb:hover {
         transform: scale(1.05);
       }
-
       .divider {
         height: 1px;
         background-color: #dee2e6;
         width: 100%;
         margin: 1.5rem 0;
       }
-
       .order-actions .btn {
         border-radius: 0.5rem;
         padding: 0.5rem 1rem;
@@ -161,7 +145,6 @@
       .order-actions .btn:hover {
         transform: translateY(-2px);
       }
-
       .address-detail {
         background: #f8f9fa;
         border: none;
@@ -195,13 +178,9 @@
       }
     </style>
   </head>
-
   <body>
-    <!-- Header partial -->
     <%- include('partials/header') %>
-    <!-- Account Sidebar partial -->
     <%- include('partials/accountSidebar') %>
-
     <main class="content-wrapper">
       <header class="page-header d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div>
@@ -219,7 +198,6 @@
       <% if (orders.some(order => order.status.toLowerCase() === 'pending' && !order.returnOrder)) { %>
         <button class="btn cancel-all-btn btn-danger mb-5" id="cancelAllBtn"><i class="bi bi-x-circle-fill me-1"></i> Cancel All</button>
       <% } %>
-      <!-- Orders List -->
       <section id="ordersList" class="vstack gap-4">
         <% orders.forEach(order => { %>
           <article class="card card-light order-card" data-status="<%= order.status.toLowerCase() %>">
@@ -248,9 +226,7 @@
                   <span class="vr mx-2"></span>
                   <span class="text-muted"><i class="bi bi-calendar-date me-1"></i> <%= new Date(order.createdAt).toLocaleDateString() %></span>
                 </div>
-
                 <div class="order-actions d-flex align-items-center gap-2">
-                  <!-- Status-specific buttons -->
                   <% if (order.status.toLowerCase() === 'pending' && !order.returnOrder) { %>
                     <button class="btn btn-outline-danger cancel-order-btn" data-cancel="<%= order.orderId %>">
                       <i class="bi bi-x-circle me-1"></i> Cancel
@@ -264,22 +240,12 @@
                       <i class="bi bi-arrow-return-left me-1"></i> Return
                     </button>
                   <% } %>
-                  <!-- Track button for pending and shipped -->
-                  <% if (['pending', 'shipped'].includes(order.status.toLowerCase())) { %>
-                    <button class="btn btn-outline-secondary" data-track="<%= order.orderId %>">
-                      <i class="bi bi-geo-alt me-1"></i> Track
-                    </button>
-                  <% } %>
-                  <!-- View Address button (always shown) -->
                   <button class="btn btn-outline-info view-address-btn" data-bs-toggle="modal" data-bs-target="#addressModal" data-address='<%= JSON.stringify(order.selectedAddress) %>' data-order-id="<%= order.orderId %>">
                     <i class="bi bi-geo-alt me-1"></i> View Address
                   </button>
                 </div>
               </div>
-
               <div class="my-3 divider"></div>
-
-              <!-- Items -->
               <div class="table-responsive">
                 <table class="table table-lightish align-middle mb-3">
                   <thead>
@@ -287,6 +253,8 @@
                       <th scope="col">Item</th>
                       <th scope="col" class="text-center">Qty</th>
                       <th scope="col" class="text-end">Price</th>
+                      <th scope="col" class="text-end">Status</th>
+                      <th scope="col" class="text-end">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -297,18 +265,33 @@
                             <img class="order-item-thumb" src="<%= item.product.images[0] %>" alt="Item image" />
                             <div>
                               <div class="fw-semibold"><%= item.product.name %></div>
-                              <small class="">Category: Laptops & Accessories</small>
+                              <small>Category: Laptops & Accessories</small>
                             </div>
                           </div>
                         </td>
                         <td class="text-center"><%= item.quantity %></td>
                         <td class="text-end"><%= parseFloat(item.price).toFixed(2) %>/-</td>
+                        <td class="text-end">
+                          <span class="badge badge-status <%= (item.itemStatus || 'pending').toLowerCase() %>">
+                            Item <%= item.itemStatus || 'Pending' %>
+                          </span>
+                        </td>
+                        <td class="text-end">
+                          <% if (item.itemStatus === 'Delivered' && !order.returnOrder && !item.returnStatus) { %>
+                            <button class="btn btn-outline-warning btn-sm return-item-btn" data-return-item="<%= order.orderId %>_<%= item.variantId %>">
+                              <i class="bi bi-arrow-return-left me-1"></i> Return Item
+                            </button>
+                          <% } else if (!item.itemStatus || item.itemStatus !== 'cancelled' && !order.returnOrder && !item.returnStatus) { %>
+                            <button class="btn btn-outline-danger btn-sm cancel-item-btn" data-cancel-item="<%= order.orderId %>_<%= item.variantId %>_<%= order.status %>">
+                              <i class="bi bi-x-circle me-1"></i> Cancel Item
+                            </button>
+                          <% } %>
+                        </td>
                       </tr>
                     <% }) %>
                   </tbody>
                 </table>
               </div>
-
               <div class="row g-3">
                 <div class="col-12 col-md-6">
                   <div class="p-3 rounded-3 border bg-light">
@@ -338,8 +321,6 @@
         <% }) %>
       </section>
     </main>
-
-    <!-- Address Modal -->
     <div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -353,7 +334,6 @@
             <div class="mb-3">
               <div class="text-muted small mb-2">Order ID: <span id="modalOrderId" class="fw-bold text-dark"></span></div>
             </div>
-            
             <div class="address-detail">
               <div class="row g-3">
                 <div class="col-12" id="recipientName" style="display: none;">
@@ -362,49 +342,42 @@
                   </div>
                   <div class="address-value" id="modalRecipientName"></div>
                 </div>
-                
                 <div class="col-12">
                   <div class="address-label">
                     <i class="bi bi-house me-1"></i>Address Line 1
                   </div>
                   <div class="address-value" id="modalLine1"></div>
                 </div>
-                
                 <div class="col-12" id="line2Container" style="display: none;">
                   <div class="address-label">
                     <i class="bi bi-house me-1"></i>Address Line 2
                   </div>
                   <div class="address-value" id="modalLine2"></div>
                 </div>
-                
                 <div class="col-sm-6">
                   <div class="address-label">
                     <i class="bi bi-building me-1"></i>City
                   </div>
                   <div class="address-value" id="modalCity"></div>
                 </div>
-                
                 <div class="col-sm-6">
                   <div class="address-label">
                     <i class="bi bi-map me-1"></i>State
                   </div>
                   <div class="address-value" id="modalState"></div>
                 </div>
-                
                 <div class="col-sm-6">
                   <div class="address-label">
                     <i class="bi bi-mailbox me-1"></i>PIN Code
                   </div>
                   <div class="address-value" id="modalPincode"></div>
                 </div>
-                
                 <div class="col-sm-6" id="countryContainer" style="display: none;">
                   <div class="address-label">
                     <i class="bi bi-globe me-1"></i>Country
                   </div>
                   <div class="address-value" id="modalCountry"></div>
                 </div>
-                
                 <div class="col-12" id="phoneContainer" style="display: none;">
                   <div class="address-label">
                     <i class="bi bi-telephone me-1"></i>Phone Number
@@ -420,31 +393,21 @@
         </div>
       </div>
     </div>
-
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-      // Handle View Address button clicks
       document.addEventListener('DOMContentLoaded', function() {
         const viewAddressBtns = document.querySelectorAll('.view-address-btn');
-        
         viewAddressBtns.forEach(btn => {
           btn.addEventListener('click', function() {
             const addressData = JSON.parse(this.dataset.address);
             const orderId = this.dataset.orderId;
-            
-            // Set order ID
             document.getElementById('modalOrderId').textContent = orderId;
-            
-            // Set address fields
             document.getElementById('modalLine1').textContent = addressData.line1 || 'N/A';
             document.getElementById('modalCity').textContent = addressData.city || 'N/A';
             document.getElementById('modalState').textContent = addressData.state || 'N/A';
             document.getElementById('modalPincode').textContent = addressData.pincode || 'N/A';
-            
-            // Handle optional fields
             const recipientContainer = document.getElementById('recipientName');
             const modalRecipientName = document.getElementById('modalRecipientName');
             if (addressData.fullName) {
@@ -453,7 +416,6 @@
             } else {
               recipientContainer.style.display = 'none';
             }
-            
             const line2Container = document.getElementById('line2Container');
             const modalLine2 = document.getElementById('modalLine2');
             if (addressData.line2) {
@@ -462,7 +424,6 @@
             } else {
               line2Container.style.display = 'none';
             }
-            
             const countryContainer = document.getElementById('countryContainer');
             const modalCountry = document.getElementById('modalCountry');
             if (addressData.country) {
@@ -471,7 +432,6 @@
             } else {
               countryContainer.style.display = 'none';
             }
-            
             const phoneContainer = document.getElementById('phoneContainer');
             const modalPhone = document.getElementById('modalPhone');
             if (addressData.phone) {
@@ -482,41 +442,26 @@
             }
           });
         });
-        
-        // Filter functionality
+
         const filterBtns = document.querySelectorAll('.filter-chip');
         const orderCards = document.querySelectorAll('.order-card');
-        
         filterBtns.forEach(btn => {
           btn.addEventListener('click', function() {
-            // Remove active class from all buttons
             filterBtns.forEach(b => b.classList.remove('active'));
-            // Add active class to clicked button
             this.classList.add('active');
-            
             const filter = this.dataset.filter;
-            
             orderCards.forEach(card => {
-              if (filter === 'all' || card.dataset.status === filter) {
-                card.style.display = 'block';
-              } else {
-                card.style.display = 'none';
-              }
+              card.style.display = filter === 'all' || card.dataset.status === filter ? 'block' : 'none';
             });
           });
         });
 
-        // Handle Cancel All button click
         const cancelAllBtn = document.getElementById('cancelAllBtn');
         if (cancelAllBtn) {
           cancelAllBtn.addEventListener('click', async function() {
             const pendingOrders = Array.from(document.querySelectorAll('.order-card[data-status="pending"]'))
-              .filter(card => {
-                const cancelBtn = card.querySelector('.cancel-order-btn');
-                return cancelBtn !== null; // Only include orders with a cancel button (i.e., no returnOrder)
-              })
+              .filter(card => card.querySelector('.cancel-order-btn'))
               .map(card => card.querySelector('.cancel-order-btn').dataset.cancel);
-            
             if (pendingOrders.length === 0) {
               await Swal.fire({
                 title: 'No Pending Orders',
@@ -526,7 +471,6 @@
               });
               return;
             }
-
             const result = await Swal.fire({
               title: 'Cancel All Pending Orders',
               text: `Are you sure you want to cancel ${pendingOrders.length} pending order${pendingOrders.length > 1 ? 's' : ''}?`,
@@ -537,25 +481,27 @@
               confirmButtonText: 'Yes, cancel all',
               cancelButtonText: 'No, keep them'
             });
-
             if (result.isConfirmed) {
               try {
-                const response = await fetch('/account/orders/cancel-all', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({ orderIds: pendingOrders }),
-                });
-                
-                if (response.ok) {
+                const response = await axios.post('/account/orders/cancel-all', { orderIds: pendingOrders });
+                if (response.data.success) {
                   await Swal.fire({
                     title: 'All Orders Cancelled!',
                     text: 'All pending orders have been cancelled.',
                     icon: 'success',
                     confirmButtonColor: '#0d6efd'
                   });
-                  location.reload();
+                  pendingOrders.forEach(orderId => {
+                    const card = document.querySelector(`.order-card .cancel-order-btn[data-cancel="${orderId}"]`).closest('.order-card');
+                    card.dataset.status = 'cancelled';
+                    card.querySelector('.badge-status').className = 'badge badge-status cancelled text-uppercase';
+                    card.querySelector('.badge-status').innerHTML = '<i class="bi bi-x-circle me-1"></i>Cancelled';
+                    card.querySelector('.cancel-order-btn').remove();
+                    card.querySelectorAll('.cancel-item-btn').forEach(btn => btn.remove());
+                  });
+                  if (pendingOrders.length === document.querySelectorAll('.order-card[data-status="pending"]').length) {
+                    cancelAllBtn.remove();
+                  }
                 } else {
                   await Swal.fire({
                     title: 'Error',
@@ -577,14 +523,94 @@
           });
         }
 
-        // Handle Cancel button clicks
+        const returnOrderButtons = document.querySelectorAll('.return-order-btn');
+returnOrderButtons.forEach(btn => {
+  btn.addEventListener('click', async function() {
+    const orderId = this.dataset.return;
+    const result = await Swal.fire({
+      title: 'Request Order Return',
+      text: `Are you sure you want to request a return for order ${orderId}?`,
+      icon: 'warning',
+      input: 'textarea',
+      inputLabel: 'Reason for Return',
+      inputPlaceholder: 'Please enter the reason for your return...',
+      inputAttributes: {
+        'aria-label': 'Return reason'
+      },
+      showCancelButton: true,
+      confirmButtonColor: '#ffc107',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Submit Return',
+      cancelButtonText: 'Cancel',
+      inputValidator: (value) => {
+        if (!value) {
+          return 'You need to provide a reason for the return!';
+        }
+        const wordCount = value.trim().split(/\s+/).length;
+        if (wordCount > 50) {
+          return `Return reason must not exceed 50 words. You entered ${wordCount}.`;
+        }
+      }
+    });
+    if (result.isConfirmed) {
+      try {
+        const response = await axios.post('/account/orders/return', {
+          orderId,
+          reason: result.value,
+          returnStatus: 'Pending'
+        });
+        if (response.data.success) {
+          await Swal.fire({
+            title: 'Return Requested!',
+            text: 'Your order return request has been submitted.',
+            icon: 'success',
+            confirmButtonColor: '#0d6efd'
+          });
+          const card = this.closest('.order-card');
+          card.dataset.status = 'return-pending';
+          const returnBadge = document.createElement('span');
+          returnBadge.className = 'badge badge-status return-pending text-uppercase';
+          returnBadge.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Return Pending';
+          card.querySelector('.badge-status.text-muted').replaceWith(returnBadge);
+          this.remove();
+          card.querySelectorAll('.return-item-btn').forEach(btn => btn.remove());
+          const returnReasonDiv = document.createElement('div');
+          returnReasonDiv.className = 'col-12';
+          returnReasonDiv.innerHTML = `
+            <div class="p-3 rounded-3 border bg-light">
+              <div class="text-muted mb-1">Return Reason</div>
+              <div class="fw-semibold">${result.value}</div>
+            </div>
+          `;
+          card.querySelector('.row.g-3').appendChild(returnReasonDiv);
+        } else {
+          await Swal.fire({
+            title: 'Error',
+            text: response.data.error || 'Failed to submit return request.',
+            icon: 'error',
+            confirmButtonColor: '#0d6efd'
+          });
+        }
+      } catch (error) {
+        console.error('Error submitting return request:', error);
+        await Swal.fire({
+          title: 'Error',
+          text: 'An error occurred while submitting the return request.',
+          icon: 'error',
+          confirmButtonColor: '#0d6efd'
+        });
+      }
+    }
+  });
+});
+
         const cancelButtons = document.querySelectorAll('.cancel-order-btn');
         cancelButtons.forEach(btn => {
           btn.addEventListener('click', async function() {
             const orderId = this.dataset.cancel;
             const result = await Swal.fire({
               title: 'Cancel Order',
-              text: `Are you sure you want to cancel order ${orderId}?`,
+              text: `Are you sure you want to cancel order?`,
               icon: 'warning',
               showCancelButton: true,
               confirmButtonColor: '#dc3545',
@@ -592,25 +618,25 @@
               confirmButtonText: 'Yes, cancel it',
               cancelButtonText: 'No, keep it'
             });
-
             if (result.isConfirmed) {
               try {
-                const response = await fetch('/account/orders/cancel', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({ orderId }),
-                });
-                
-                if (response.ok) {
+                const response = await axios.post('/account/orders/cancel', { orderId });
+                if (response.data.success) {
                   await Swal.fire({
                     title: 'Cancelled!',
                     text: 'Your order has been cancelled.',
                     icon: 'success',
                     confirmButtonColor: '#0d6efd'
                   });
-                  location.reload();
+                  const card = this.closest('.order-card');
+                  card.dataset.status = 'cancelled';
+                  card.querySelector('.badge-status').className = 'badge badge-status cancelled text-uppercase';
+                  card.querySelector('.badge-status').innerHTML = '<i class="bi bi-x-circle me-1"></i>Cancelled';
+                  this.remove();
+                  card.querySelectorAll('.cancel-item-btn').forEach(btn => btn.remove());
+                  if (!document.querySelector('.order-card[data-status="pending"] .cancel-order-btn')) {
+                    document.getElementById('cancelAllBtn')?.remove();
+                  }
                 } else {
                   await Swal.fire({
                     title: 'Error',
@@ -622,86 +648,148 @@
               } catch (error) {
                 console.error('Error cancelling order:', error);
                 await Swal.fire({
-                    title: 'Error',
-                    text: 'An error occurred while cancelling the order.',
-                    icon: 'error',
-                    confirmButtonColor: '#0d6efd'
-                  });
-                }
+                  title: 'Error',
+                  text: 'An error occurred while cancelling the order.',
+                  icon: 'error',
+                  confirmButtonColor: '#0d6efd'
+                });
               }
-            });
-          });
-
-          // Handle Return button clicks
-          const returnButtons = document.querySelectorAll('.return-order-btn');
-          returnButtons.forEach(btn => {
-            btn.addEventListener('click', async function() {
-              const orderId = this.dataset.return;
-              const result = await Swal.fire({
-                title: 'Request Return',
-                text: `Are you sure you want to request a return for order ${orderId}?`,
-                icon: 'warning',
-                input: 'textarea',
-                inputLabel: 'Reason for Return',
-                inputPlaceholder: 'Please enter the reason for your return...',
-                inputAttributes: {
-                  'aria-label': 'Return reason'
-                },
-                showCancelButton: true,
-                confirmButtonColor: '#ffc107',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Submit Return',
-                cancelButtonText: 'Cancel',
-                inputValidator: (value) => {
-                  if (!value) {
-                    return 'You need to provide a reason for the return!';
-                  }
-                  const wordCount = value.trim().split(/\s+/).length;
-                  if (wordCount > 50) {
-                    return `Return reason must not exceed 50 words. You entered ${wordCount}.`;
-                  }
-                }
-              });
-
-              if (result.isConfirmed) {
-                try {
-                  const response = await fetch('/account/orders/return', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ orderId, reason: result.value, returnStatus: 'Pending' }),
-                  });
-                  
-                  if (response.ok) {
-                    await Swal.fire({
-                      title: 'Return Requested!',
-                      text: 'Your return request has been submitted.',
-                      icon: 'success',
-                      confirmButtonColor: '#0d6efd'
-                    });
-                    location.reload();
-                  } else {
-                    await Swal.fire({
-                      title: 'Error',
-                      text: 'Failed to submit return request.',
-                      icon: 'error',
-                      confirmButtonColor: '#0d6efd'
-                    });
-                  }
-                } catch (error) {
-                  console.error('Error submitting return request:', error);
-                  await Swal.fire({
-                    title: 'Error',
-                    text: 'An error occurred while submitting the return request.',
-                    icon: 'error',
-                    confirmButtonColor: '#0d6efd'
-                  });
-                }
-              }
-            });
+            }
           });
         });
+
+        const cancelItemButtons = document.querySelectorAll('.cancel-item-btn');
+        cancelItemButtons.forEach(btn => {
+          btn.addEventListener('click', async function() {
+            const [orderId, variantId, status] = this.dataset.cancelItem.split('_');
+            const result = await Swal.fire({
+              title: 'Cancel Item',
+              text: `Are you sure you want to cancel item in order ${orderId}?`,
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#dc3545',
+              cancelButtonColor: '#6c757d',
+              confirmButtonText: 'Yes, cancel it',
+              cancelButtonText: 'No, keep it'
+            });
+            if (result.isConfirmed) {
+              try {
+                const response = await axios.post('/account/orders/cancel-item', { orderId, variantId, status });
+                if (response.data.success) {
+                  await Swal.fire({
+                    title: 'Item Cancelled!',
+                    text: 'The item has been cancelled from the order.',
+                    icon: 'success',
+                    confirmButtonColor: '#0d6efd'
+                  });
+                  const row = this.closest('tr');
+                  row.querySelector('.badge-status').className = 'badge badge-status cancelled';
+                  row.querySelector('.badge-status').textContent = 'Item Cancelled';
+                  this.remove();
+                  const card = this.closest('.order-card');
+                  const activeItems = Array.from(card.querySelectorAll('.cancel-item-btn')).length;
+                  if (activeItems === 0) {
+                    card.dataset.status = 'cancelled';
+                    card.querySelector('.badge-status').className = 'badge badge-status cancelled text-uppercase';
+                    card.querySelector('.badge-status').innerHTML = '<i class="bi bi-x-circle me-1"></i>Cancelled';
+                    card.querySelector('.cancel-order-btn')?.remove();
+                    if (!document.querySelector('.order-card[data-status="pending"] .cancel-order-btn')) {
+                      document.getElementById('cancelAllBtn')?.remove();
+                    }
+                  }
+                  if (response.data.updatedTotal) {
+                    card.querySelector('.fs-5.fw-bold').textContent = `${parseFloat(response.data.updatedTotal).toFixed(2)}/-`;
+                  }
+                } else {
+                  await Swal.fire({
+                    title: 'Error',
+                    text: response.data.error || 'Failed to cancel the item.',
+                    icon: 'error',
+                    confirmButtonColor: '#0d6efd'
+                  });
+                }
+              } catch (error) {
+                console.error('Error cancelling item:', error);
+                await Swal.fire({
+                  title: 'Error',
+                  text: 'An error occurred while cancelling the item.',
+                  icon: 'error',
+                  confirmButtonColor: '#0d6efd'
+                });
+              }
+            }
+          });
+        });
+
+        const returnItemButtons = document.querySelectorAll('.return-item-btn');
+        returnItemButtons.forEach(btn => {
+          btn.addEventListener('click', async function() {
+            const [orderId, variantId] = this.dataset.returnItem.split('_');
+            const result = await Swal.fire({
+              title: 'Request Item Return',
+              text: `Are you sure you want to request a return for item in order ${orderId}?`,
+              icon: 'warning',
+              input: 'textarea',
+              inputLabel: 'Reason for Return',
+              inputPlaceholder: 'Please enter the reason for your return...',
+              inputAttributes: {
+                'aria-label': 'Return reason'
+              },
+              showCancelButton: true,
+              confirmButtonColor: '#ffc107',
+              cancelButtonColor: '#6c757d',
+              confirmButtonText: 'Submit Return',
+              cancelButtonText: 'Cancel',
+              inputValidator: (value) => {
+                if (!value) {
+                  return 'You need to provide a reason for the return!';
+                }
+                const wordCount = value.trim().split(/\s+/).length;
+                if (wordCount > 50) {
+                  return `Return reason must not exceed 50 words. You entered ${wordCount}.`;
+                }
+              }
+            });
+            if (result.isConfirmed) {
+              try {
+                const response = await axios.post('/account/orders/return-item', {
+                  orderId,
+                  variantId,
+                  reason: result.value,
+                  returnStatus: 'Pending'
+                });
+                if (response.data.success) {
+                  await Swal.fire({
+                    title: 'Return Requested!',
+                    text: 'Your item return request has been submitted.',
+                    icon: 'success',
+                    confirmButtonColor: '#0d6efd'
+                  });
+                  const row = this.closest('tr');
+                  row.querySelector('.badge-status').className = 'badge badge-status return-pending';
+                  row.querySelector('.badge-status').textContent = 'Item Return Pending';
+                  this.remove();
+                } else {
+                  await Swal.fire({
+                    title: 'Error',
+                    text: response.data.error || 'Failed to submit return request.',
+                    icon: 'error',
+                    confirmButtonColor: '#0d6efd'
+                  });
+                }
+              } catch (error) {
+                console.error('Error submitting return request:', error);
+                await Swal.fire({
+                  title: 'Error',
+                  text: 'An error occurred while submitting the return request.',
+                  icon: 'error',
+                  confirmButtonColor: '#0d6efd'
+                });
+              }
+            }
+          });
+        });
+      });
     </script>
   </body>
 </html>

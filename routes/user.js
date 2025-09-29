@@ -89,6 +89,10 @@ router.get('/account/orders/invoice/:orderId',userConfirmed,userProfileControlle
 router.post('/account/orders/cancel',userConfirmed,userProfileController.cancelOrder)
 //cancel all order
 router.post('/account/orders/cancel-all',userConfirmed,userProfileController.cancelAllOrder)
+//cancel each item
+router.post('/account/orders/cancel-item',userConfirmed,userProfileController.cancelItem)
+
+
 //return
 router.post('/account/orders/return', userConfirmed,userProfileController.returnOrder)
 module.exports = router;

@@ -203,8 +203,6 @@ exports.userImage = async (req, res) => {
     });
   }
 };
-
-////////////////////////////////////////////////////////////////////////
 exports.updatePassword = async (req, res) => {
   const { firstName, email, phone, currentPassword, newPassword, confirmPassword } = req.body;
 
@@ -292,9 +290,7 @@ exports.addToOrder = async (req, res) => {
 // view order user
 exports.viewOrder = async (req, res) => {
   try {
-
-    const userId = req.session.user.userId;
-
+   const userId = req.session.user.userId;
     let data = await userProfileModel.showOrder(userId);
     user = req.session.user
     //for image
@@ -308,6 +304,7 @@ exports.viewOrder = async (req, res) => {
         orders: data, user, image: imagedata || null
       })
     }
+
     res.render("user-pages/order.ejs", { orders: data, user });
   } catch (err) {
     console.error(err);
@@ -561,3 +558,15 @@ exports.returnOrder = async (req, res) => {
   else
     return res.status(400).json({ success: false, message: "return requst not complete" })
 }
+//cancel item
+exports.cancelItem = async (req,res) => {
+  console.log(req.body)
+  const orderData = req.body;
+  const response = await userProfileModel.canceleachItems(orderData)
+if (response) {
+  return res.status(200).json({success:true,message:"done"})
+
+}else
+{
+  return res.status(400).json({success:false,message:"failed"})
+}}

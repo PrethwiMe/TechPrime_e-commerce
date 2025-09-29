@@ -171,4 +171,69 @@ exports.returnAccept = async (id,st) => {
 
   return update;
 }
+//upadate item status
 
+
+
+exports.updateItemStatus = async (params) => {
+  try {
+    let { orderId, variantId, itemStatus } = params;
+    const db = await getDB();
+
+    console.log("=== updateItemStatus CALLED ===");
+    console.log("Incoming params:", { orderId, variantId, itemStatus });
+
+    let result = await db.collection(dbVariables.orderCollection).updateOne(
+      { _id: new ObjectId(orderId)  }, 
+      {
+        $set: {
+          "items.$[elem].itemStatus": itemStatus,
+        },
+      },
+      {
+        arrayFilters: [{ "elem.variantId": variantId }],
+      }
+    );
+
+    console.log("Update result:", result);
+
+    if (result.modifiedCount === 0) {
+      console.warn(" No item was updated. Check orderId/variantId match.");
+    }
+
+    const order = await db
+      .collection(dbVariables.orderCollection)
+      .findOne({ orderId });
+
+
+    if (!order) {
+      return { success: false, message: "Order not found" };
+    }
+
+    let allStatuses = order.items.map((item) => item.itemStatus || "Pending");
+
+    console.log("All item statuses:", allStatuses);
+
+    let newOrderStatus = "Pending";
+
+    if (allStatuses.every((s) => s === "Delivered")) {
+      newOrderStatus = "Delivered";
+    } else if (allStatuses.every((s) => s === "Cancelled")) {
+      newOrderStatus = "Cancelled";
+    } else if (allStatuses.every((s) => s === "Shipped" || s === "Delivered")) {
+      newOrderStatus = "Shipped"; 
+    } else {
+      newOrderStatus = "Partially Fulfilled"; 
+    }
+
+    await db.collection(dbVariables.orderCollection).updateOne(
+      { orderId },
+      { $set: { status: newOrderStatus } }
+    );
+
+    return { success: true, orderId, newOrderStatus };
+  } catch (err) {
+    console.error(" Error in updateItemStatus:", err);
+    return { success: false, message: "Internal error", error: err.message };
+  }
+};

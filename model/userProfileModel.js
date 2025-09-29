@@ -333,3 +333,28 @@ exports.updateUser = async (data) => {
     throw err;
   }
 };
+exports.canceleachItems = async (data) => {
+  try {
+    let { orderId, variantId, status } = data;
+
+    if (status == "Pending" || "Shipped") {
+      status = "cancelled"
+    }
+    const db = await getDB();
+
+    const result = await db.collection(dbVariables.orderCollection).updateOne(
+      { orderId: orderId }, // find the order
+      { $set: { "items.$[elem].itemStatus": status } }, // set itemStatus
+      {
+        arrayFilters: [{ "elem.variantId": variantId }] // only update matching variant
+      }
+    );
+
+    return result.modifiedCount > 0
+      ? { success: true, message: "Item status updated successfully" }
+      : { success: false, message: "No item updated" };
+  } catch (error) {
+    console.error("Error in canceleachItems:", error);
+    return { success: false, message: "Something went wrong" };
+  }
+};
