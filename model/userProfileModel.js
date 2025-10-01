@@ -1,5 +1,4 @@
 // mongo data 
-const { Query, Collection, get } = require('mongoose');
 const dbVariables = require('../config/databse')
 const { getDB } = require('../config/mongodb')
 const { ObjectId } = require('mongodb');
@@ -357,4 +356,22 @@ exports.canceleachItems = async (data) => {
     console.error("Error in canceleachItems:", error);
     return { success: false, message: "Something went wrong" };
   }
+};
+exports.showOrderVerify = async (id) => {
+  const db = await getDB();
+  const order = await db.collection(dbVariables.orderCollection).findOne({razorpayOrderId:id})
+  return order
+}
+exports.orderUpdate = async (razorpayOrderId, data) => {
+  const db = await getDB();
+
+  // Destructure fields from req.body
+  const { selectedAddress,paymentMethod,items,subtotal,tax,deliveryCharge,total,couponCode,razorpayPaymentId,razorpayOrderId: rOrderId,razorpaySignature} = data;
+
+  const updateOrder = await db.collection(dbVariables.orderCollection).updateOne({ razorpayOrderId }, 
+      {$set: { selectedAddress,paymentMethod,items,subtotal,tax,deliveryCharge,total,couponCode,razorpayPaymentId,
+          razorpayOrderId: rOrderId,razorpaySignature,paymentStatus: "paid", status: "Pending", updatedAt: new Date()}}
+    );
+
+  return updateOrder;
 };

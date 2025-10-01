@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Success</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .pop-in {
+            animation: popIn 0.5s ease-out forwards;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .float {
+            animation: float 3s ease-in-out infinite;
+        }
+        .gradient-button {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .gradient-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center pop-in">
+        <div class="mb-6">
+            <svg class="w-16 h-16 text-green-500 mx-auto float" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">Payment Successful!</h1>
+        <p class="text-gray-600 mb-6">Thank you for your purchase. Your order has been successfully processed.</p>
+        <div class="flex justify-center gap-4">
+            <a href="/account/orders" class="gradient-button text-white font-semibold py-3 px-6 rounded-lg">View Orders</a>
+            <a href="/" class="gradient-button text-white font-semibold py-3 px-6 rounded-lg">Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        // Confetti animation
+        function launchConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#4f46e5', '#7c3aed', '#10b981']
+            });
+        }
+
+        // Trigger confetti on page load
+        window.onload = function() {
+            launchConfetti();
+            setTimeout(launchConfetti, 500); // Second burst
+        };
+    </script>
+</body>
+</html>

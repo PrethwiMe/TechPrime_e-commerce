@@ -6,51 +6,39 @@
     <title>My Orders • Account</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
     <style>
       body {
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        font-family: 'Inter', sans-serif;
         color: #212529;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       }
-      a, a:hover, a:focus {
+      a {
         color: #0d6efd;
         text-decoration: none;
-        transition: color 0.2s ease;
+        transition: color 0.2s;
       }
+      a:hover { color: #0a58ca; }
       .content-wrapper {
         margin-left: 260px;
-        padding: 2rem;
+        padding: 1.5rem;
         min-height: 100vh;
       }
-      @media (max-width: 768px) {
-        .content-wrapper {
-          margin-left: 0;
-          padding: 1.5rem;
-        }
-      }
+      @media (max-width: 768px) { .content-wrapper { margin-left: 0; } }
       .page-header {
-        border-bottom: 1px solid #dee2e6;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
         background: #fff;
         border-radius: 0.5rem;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        padding: 1rem;
+        margin-bottom: 1.5rem;
       }
-      .page-header h1 {
-        color: #000;
-        font-size: 1.75rem;
-        font-weight: 600;
-      }
-      .page-header p {
-        font-size: 0.95rem;
-      }
+      .page-header h1 { font-size: 1.75rem; font-weight: 600; }
+      .page-header p { font-size: 0.95rem; margin: 0; }
       .card-light {
         background: #fff;
-        border: none;
         border-radius: 0.75rem;
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition: transform 0.3s, box-shadow 0.3s;
       }
       .card-light:hover {
         transform: translateY(-5px);
@@ -60,134 +48,78 @@
         --bs-table-bg: transparent;
         --bs-table-striped-bg: rgba(0,0,0,0.03);
         --bs-table-hover-bg: rgba(0,0,0,0.05);
-        color: #212529;
         border-color: #dee2e6;
       }
-      .table-lightish th, .table-lightish td {
-        padding: 1rem;
-      }
-      .table-lightish tbody tr {
-        transition: background-color 0.2s ease;
-      }
-      .table-lightish tbody tr:hover {
-        background-color: var(--bs-table-hover-bg);
-      }
+      .table-lightish th, .table-lightish td { padding: 0.75rem; }
       .badge-status {
         font-weight: 600;
-        letter-spacing: .02em;
         padding: 0.5rem 1rem;
         border-radius: 0.5rem;
         font-size: 0.85rem;
       }
-      .badge-status.pending { background-color: #fff3cd; color: #856404; }
-      .badge-status.shipped { background-color: #e7f3fe; color: #0d6efd; }
-      .badge-status.delivered { background-color: #e6f4ea; color: #198754; }
-      .badge-status.cancelled { background-color: #f8d7da; color: #842029; }
-      .badge-status.return-pending { background-color: #fff3cd; color: #856404; }
-      .badge-status.return-accepted { background-color: #e6f4ea; color: #198754; }
-      .badge-status.return-rejected { background-color: #f8d7da; color: #dc3545; }
-      .filter-chip {
+      .badge-status.pending { background: #fff3cd; color: #856404; }
+      .badge-status.shipped { background: #e7f3fe; color: #0d6efd; }
+      .badge-status.delivered { background: #e6f4ea; color: #198754; }
+      .badge-status.cancelled { background: #f8d7da; color: #842029; }
+      .badge-status.return-pending { background: #fff3cd; color: #856404; }
+      .badge-status.return-accepted { background: #e6f4ea; color: #198754; }
+      .badge-status.return-rejected { background: #f8d7da; color: #dc3545; }
+      .filter-chip, .cancel-all-btn {
         border: 1px solid #dee2e6;
         background: #fff;
-        color: #212529;
         padding: 0.5rem 1rem;
         border-radius: 1rem;
-        transition: all 0.3s ease;
         font-size: 0.9rem;
+        transition: all 0.3s;
       }
-      .filter-chip:hover {
+      .filter-chip:hover, .cancel-all-btn:hover {
         background: #6c757d;
         color: #fff;
         border-color: #6c757d;
       }
-      .filter-chip.active {
-        background: #0d6efd;
-        color: #fff;
-        border-color: #0d6efd;
-      }
-      .cancel-all-btn {
-        border: 1px solid #dc3545;
-        background: #fff;
-        color: #dc3545;
-        padding: 0.5rem 1rem;
-        border-radius: 1rem;
-        transition: all 0.3s ease;
-        font-size: 0.9rem;
-      }
-      .cancel-all-btn:hover {
-        background: #dc3545;
-        color: #fff;
-        border-color: #dc3545;
-      }
+      .filter-chip.active { background: #0d6efd; color: #fff; border-color: #0d6efd; }
+      .cancel-all-btn { border-color: #dc3545; color: #dc3545; }
+      .cancel-all-btn:hover { background: #dc3545; border-color: #dc3545; }
       .order-item-thumb {
-        width: 72px;
-        height: 72px;
-        border-radius: 0.75rem;
+        width: 60px;
+        height: 60px;
+        border-radius: 0.5rem;
         object-fit: cover;
         border: 1px solid #dee2e6;
-        transition: transform 0.3s ease;
       }
-      .order-item-thumb:hover {
-        transform: scale(1.05);
-      }
-      .divider {
-        height: 1px;
-        background-color: #dee2e6;
-        width: 100%;
-        margin: 1.5rem 0;
-      }
+      .divider { height: 1px; background: #dee2e6; margin: 1rem 0; }
       .order-actions .btn {
         border-radius: 0.5rem;
         padding: 0.5rem 1rem;
         font-size: 0.9rem;
-        transition: all 0.3s ease;
       }
-      .order-actions .btn:hover {
-        transform: translateY(-2px);
-      }
-      .address-detail {
+      .detail-box {
         background: #f8f9fa;
-        border: none;
         border-radius: 0.75rem;
-        padding: 1.5rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        padding: 1rem;
+        margin-top: 1rem;
       }
-      .address-label {
+      .detail-label {
         font-weight: 600;
         color: #495057;
-        margin-bottom: 0.5rem;
         font-size: 0.9rem;
+        margin-bottom: 0.5rem;
       }
-      .address-value {
-        color: #212529;
-        margin-bottom: 1rem;
-        font-size: 1rem;
-      }
-      .modal-content {
-        border-radius: 0.75rem;
-        border: none;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-      }
-      .modal-header {
-        border-bottom: none;
-        padding-bottom: 0;
-      }
-      .modal-footer {
-        border-top: none;
-        padding-top: 0;
-      }
+      .detail-value { color: #212529; font-size: 1rem; margin-bottom: 1rem; }
+      .modal-content { border-radius: 0.75rem; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      .modal-header, .modal-footer { border: none; }
     </style>
   </head>
   <body>
     <%- include('partials/header') %>
     <%- include('partials/accountSidebar') %>
     <main class="content-wrapper">
-      <header class="page-header d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <header class="page-header d-flex align-items-center justify-content-between gap-3 flex-wrap">
         <div>
           <h1 class="h3 mb-1">My Orders</h1>
-          <p class="mb-0 text-muted">Track, manage, and view your laptop orders</p>
+          <p class="text-muted">Track and manage your laptop orders</p>
         </div>
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex gap-2">
           <button class="btn filter-chip active" data-filter="all"><i class="bi bi-card-list me-1"></i> All</button>
           <button class="btn filter-chip" data-filter="pending"><i class="bi bi-hourglass-split me-1"></i> Pending</button>
           <button class="btn filter-chip" data-filter="shipped"><i class="bi bi-truck me-1"></i> Shipped</button>
@@ -196,26 +128,21 @@
         </div>
       </header>
       <% if (orders.some(order => order.status.toLowerCase() === 'pending' && !order.returnOrder)) { %>
-        <button class="btn cancel-all-btn btn-danger mb-5" id="cancelAllBtn"><i class="bi bi-x-circle-fill me-1"></i> Cancel All</button>
+        <button class="btn cancel-all-btn mb-4" id="cancelAllBtn"><i class="bi bi-x-circle-fill me-1"></i> Cancel All</button>
       <% } %>
-      <section id="ordersList" class="vstack gap-4">
+      <section id="ordersList" class="vstack gap-3">
         <% orders.forEach(order => { %>
           <article class="card card-light order-card" data-status="<%= order.status.toLowerCase() %>">
             <div class="card-body">
-              <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-                <div class="d-flex flex-wrap align-items-center gap-3">
+              <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+                <div class="d-flex align-items-center gap-3 flex-wrap">
                   <span class="badge badge-status <%= order.status.toLowerCase() %> text-uppercase">
-                    <i class="bi me-1
-                      <%= order.status.toLowerCase() === 'pending' ? 'bi-hourglass-split' :
-                          order.status.toLowerCase() === 'shipped' ? 'bi-truck' :
-                          order.status.toLowerCase() === 'delivered' ? 'bi-check2-circle' : 'bi-x-circle' %>"></i>
+                    <i class="bi me-1 <%= order.status.toLowerCase() === 'pending' ? 'bi-hourglass-split' : order.status.toLowerCase() === 'shipped' ? 'bi-truck' : order.status.toLowerCase() === 'delivered' ? 'bi-check2-circle' : 'bi-x-circle' %>"></i>
                     <%= order.status %>
                   </span>
                   <% if (order.returnOrder) { %>
                     <span class="badge badge-status return-<%= order.returnOrder.toLowerCase() %> text-uppercase">
-                      <i class="bi me-1
-                        <%= order.returnOrder === 'Pending' ? 'bi-hourglass-split' :
-                            order.returnOrder === 'Accepted' ? 'bi-check2-circle' : 'bi-x-circle' %>"></i>
+                      <i class="bi me-1 <%= order.returnOrder === 'Pending' ? 'bi-hourglass-split' : order.returnOrder === 'Accepted' ? 'bi-check2-circle' : 'bi-x-circle' %>"></i>
                       Return <%= order.returnOrder %>
                     </span>
                   <% } else { %>
@@ -223,10 +150,9 @@
                   <% } %>
                   <span class="text-muted">Order ID</span>
                   <strong><%= order.orderId %></strong>
-                  <span class="vr mx-2"></span>
                   <span class="text-muted"><i class="bi bi-calendar-date me-1"></i> <%= new Date(order.createdAt).toLocaleDateString() %></span>
                 </div>
-                <div class="order-actions d-flex align-items-center gap-2">
+                <div class="order-actions d-flex gap-2">
                   <% if (order.status.toLowerCase() === 'pending' && !order.returnOrder) { %>
                     <button class="btn btn-outline-danger cancel-order-btn" data-cancel="<%= order.orderId %>">
                       <i class="bi bi-x-circle me-1"></i> Cancel
@@ -241,30 +167,35 @@
                     </button>
                   <% } %>
                   <button class="btn btn-outline-info view-address-btn" data-bs-toggle="modal" data-bs-target="#addressModal" data-address='<%= JSON.stringify(order.selectedAddress) %>' data-order-id="<%= order.orderId %>">
-                    <i class="bi bi-geo-alt me-1"></i> View Address
+                    <i class="bi bi-geo-alt me-1"></i> Address
                   </button>
+                  <% if (order.paymentMethod === 'online') { %>
+                    <button class="btn btn-outline-primary payment-details-btn" data-bs-toggle="modal" data-bs-target="#paymentModal" data-payment='<%= JSON.stringify({ orderId: order.orderId, razorpayOrderId: order.razorpayOrderId, razorpayPaymentId: order.razorpayPaymentId, paymentMethod: order.paymentMethod }) %>'>
+                      <i class="bi bi-wallet2 me-1"></i> Payment
+                    </button>
+                  <% } %>
                 </div>
               </div>
-              <div class="my-3 divider"></div>
+              <div class="divider"></div>
               <div class="table-responsive">
-                <table class="table table-lightish align-middle mb-3">
+                <table class="table table-lightish align-middle">
                   <thead>
                     <tr>
-                      <th scope="col">Item</th>
-                      <th scope="col" class="text-center">Qty</th>
-                      <th scope="col" class="text-end">Price</th>
-                      <th scope="col" class="text-end">Status</th>
-                      <th scope="col" class="text-end">Actions</th>
+                      <th>Item</th>
+                      <th class="text-center">Qty</th>
+                      <th class="text-end">Price</th>
+                      <th class="text-end">Status</th>
+                      <th class="text-end">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     <% order.items.forEach(item => { %>
                       <tr>
                         <td>
-                          <div class="d-flex align-items-center gap-3">
-                            <img class="order-item-thumb" src="<%= item.product.images[0] %>" alt="Item image" />
+                          <div class="d-flex align-items-center gap-2">
+                            <img class="order-item-thumb" src="<%= item.product?.images[0] || '/images/placeholder.jpg' %>" alt="Item image" />
                             <div>
-                              <div class="fw-semibold"><%= item.product.name %></div>
+                              <div class="fw-semibold"><%= item.product?.name || 'Product Name' %></div>
                               <small>Category: Laptops & Accessories</small>
                             </div>
                           </div>
@@ -279,11 +210,11 @@
                         <td class="text-end">
                           <% if (item.itemStatus === 'Delivered' && !order.returnOrder && !item.returnStatus) { %>
                             <button class="btn btn-outline-warning btn-sm return-item-btn" data-return-item="<%= order.orderId %>_<%= item.variantId %>">
-                              <i class="bi bi-arrow-return-left me-1"></i> Return Item
+                              <i class="bi bi-arrow-return-left me-1"></i> Return
                             </button>
                           <% } else if (!item.itemStatus || item.itemStatus !== 'cancelled' && !order.returnOrder && !item.returnStatus) { %>
                             <button class="btn btn-outline-danger btn-sm cancel-item-btn" data-cancel-item="<%= order.orderId %>_<%= item.variantId %>_<%= order.status %>">
-                              <i class="bi bi-x-circle me-1"></i> Cancel Item
+                              <i class="bi bi-x-circle me-1"></i> Cancel
                             </button>
                           <% } %>
                         </td>
@@ -294,24 +225,22 @@
               </div>
               <div class="row g-3">
                 <div class="col-12 col-md-6">
-                  <div class="p-3 rounded-3 border bg-light">
-                    <div class="text-muted mb-1">Ship to</div>
-                    <div class="fw-semibold"><i class="bi bi-geo-alt me-2"></i>
-                      <%= order.selectedAddress.line1 %>, <%= order.selectedAddress.city %>, <%= order.selectedAddress.state %>, <%= order.selectedAddress.pincode %>
-                    </div>
+                  <div class="detail-box">
+                    <div class="detail-label">Ship to</div>
+                    <div class="detail-value"><i class="bi bi-geo-alt me-2"></i><%= order.selectedAddress.line1 %>, <%= order.selectedAddress.city %>, <%= order.selectedAddress.state %>, <%= order.selectedAddress.pincode %></div>
                   </div>
                 </div>
                 <div class="col-12 col-md-6">
-                  <div class="p-3 rounded-3 border bg-light">
-                    <div class="text-muted mb-1">Order total</div>
-                    <div class="fs-5 fw-bold"><%= parseFloat(order.total).toFixed(2) %>/-</div>
+                  <div class="detail-box">
+                    <div class="detail-label">Order total</div>
+                    <div class="detail-value fs-5 fw-bold"><%= parseFloat(order.total).toFixed(2) %>/-</div>
                   </div>
                 </div>
                 <% if (order.returnOrder) { %>
                   <div class="col-12">
-                    <div class="p-3 rounded-3 border bg-light">
-                      <div class="text-muted mb-1">Return Reason</div>
-                      <div class="fw-semibold"><%= order.returnReason || 'N/A' %></div>
+                    <div class="detail-box">
+                      <div class="detail-label">Return Reason</div>
+                      <div class="detail-value"><%= order.returnReason || 'N/A' %></div>
                     </div>
                   </div>
                 <% } %>
@@ -325,64 +254,80 @@
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="addressModalLabel">
-              <i class="bi bi-geo-alt me-2"></i>Shipping Address
-            </h5>
+            <h5 class="modal-title" id="addressModalLabel"><i class="bi bi-geo-alt me-2"></i>Shipping Address</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <div class="mb-3">
-              <div class="text-muted small mb-2">Order ID: <span id="modalOrderId" class="fw-bold text-dark"></span></div>
+              <div class="text-muted small">Order ID: <span id="modalOrderId" class="fw-bold"></span></div>
             </div>
-            <div class="address-detail">
+            <div class="detail-box">
               <div class="row g-3">
                 <div class="col-12" id="recipientName" style="display: none;">
-                  <div class="address-label">
-                    <i class="bi bi-person me-1"></i>Recipient Name
-                  </div>
-                  <div class="address-value" id="modalRecipientName"></div>
+                  <div class="detail-label"><i class="bi bi-person me-1"></i>Recipient Name</div>
+                  <div class="detail-value" id="modalRecipientName"></div>
                 </div>
                 <div class="col-12">
-                  <div class="address-label">
-                    <i class="bi bi-house me-1"></i>Address Line 1
-                  </div>
-                  <div class="address-value" id="modalLine1"></div>
+                  <div class="detail-label"><i class="bi bi-house me-1"></i>Address Line 1</div>
+                  <div class="detail-value" id="modalLine1"></div>
                 </div>
                 <div class="col-12" id="line2Container" style="display: none;">
-                  <div class="address-label">
-                    <i class="bi bi-house me-1"></i>Address Line 2
-                  </div>
-                  <div class="address-value" id="modalLine2"></div>
+                  <div class="detail-label"><i class="bi bi-house me-1"></i>Address Line 2</div>
+                  <div class="detail-value" id="modalLine2"></div>
                 </div>
                 <div class="col-sm-6">
-                  <div class="address-label">
-                    <i class="bi bi-building me-1"></i>City
-                  </div>
-                  <div class="address-value" id="modalCity"></div>
+                  <div class="detail-label"><i class="bi bi-building me-1"></i>City</div>
+                  <div class="detail-value" id="modalCity"></div>
                 </div>
                 <div class="col-sm-6">
-                  <div class="address-label">
-                    <i class="bi bi-map me-1"></i>State
-                  </div>
-                  <div class="address-value" id="modalState"></div>
+                  <div class="detail-label"><i class="bi bi-map me-1"></i>State</div>
+                  <div class="detail-value" id="modalState"></div>
                 </div>
                 <div class="col-sm-6">
-                  <div class="address-label">
-                    <i class="bi bi-mailbox me-1"></i>PIN Code
-                  </div>
-                  <div class="address-value" id="modalPincode"></div>
+                  <div class="detail-label"><i class="bi bi-mailbox me-1"></i>PIN Code</div>
+                  <div class="detail-value" id="modalPincode"></div>
                 </div>
                 <div class="col-sm-6" id="countryContainer" style="display: none;">
-                  <div class="address-label">
-                    <i class="bi bi-globe me-1"></i>Country
-                  </div>
-                  <div class="address-value" id="modalCountry"></div>
+                  <div class="detail-label"><i class="bi bi-globe me-1"></i>Country</div>
+                  <div class="detail-value" id="modalCountry"></div>
                 </div>
                 <div class="col-12" id="phoneContainer" style="display: none;">
-                  <div class="address-label">
-                    <i class="bi bi-telephone me-1"></i>Phone Number
-                  </div>
-                  <div class="address-value" id="modalPhone"></div>
+                  <div class="detail-label"><i class="bi bi-telephone me-1"></i>Phone Number</div>
+                  <div class="detail-value" id="modalPhone"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="paymentModalLabel"><i class="bi bi-wallet2 me-2"></i>Payment Details</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <div class="text-muted small">Order ID: <span id="paymentModalOrderId" class="fw-bold"></span></div>
+            </div>
+            <div class="detail-box">
+              <div class="row g-3">
+                <div class="col-12">
+                  <div class="detail-label">Payment Method</div>
+                  <div class="detail-value text-capitalize" id="modalPaymentMethod"></div>
+                </div>
+                <div class="col-12">
+                  <div class="detail-label">Razorpay Order ID</div>
+                  <div class="detail-value" id="modalRazorpayOrderId"></div>
+                </div>
+                <div class="col-12">
+                  <div class="detail-label">Razorpay Payment ID</div>
+                  <div class="detail-value" id="modalRazorpayPaymentId"></div>
                 </div>
               </div>
             </div>
@@ -397,396 +342,208 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const viewAddressBtns = document.querySelectorAll('.view-address-btn');
-        viewAddressBtns.forEach(btn => {
-          btn.addEventListener('click', function() {
-            const addressData = JSON.parse(this.dataset.address);
-            const orderId = this.dataset.orderId;
-            document.getElementById('modalOrderId').textContent = orderId;
-            document.getElementById('modalLine1').textContent = addressData.line1 || 'N/A';
-            document.getElementById('modalCity').textContent = addressData.city || 'N/A';
-            document.getElementById('modalState').textContent = addressData.state || 'N/A';
-            document.getElementById('modalPincode').textContent = addressData.pincode || 'N/A';
-            const recipientContainer = document.getElementById('recipientName');
-            const modalRecipientName = document.getElementById('modalRecipientName');
-            if (addressData.fullName) {
-              modalRecipientName.textContent = addressData.fullName;
-              recipientContainer.style.display = 'block';
-            } else {
-              recipientContainer.style.display = 'none';
-            }
-            const line2Container = document.getElementById('line2Container');
-            const modalLine2 = document.getElementById('modalLine2');
-            if (addressData.line2) {
-              modalLine2.textContent = addressData.line2;
-              line2Container.style.display = 'block';
-            } else {
-              line2Container.style.display = 'none';
-            }
-            const countryContainer = document.getElementById('countryContainer');
-            const modalCountry = document.getElementById('modalCountry');
-            if (addressData.country) {
-              modalCountry.textContent = addressData.country;
-              countryContainer.style.display = 'block';
-            } else {
-              countryContainer.style.display = 'none';
-            }
-            const phoneContainer = document.getElementById('phoneContainer');
-            const modalPhone = document.getElementById('modalPhone');
-            if (addressData.phone) {
-              modalPhone.textContent = addressData.phone;
-              phoneContainer.style.display = 'block';
-            } else {
-              phoneContainer.style.display = 'none';
-            }
+      document.addEventListener('DOMContentLoaded', () => {
+        const modals = {
+          address: {
+            modal: '#addressModal',
+            fields: [
+              { id: 'modalLine1', key: 'line1' },
+              { id: 'modalCity', key: 'city' },
+              { id: 'modalState', key: 'state' },
+              { id: 'modalPincode', key: 'pincode' },
+              { id: 'modalRecipientName', key: 'fullName', container: 'recipientName' },
+              { id: 'modalLine2', key: 'line2', container: 'line2Container' },
+              { id: 'modalCountry', key: 'country', container: 'countryContainer' },
+              { id: 'modalPhone', key: 'phone', container: 'phoneContainer' }
+            ]
+          },
+          payment: {
+            modal: '#paymentModal',
+            fields: [
+              { id: 'modalPaymentMethod', key: 'paymentMethod' },
+              { id: 'modalRazorpayOrderId', key: 'razorpayOrderId' },
+              { id: 'modalRazorpayPaymentId', key: 'razorpayPaymentId' }
+            ]
+          }
+        };
+
+        document.querySelectorAll('.view-address-btn, .payment-details-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const type = btn.classList.contains('view-address-btn') ? 'address' : 'payment';
+            const data = JSON.parse(btn.dataset[type]);
+            const modal = modals[type];
+            document.getElementById(type === 'address' ? 'modalOrderId' : 'paymentModalOrderId').textContent = btn.dataset.orderId || data.orderId;
+            modal.fields.forEach(({ id, key, container }) => {
+              const element = document.getElementById(id);
+              element.textContent = data[key] || 'N/A';
+              if (container) {
+                document.getElementById(container).style.display = data[key] ? 'block' : 'none';
+              }
+            });
           });
         });
 
-        const filterBtns = document.querySelectorAll('.filter-chip');
-        const orderCards = document.querySelectorAll('.order-card');
-        filterBtns.forEach(btn => {
-          btn.addEventListener('click', function() {
-            filterBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            const filter = this.dataset.filter;
-            orderCards.forEach(card => {
+        document.querySelectorAll('.filter-chip').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const filter = btn.dataset.filter;
+            document.querySelectorAll('.order-card').forEach(card => {
               card.style.display = filter === 'all' || card.dataset.status === filter ? 'block' : 'none';
             });
           });
         });
 
-        const cancelAllBtn = document.getElementById('cancelAllBtn');
-        if (cancelAllBtn) {
-          cancelAllBtn.addEventListener('click', async function() {
-            const pendingOrders = Array.from(document.querySelectorAll('.order-card[data-status="pending"]'))
-              .filter(card => card.querySelector('.cancel-order-btn'))
-              .map(card => card.querySelector('.cancel-order-btn').dataset.cancel);
-            if (pendingOrders.length === 0) {
-              await Swal.fire({
-                title: 'No Pending Orders',
-                text: 'There are no pending orders to cancel.',
-                icon: 'info',
-                confirmButtonColor: '#0d6efd'
-              });
-              return;
+        const handleAction = async (url, data, successMsg, errorMsg, updateFn) => {
+          const result = await Swal.fire({
+            title: data.title || 'Confirm Action',
+            text: data.text,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: data.confirmColor || '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: data.confirmText || 'Yes, proceed',
+            cancelButtonText: 'Cancel',
+            ...data.input
+          });
+          if (!result.isConfirmed) return;
+          try {
+            const response = await axios.post(url, { ...data.payload, ...(result.value && { reason: result.value }) });
+            if (response.data.success) {
+              await Swal.fire({ title: successMsg.title, text: successMsg.text, icon: 'success', confirmButtonColor: '#0d6efd' });
+              updateFn(response);
+            } else {
+              await Swal.fire({ title: 'Error', text: response.data.error || errorMsg, icon: 'error', confirmButtonColor: '#0d6efd' });
             }
-            const result = await Swal.fire({
-              title: 'Cancel All Pending Orders',
-              text: `Are you sure you want to cancel ${pendingOrders.length} pending order${pendingOrders.length > 1 ? 's' : ''}?`,
-              icon: 'warning',
-              showCancelButton: true,
-              confirmButtonColor: '#dc3545',
-              cancelButtonColor: '#6c757d',
-              confirmButtonText: 'Yes, cancel all',
-              cancelButtonText: 'No, keep them'
+          } catch (error) {
+            console.error(`Error in ${url}:`, error);
+            await Swal.fire({ title: 'Error', text: `An error occurred while ${errorMsg.toLowerCase()}`, icon: 'error', confirmButtonColor: '#0d6efd' });
+          }
+        };
+
+        const updateCardStatus = (card, status, badgeText, removeButtons) => {
+          card.dataset.status = status;
+          const badge = card.querySelector('.badge-status');
+          badge.className = `badge badge-status ${status} text-uppercase`;
+          badge.innerHTML = `<i class="bi bi-x-circle me-1"></i>${badgeText}`;
+          removeButtons.forEach(selector => card.querySelector(selector)?.remove());
+        };
+
+        document.getElementById('cancelAllBtn')?.addEventListener('click', () => {
+          const pendingOrders = Array.from(document.querySelectorAll('.order-card[data-status="pending"] .cancel-order-btn')).map(btn => btn.dataset.cancel);
+          if (!pendingOrders.length) {
+            Swal.fire({ title: 'No Pending Orders', text: 'No pending orders to cancel.', icon: 'info', confirmButtonColor: '#0d6efd' });
+            return;
+          }
+          handleAction('/account/orders/cancel-all', {
+            text: `Cancel ${pendingOrders.length} pending order${pendingOrders.length > 1 ? 's' : ''}?`,
+            payload: { orderIds: pendingOrders }
+          }, {
+            title: 'All Orders Cancelled!',
+            text: 'All pending orders have been cancelled.'
+          }, 'Failed to cancel all orders', () => {
+            pendingOrders.forEach(orderId => {
+              const card = document.querySelector(`.order-card .cancel-order-btn[data-cancel="${orderId}"]`).closest('.order-card');
+              updateCardStatus(card, 'cancelled', 'Cancelled', ['.cancel-order-btn', '.cancel-item-btn']);
             });
-            if (result.isConfirmed) {
-              try {
-                const response = await axios.post('/account/orders/cancel-all', { orderIds: pendingOrders });
-                if (response.data.success) {
-                  await Swal.fire({
-                    title: 'All Orders Cancelled!',
-                    text: 'All pending orders have been cancelled.',
-                    icon: 'success',
-                    confirmButtonColor: '#0d6efd'
-                  });
-                  pendingOrders.forEach(orderId => {
-                    const card = document.querySelector(`.order-card .cancel-order-btn[data-cancel="${orderId}"]`).closest('.order-card');
-                    card.dataset.status = 'cancelled';
-                    card.querySelector('.badge-status').className = 'badge badge-status cancelled text-uppercase';
-                    card.querySelector('.badge-status').innerHTML = '<i class="bi bi-x-circle me-1"></i>Cancelled';
-                    card.querySelector('.cancel-order-btn').remove();
-                    card.querySelectorAll('.cancel-item-btn').forEach(btn => btn.remove());
-                  });
-                  if (pendingOrders.length === document.querySelectorAll('.order-card[data-status="pending"]').length) {
-                    cancelAllBtn.remove();
-                  }
-                } else {
-                  await Swal.fire({
-                    title: 'Error',
-                    text: 'Failed to cancel all orders.',
-                    icon: 'error',
-                    confirmButtonColor: '#0d6efd'
-                  });
-                }
-              } catch (error) {
-                console.error('Error cancelling all orders:', error);
-                await Swal.fire({
-                  title: 'Error',
-                  text: 'An error occurred while cancelling all orders.',
-                  icon: 'error',
-                  confirmButtonColor: '#0d6efd'
-                });
-              }
+            if (!document.querySelector('.order-card[data-status="pending"] .cancel-order-btn')) {
+              document.getElementById('cancelAllBtn')?.remove();
             }
           });
-        }
-
-        const returnOrderButtons = document.querySelectorAll('.return-order-btn');
-returnOrderButtons.forEach(btn => {
-  btn.addEventListener('click', async function() {
-    const orderId = this.dataset.return;
-    const result = await Swal.fire({
-      title: 'Request Order Return',
-      text: `Are you sure you want to request a return for order ${orderId}?`,
-      icon: 'warning',
-      input: 'textarea',
-      inputLabel: 'Reason for Return',
-      inputPlaceholder: 'Please enter the reason for your return...',
-      inputAttributes: {
-        'aria-label': 'Return reason'
-      },
-      showCancelButton: true,
-      confirmButtonColor: '#ffc107',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Submit Return',
-      cancelButtonText: 'Cancel',
-      inputValidator: (value) => {
-        if (!value) {
-          return 'You need to provide a reason for the return!';
-        }
-        const wordCount = value.trim().split(/\s+/).length;
-        if (wordCount > 50) {
-          return `Return reason must not exceed 50 words. You entered ${wordCount}.`;
-        }
-      }
-    });
-    if (result.isConfirmed) {
-      try {
-        const response = await axios.post('/account/orders/return', {
-          orderId,
-          reason: result.value,
-          returnStatus: 'Pending'
         });
-        if (response.data.success) {
-          await Swal.fire({
-            title: 'Return Requested!',
-            text: 'Your order return request has been submitted.',
-            icon: 'success',
-            confirmButtonColor: '#0d6efd'
-          });
-          const card = this.closest('.order-card');
-          card.dataset.status = 'return-pending';
-          const returnBadge = document.createElement('span');
-          returnBadge.className = 'badge badge-status return-pending text-uppercase';
-          returnBadge.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Return Pending';
-          card.querySelector('.badge-status.text-muted').replaceWith(returnBadge);
-          this.remove();
-          card.querySelectorAll('.return-item-btn').forEach(btn => btn.remove());
-          const returnReasonDiv = document.createElement('div');
-          returnReasonDiv.className = 'col-12';
-          returnReasonDiv.innerHTML = `
-            <div class="p-3 rounded-3 border bg-light">
-              <div class="text-muted mb-1">Return Reason</div>
-              <div class="fw-semibold">${result.value}</div>
-            </div>
-          `;
-          card.querySelector('.row.g-3').appendChild(returnReasonDiv);
-        } else {
-          await Swal.fire({
-            title: 'Error',
-            text: response.data.error || 'Failed to submit return request.',
-            icon: 'error',
-            confirmButtonColor: '#0d6efd'
-          });
-        }
-      } catch (error) {
-        console.error('Error submitting return request:', error);
-        await Swal.fire({
-          title: 'Error',
-          text: 'An error occurred while submitting the return request.',
-          icon: 'error',
-          confirmButtonColor: '#0d6efd'
-        });
-      }
-    }
-  });
-});
 
-        const cancelButtons = document.querySelectorAll('.cancel-order-btn');
-        cancelButtons.forEach(btn => {
-          btn.addEventListener('click', async function() {
-            const orderId = this.dataset.cancel;
-            const result = await Swal.fire({
-              title: 'Cancel Order',
-              text: `Are you sure you want to cancel order?`,
-              icon: 'warning',
-              showCancelButton: true,
-              confirmButtonColor: '#dc3545',
-              cancelButtonColor: '#6c757d',
-              confirmButtonText: 'Yes, cancel it',
-              cancelButtonText: 'No, keep it'
+        document.querySelectorAll('.cancel-order-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const orderId = btn.dataset.cancel;
+            handleAction('/account/orders/cancel', {
+              text: `Cancel order ${orderId}?`,
+              payload: { orderId }
+            }, {
+              title: 'Cancelled!',
+              text: 'Your order has been cancelled.'
+            }, 'Failed to cancel order', () => {
+              const card = btn.closest('.order-card');
+              updateCardStatus(card, 'cancelled', 'Cancelled', ['.cancel-order-btn', '.cancel-item-btn']);
+              if (!document.querySelector('.order-card[data-status="pending"] .cancel-order-btn')) {
+                document.getElementById('cancelAllBtn')?.remove();
+              }
             });
-            if (result.isConfirmed) {
-              try {
-                const response = await axios.post('/account/orders/cancel', { orderId });
-                if (response.data.success) {
-                  await Swal.fire({
-                    title: 'Cancelled!',
-                    text: 'Your order has been cancelled.',
-                    icon: 'success',
-                    confirmButtonColor: '#0d6efd'
-                  });
-                  const card = this.closest('.order-card');
-                  card.dataset.status = 'cancelled';
-                  card.querySelector('.badge-status').className = 'badge badge-status cancelled text-uppercase';
-                  card.querySelector('.badge-status').innerHTML = '<i class="bi bi-x-circle me-1"></i>Cancelled';
-                  this.remove();
-                  card.querySelectorAll('.cancel-item-btn').forEach(btn => btn.remove());
-                  if (!document.querySelector('.order-card[data-status="pending"] .cancel-order-btn')) {
-                    document.getElementById('cancelAllBtn')?.remove();
-                  }
-                } else {
-                  await Swal.fire({
-                    title: 'Error',
-                    text: 'Failed to cancel order.',
-                    icon: 'error',
-                    confirmButtonColor: '#0d6efd'
-                  });
-                }
-              } catch (error) {
-                console.error('Error cancelling order:', error);
-                await Swal.fire({
-                  title: 'Error',
-                  text: 'An error occurred while cancelling the order.',
-                  icon: 'error',
-                  confirmButtonColor: '#0d6efd'
-                });
-              }
-            }
           });
         });
 
-        const cancelItemButtons = document.querySelectorAll('.cancel-item-btn');
-        cancelItemButtons.forEach(btn => {
-          btn.addEventListener('click', async function() {
-            const [orderId, variantId, status] = this.dataset.cancelItem.split('_');
-            const result = await Swal.fire({
-              title: 'Cancel Item',
-              text: `Are you sure you want to cancel item in order ${orderId}?`,
-              icon: 'warning',
-              showCancelButton: true,
-              confirmButtonColor: '#dc3545',
-              cancelButtonColor: '#6c757d',
-              confirmButtonText: 'Yes, cancel it',
-              cancelButtonText: 'No, keep it'
+        document.querySelectorAll('.cancel-item-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const [orderId, variantId, status] = btn.dataset.cancelItem.split('_');
+            handleAction('/account/orders/cancel-item', {
+              text: `Cancel item in order ${orderId}?`,
+              payload: { orderId, variantId, status }
+            }, {
+              title: 'Item Cancelled!',
+              text: 'The item has been cancelled.'
+            }, 'Failed to cancel the item', (response) => {
+              const row = btn.closest('tr');
+              row.querySelector('.badge-status').className = 'badge badge-status cancelled';
+              row.querySelector('.badge-status').textContent = 'Item Cancelled';
+              btn.remove();
+              const card = row.closest('.order-card');
+              if (!card.querySelector('.cancel-item-btn')) {
+                updateCardStatus(card, 'cancelled', 'Cancelled', ['.cancel-order-btn']);
+                if (!document.querySelector('.order-card[data-status="pending"] .cancel-order-btn')) {
+                  document.getElementById('cancelAllBtn')?.remove();
+                }
+              }
+              if (response.data.updatedTotal) {
+                card.querySelector('.fs-5.fw-bold').textContent = `${parseFloat(response.data.updatedTotal).toFixed(2)}/-`;
+              }
             });
-            if (result.isConfirmed) {
-              try {
-                const response = await axios.post('/account/orders/cancel-item', { orderId, variantId, status });
-                if (response.data.success) {
-                  await Swal.fire({
-                    title: 'Item Cancelled!',
-                    text: 'The item has been cancelled from the order.',
-                    icon: 'success',
-                    confirmButtonColor: '#0d6efd'
-                  });
-                  const row = this.closest('tr');
-                  row.querySelector('.badge-status').className = 'badge badge-status cancelled';
-                  row.querySelector('.badge-status').textContent = 'Item Cancelled';
-                  this.remove();
-                  const card = this.closest('.order-card');
-                  const activeItems = Array.from(card.querySelectorAll('.cancel-item-btn')).length;
-                  if (activeItems === 0) {
-                    card.dataset.status = 'cancelled';
-                    card.querySelector('.badge-status').className = 'badge badge-status cancelled text-uppercase';
-                    card.querySelector('.badge-status').innerHTML = '<i class="bi bi-x-circle me-1"></i>Cancelled';
-                    card.querySelector('.cancel-order-btn')?.remove();
-                    if (!document.querySelector('.order-card[data-status="pending"] .cancel-order-btn')) {
-                      document.getElementById('cancelAllBtn')?.remove();
-                    }
-                  }
-                  if (response.data.updatedTotal) {
-                    card.querySelector('.fs-5.fw-bold').textContent = `${parseFloat(response.data.updatedTotal).toFixed(2)}/-`;
-                  }
-                } else {
-                  await Swal.fire({
-                    title: 'Error',
-                    text: response.data.error || 'Failed to cancel the item.',
-                    icon: 'error',
-                    confirmButtonColor: '#0d6efd'
-                  });
-                }
-              } catch (error) {
-                console.error('Error cancelling item:', error);
-                await Swal.fire({
-                  title: 'Error',
-                  text: 'An error occurred while cancelling the item.',
-                  icon: 'error',
-                  confirmButtonColor: '#0d6efd'
-                });
-              }
-            }
           });
         });
 
-        const returnItemButtons = document.querySelectorAll('.return-item-btn');
-        returnItemButtons.forEach(btn => {
-          btn.addEventListener('click', async function() {
-            const [orderId, variantId] = this.dataset.returnItem.split('_');
-            const result = await Swal.fire({
-              title: 'Request Item Return',
-              text: `Are you sure you want to request a return for item in order ${orderId}?`,
-              icon: 'warning',
-              input: 'textarea',
-              inputLabel: 'Reason for Return',
-              inputPlaceholder: 'Please enter the reason for your return...',
-              inputAttributes: {
-                'aria-label': 'Return reason'
+        document.querySelectorAll('.return-order-btn, .return-item-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const isOrder = btn.classList.contains('return-order-btn');
+            const [orderId, variantId] = isOrder ? [btn.dataset.return] : btn.dataset.returnItem.split('_');
+            handleAction(isOrder ? '/account/orders/return' : '/account/orders/return-item', {
+              text: `Request return for ${isOrder ? 'order' : 'item in order'} ${orderId}?`,
+              input: {
+                input: 'textarea',
+                inputLabel: 'Reason for Return',
+                inputPlaceholder: 'Enter reason for return...',
+                inputAttributes: { 'aria-label': 'Return reason' },
+                inputValidator: value => !value ? 'Provide a reason!' : value.trim().split(/\s+/).length > 50 ? `Reason must not exceed 50 words.` : null
               },
-              showCancelButton: true,
-              confirmButtonColor: '#ffc107',
-              cancelButtonColor: '#6c757d',
-              confirmButtonText: 'Submit Return',
-              cancelButtonText: 'Cancel',
-              inputValidator: (value) => {
-                if (!value) {
-                  return 'You need to provide a reason for the return!';
-                }
-                const wordCount = value.trim().split(/\s+/).length;
-                if (wordCount > 50) {
-                  return `Return reason must not exceed 50 words. You entered ${wordCount}.`;
-                }
+              payload: { orderId, ...(variantId && { variantId }), returnStatus: 'Pending' },
+              confirmColor: '#ffc107',
+              confirmText: 'Submit Return'
+            }, {
+              title: 'Return Requested!',
+              text: `Your ${isOrder ? 'order' : 'item'} return request has been submitted.`
+            }, `Failed to submit return request`, () => {
+              if (isOrder) {
+                const card = btn.closest('.order-card');
+                card.dataset.status = 'return-pending';
+                const returnBadge = document.createElement('span');
+                returnBadge.className = 'badge badge-status return-pending text-uppercase';
+                returnBadge.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Return Pending';
+                card.querySelector('.badge-status.text-muted').replaceWith(returnBadge);
+                btn.remove();
+                card.querySelectorAll('.return-item-btn').forEach(b => b.remove());
+                const returnReasonDiv = document.createElement('div');
+                returnReasonDiv.className = 'col-12';
+                returnReasonDiv.innerHTML = `
+                  <div class="detail-box">
+                    <div class="detail-label">Return Reason</div>
+                    <div class="detail-value">${result.value}</div>
+                  </div>
+                `;
+                card.querySelector('.row.g-3').appendChild(returnReasonDiv);
+              } else {
+                const row = btn.closest('tr');
+                row.querySelector('.badge-status').className = 'badge badge-status return-pending';
+                row.querySelector('.badge-status').textContent = 'Item Return Pending';
+                btn.remove();
               }
             });
-            if (result.isConfirmed) {
-              try {
-                const response = await axios.post('/account/orders/return-item', {
-                  orderId,
-                  variantId,
-                  reason: result.value,
-                  returnStatus: 'Pending'
-                });
-                if (response.data.success) {
-                  await Swal.fire({
-                    title: 'Return Requested!',
-                    text: 'Your item return request has been submitted.',
-                    icon: 'success',
-                    confirmButtonColor: '#0d6efd'
-                  });
-                  const row = this.closest('tr');
-                  row.querySelector('.badge-status').className = 'badge badge-status return-pending';
-                  row.querySelector('.badge-status').textContent = 'Item Return Pending';
-                  this.remove();
-                } else {
-                  await Swal.fire({
-                    title: 'Error',
-                    text: response.data.error || 'Failed to submit return request.',
-                    icon: 'error',
-                    confirmButtonColor: '#0d6efd'
-                  });
-                }
-              } catch (error) {
-                console.error('Error submitting return request:', error);
-                await Swal.fire({
-                  title: 'Error',
-                  text: 'An error occurred while submitting the return request.',
-                  icon: 'error',
-                  confirmButtonColor: '#0d6efd'
-                });
-              }
-            }
           });
         });
       });

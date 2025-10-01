@@ -4,6 +4,8 @@ const userController = require('../controller/userController')
 const passport = require('../config/passport');
 const { isUserLoggedIn, userConfirmed } = require('../middleware/userSession');
 const userProfileController = require('../controller/userProfileController')
+const paymentController = require('../controller/paymentController')
+
 const upload = require('../middleware/multer')
 const {uploadUser} = require('../middleware/cloudinary')
 
@@ -91,9 +93,12 @@ router.post('/account/orders/cancel',userConfirmed,userProfileController.cancelO
 router.post('/account/orders/cancel-all',userConfirmed,userProfileController.cancelAllOrder)
 //cancel each item
 router.post('/account/orders/cancel-item',userConfirmed,userProfileController.cancelItem)
-
-
 //return
 router.post('/account/orders/return', userConfirmed,userProfileController.returnOrder)
+//payment razorpay
+router.post('/create-order',userConfirmed,paymentController. razorpaySetup)
+///order verifyPayment
+router.post('/order/verifyPayment',userConfirmed,paymentController.verifyPayment)
+
 module.exports = router;
   

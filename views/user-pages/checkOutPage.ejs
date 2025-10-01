@@ -9,6 +9,7 @@
   <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <style>
     body { background-color: #121212; color: #f1f1f1; }
     .card { background: #fff; color: #000; border-radius: 10px; transition: 0.3s; }
@@ -165,30 +166,12 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
-            <div class="mb-3">
-              <label class="form-label">Full Name</label>
-              <input type="text" class="form-control" name="fullName" required />
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Phone</label>
-              <input type="text" class="form-control" name="phone" required />
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Address Line 1</label>
-              <input type="text" class="form-control" name="line1" required />
-            </div>
-            <div class="mb-3">
-              <label class="form-label">City</label>
-              <input type="text" class="form-control" name="city" required />
-            </div>
-            <div class="mb-3">
-              <label class="form-label">State</label>
-              <input type="text" class="form-control" name="state" required />
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Pincode</label>
-              <input type="text" class="form-control" name="pincode" required />
-            </div>
+            <div class="mb-3"><label class="form-label">Full Name</label><input type="text" class="form-control" name="fullName" required /></div>
+            <div class="mb-3"><label class="form-label">Phone</label><input type="text" class="form-control" name="phone" required /></div>
+            <div class="mb-3"><label class="form-label">Address Line 1</label><input type="text" class="form-control" name="line1" required /></div>
+            <div class="mb-3"><label class="form-label">City</label><input type="text" class="form-control" name="city" required /></div>
+            <div class="mb-3"><label class="form-label">State</label><input type="text" class="form-control" name="state" required /></div>
+            <div class="mb-3"><label class="form-label">Pincode</label><input type="text" class="form-control" name="pincode" required /></div>
           </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Add Address</button>
@@ -200,6 +183,13 @@
   </div>
 
   <script>
+    const items = <%- JSON.stringify(cartItems || []) %>.map(ci => ({
+      productId: ci.product?._id || ci.productId,
+      variantId: ci.variant?._id || ci.variantId,
+      quantity: ci.quantity,
+      price: ci.variant?.price || ci.price
+    }));
+
     // Place Order
     document.getElementById("placeOrderBtn").addEventListener("click", async () => {
       const selectedAddressRaw = document.querySelector('input[name="selectedAddress"]:checked')?.value;
@@ -215,35 +205,71 @@
       }
 
       const selectedAddress = JSON.parse(selectedAddressRaw);
+      const orderPayload = {
+        selectedAddress,
+        paymentMethod: selectedPayment,
+        items,
+        subtotal: "<%= subtotal %>",
+        tax: "<%= tax %>",
+        deliveryCharge: "<%= deliveryCharge %>",
+        total: "<%= total %>",
+        couponCode: document.getElementById("couponCode").value.trim()
+      };
 
-      const items = <%- JSON.stringify(cartItems) %>.map(ci => ({
-        productId: ci.product?._id || ci.productId,
-        variantId: ci.variant?._id || ci.variantId,
-        quantity: ci.quantity,
-        price: ci.variant?.price || ci.price
-      }));
-
-      try {
-        const res = await axios.post("/cart/checkout/order", {
-          selectedAddress,
-          paymentMethod: selectedPayment,
-          items,
-          subtotal: "<%= subtotal %>",
-          tax: "<%= tax %>",
-          deliveryCharge: "<%= deliveryCharge %>",
-          total: "<%= total %>",
-          couponCode: document.getElementById("couponCode").value.trim()
-        });
-
-        if (res.data.status === "success") {
-          const orderModal = new bootstrap.Modal(document.getElementById("orderSuccessModal"));
-          orderModal.show();
-          confetti({ particleCount: 200, spread: 120, origin: { y: 0.6 } });
-        } else {
-          Swal.fire("Error", res.data.message || "Order failed", "error");
+      if (selectedPayment === "cod") {
+        // COD Flow
+        try {
+          const res = await axios.post("/cart/checkout/order", orderPayload);
+          if (res.data.status === "success") {
+            new bootstrap.Modal(document.getElementById("orderSuccessModal")).show();
+            confetti({ particleCount: 200, spread: 120, origin: { y: 0.6 } });
+          } else {
+            Swal.fire("Error", res.data.message || "Order failed", "error");
+          }
+        } catch {
+          Swal.fire("Error", "Something went wrong. Try again.", "error");
         }
-      } catch (err) {
-        Swal.fire("Error", "Something went wrong. Try again.", "error");
+      } else {
+        // Razorpay Flow
+        try {
+          const orderRes = await axios.post("/create-order", { amount: <%= total %> *100 });
+          const { id: orderId, amount, currency, orderId: dbOrderId } = orderRes.data;
+
+          const options = {
+            key: "<%= process.env.RAZORPAY_KEY_ID %>",
+            amount: amount,
+            currency,
+            order_id: orderId,
+            name: "TechCart",
+            description: "Order Payment",
+            handler: async function (response) {
+              try {
+                // Send full order payload with Razorpay payment details to verifyPayment endpoint
+                const confirm = await axios.post("/order/verifyPayment", {
+                  ...orderPayload,
+                  paymentMethod: "online",
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpaySignature: response.razorpay_signature,
+                  dbOrderId
+                });
+
+                if (confirm.data.status === "success") {
+                  new bootstrap.Modal(document.getElementById("orderSuccessModal")).show();
+                  confetti({ particleCount: 200, spread: 120, origin: { y: 0.6 } });
+                } else {
+                  Swal.fire("Error", confirm.data.message || "Order confirmation failed", "error");
+                }
+              } catch (error) {
+                Swal.fire("Error", error.response?.data?.message || "Payment verification failed", "error");
+              }
+            },
+            theme: { color: "#3399cc" }
+          };
+          new Razorpay(options).open();
+        } catch (error) {
+          Swal.fire("Error", error.response?.data?.message || "Could not start payment", "error");
+        }
       }
     });
 
