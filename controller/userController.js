@@ -9,6 +9,8 @@ const passport = require('../config/passport');
 const paginate = require('../utils/paginate');
 const { ObjectId } = require('mongodb');
 const joi = require('../utils/validation')
+const adminModal = require('../model/adminModel');
+
 
 exports.loadHome = async (req, res) => {
   try {
@@ -462,8 +464,8 @@ exports.viewCart = async (req, res) => {
   let cartDiscount = 0;
   let cartSubtotal = 0;
 
-  let data = await userModel.viewCartData(userId);
 
+let data = await userModel.viewCartData(userId);
 
   if (!data) {
     return res.render("user-pages/cart.ejs", {

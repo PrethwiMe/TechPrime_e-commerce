@@ -7,6 +7,8 @@ const myPlaintextPassword = 's0/\/\P4$$w0rD';
 const someOtherPlaintextPassword = 'not_bacon';
 const paginate = require('../utils/paginate');
 const { json } = require('express');
+const productModel = require('../model/productModels');
+const {offerValidation} = require('../utils/validation')
 
 
 // clear-require-cache.js
@@ -120,9 +122,11 @@ exports.controleUser =async (req,res) => {
   let userData =await adminModel.userControll(userId)
   res.redirect('/admin/users')
 }
+//oder page
 exports.orderPage = async (req, res) => {
   try {
     const data = await adminModel.viewOrders(); 
+    console.log("all orders in admin:::",JSON.stringify(data,null,2));
     const filter = req.query.filter || 'Order status';
     res.render('admin-pages/allOrders', {
       orders: data.ordersWithDetails, 
@@ -171,4 +175,90 @@ exports.updateItems = async (req,res) => {
 const response = await adminModel.updateItemStatus(req.body);
 if(response) return res.status(200).json({success:true})
 else return res.status(400).json({success:false})
+}
+//viewOffer
+exports.viewOffer = async (req, res) => {
+  try {
+    const categories = await productModel.getAllCategories() || [];
+    const allProducts = await productModel.viewAllProducts();
+    const products = allProducts?.products || [];
+    const offer = await adminModel.offerView();
+    // console.log(JSON.stringify(offer,null,2));
+    //     console.log(JSON.stringify(allProducts,null,2));
+    //         console.log(JSON.stringify(categories,null,2));
+
+
+
+    res.render("admin-pages/offers.ejs", {
+      offer: offer || [],
+      categories,
+      products,
+      error: req.query.error || null,
+      success: req.query.success || null
+    });
+  } catch (err) {
+    console.error("Error in viewOffer:", err);
+    res.render("admin-pages/offers.ejs", {
+      offer: [],
+      categories: [],
+      products: [],
+      error: "Failed to load offers",
+      success: null
+    });
+  }
+};
+
+// add offers
+exports.addOffers = async (req, res) => {
+  const { error, value } = offerValidation(req.body);
+
+  if (error) {
+    console.log("Validation Errors:", error.details);
+    return res.status(400).json({
+      success: false,
+      errors: error.details.map(d => d.message)
+    });
+  }
+
+  try {
+    const response = await adminModel.offerAdd(value);
+
+    if (response.exists) {
+      // Duplicate found
+      return res.status(409).json({
+        success: false,
+        message: response.message
+      });
+    }
+
+    if (response.inserted) {
+      // Insert successful
+      return res.status(201).json({
+        success: true,
+        message: "Offer added successfully"
+      });
+    }
+
+    // Fallback
+    return res.status(500).json({
+      success: false,
+      message: "Failed to add offer"
+    });
+
+  } catch (err) {
+    console.error("Error while adding offer:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+  }
+};
+
+
+exports.disableOffer = async (req,res) => {
+  const id = req.params.offerId
+  const response = adminModel.disableOffer(id,req.body)
+  if(response) return res.status(200).json({success:true,message:"offer deleted"})
+
+     res.status(400).json({success:false,message:"error in delete"})
 }

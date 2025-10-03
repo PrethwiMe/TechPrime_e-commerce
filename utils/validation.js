@@ -218,6 +218,63 @@ const userProfileValidation = (data) => {
 
   return schema.validate(data, { abortEarly: false }); // show all errors at once
 };
+
+
+/* =====================
+   OFFER VALIDATION
+   ===================== */
+const offerValidation = (data) => {
+  const schema = Joi.object({
+    appliesTo: Joi.string()
+      .valid("product", "category")   // ✅ correct
+      .required()
+      .messages({
+        "any.only": "Offer must apply either to 'product' or 'category'",
+        "any.required": "appliesTo field is required"
+      }),
+
+    productId: Joi.when("appliesTo", {
+      is: "product",
+      then: Joi.string().length(24).required().messages({
+        "any.required": "Product ID is required when appliesTo is 'product'",
+        "string.length": "Product ID must be a valid 24-character ObjectId"
+      }),
+      otherwise: Joi.forbidden()
+    }),
+
+    categoryId: Joi.when("appliesTo", {
+      is: "category",   // ✅ must match above
+      then: Joi.string().length(24).required().messages({
+        "any.required": "Category ID is required when appliesTo is 'category'",
+        "string.length": "Category ID must be a valid 24-character ObjectId"
+      }),
+      otherwise: Joi.forbidden()
+    }),
+
+    offerValue: Joi.number()
+      .min(1)
+      .required()
+      .messages({
+        "number.base": "Offer value must be a number",
+        "number.min": "Offer value must be at least 1",
+        "any.required": "Offer value is required"
+      }),
+
+    startDate: Joi.date().iso().required().messages({
+      "date.format": "Start date must be a valid ISO date (YYYY-MM-DD)",
+      "any.required": "Start date is required"
+    }),
+
+    endDate: Joi.date().iso().greater(Joi.ref("startDate")).required().messages({
+      "date.format": "End date must be a valid ISO date (YYYY-MM-DD)",
+      "date.greater": "End date must be greater than start date",
+      "any.required": "End date is required"
+    })
+  });
+
+  return schema.validate(data, { abortEarly: false });
+};
+
 /* =====================
    EXPORTS
    ===================== */
@@ -231,5 +288,6 @@ module.exports = {
   couponValidation,
   orderValidation,
   paymentValidation,
-  userProfileValidation
+  userProfileValidation,
+  offerValidation
 };

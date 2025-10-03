@@ -3,6 +3,8 @@ const dbVariables = require('../config/databse')
 const { getDB, connectDB } = require('../config/mongodb')
 const { ObjectId } = require('mongodb');
 const paginate = require('../utils/paginate');
+const productModel = require('../model/productModels');
+
 
 //admin login data
 exports.adminLogin = async (params) => {
@@ -172,9 +174,6 @@ exports.returnAccept = async (id,st) => {
   return update;
 }
 //upadate item status
-
-
-
 exports.updateItemStatus = async (params) => {
   try {
     let { orderId, variantId, itemStatus } = params;
@@ -237,3 +236,52 @@ exports.updateItemStatus = async (params) => {
     return { success: false, message: "Internal error", error: err.message };
   }
 };
+// add offer
+exports.offerAdd = async (data) => {
+  const db = getDB();
+
+  let check = null;
+
+  if (data.appliesTo == "category") {
+    check = await db.collection(dbVariables.offerCollection).findOne({
+      Active: true,
+      categoryId: data.categoryId
+    });
+  } else if (data.appliesTo == "product") {
+    check = await db.collection(dbVariables.offerCollection).findOne({
+      Active: true,
+      productId: data.productId
+    });
+  }
+
+
+  if (check) {
+    return { exists: true, message: `An active offer already exists for this ${data.appliesTo}. Disable to add new offer` };
+  }
+
+  const newOffer = {
+    ...data,
+    Active: true
+  };
+
+  const response = await db.collection(dbVariables.offerCollection).insertOne(newOffer);
+  return { inserted: true, response }; 
+};
+
+exports.offerView = async (data) => {
+  const db = getDB();
+  const response = await db.collection(dbVariables.offerCollection).find({Active:true}).toArray();
+  return response
+}
+
+exports.disableOffer = async(id,status) => {
+  const db = await getDB();
+  const response = await db.collection(dbVariables.offerCollection).updateOne({_id: new ObjectId(id)},{$set:{Active:status.Active}})
+  return response
+}
+
+exports.viewOffers = async (id) => {
+  const db = await getDB()
+     check = await db.collection(dbVariables.offerCollection).findOne({ Active: true, productId: id });
+     return check;
+}

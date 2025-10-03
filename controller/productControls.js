@@ -22,13 +22,11 @@ exports.renderAddProduct = async (req, res) => {
 };
 
 //adding product
-
 exports.handleAddProduct = async (req, res) => {
   try {
     if (!req.files || req.files.length !== 3) {
       return res.json({ error: 'Please upload exactly 3 images.' });
     }
-
     const {
       name,
       companyDetails,

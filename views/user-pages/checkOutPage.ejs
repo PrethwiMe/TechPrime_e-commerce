@@ -16,6 +16,7 @@
     .card:hover { background-color: #f1f1f1; }
     .btn-success { background-color: #28a745; border: none; }
     .btn-success:hover { background-color: #218838; }
+    .text-strike { text-decoration: line-through; color: #888; font-size: 0.9rem; }
   </style>
 </head>
 <body>
@@ -44,9 +45,16 @@
                     </div>
                   </div>
                   <div class="text-end">
-                    <span>₹<%= item.variant?.price || 0 %></span><br>
-                    <small>Qty: <%= item.quantity %></small><br>
-                    <strong>₹<%= (item.variant?.price || 0) * item.quantity %></strong>
+                    <% if (item.appliedOffer) { %>
+                      <span class="text-strike">₹<%= item.originalPrice %></span><br>
+                      <span class="text-success">₹<%= item.discountedPrice %></span><br>
+                      <small>Qty: <%= item.quantity %></small><br>
+                      <strong>₹<%= item.discountedPrice * item.quantity %></strong>
+                    <% } else { %>
+                      <span>₹<%= item.originalPrice %></span><br>
+                      <small>Qty: <%= item.quantity %></small><br>
+                      <strong>₹<%= item.originalPrice * item.quantity %></strong>
+                    <% } %>
                   </div>
                 </li>
               <% }) %>
@@ -63,6 +71,12 @@
           </div>
           <div class="card-body">
             <p class="d-flex justify-content-between"><span>Subtotal:</span> <span>₹<%= subtotal %></span></p>
+            <% if (cartItems.some(ci => ci.appliedOffer)) { %>
+              <p class="d-flex justify-content-between text-success">
+                <span>You Saved:</span> 
+                <span>-₹<%= cartItems.reduce((acc,ci) => acc + ((ci.originalPrice - ci.discountedPrice) * ci.quantity), 0) %></span>
+              </p>
+            <% } %>
             <p class="d-flex justify-content-between"><span>Tax:</span> <span>₹<%= tax %></span></p>
             <p class="d-flex justify-content-between"><span>Delivery:</span> <span>₹<%= deliveryCharge %></span></p>
             <hr>
@@ -187,7 +201,7 @@
       productId: ci.product?._id || ci.productId,
       variantId: ci.variant?._id || ci.variantId,
       quantity: ci.quantity,
-      price: ci.variant?.price || ci.price
+      price: ci.discountedPrice || ci.price
     }));
 
     // Place Order

@@ -5,6 +5,7 @@ const { ObjectId } = require('mongodb');
 const { any, date } = require('joi');
 const { v4: uuidv4 } = require('uuid');
 const { pipeline } = require('nodemailer/lib/xoauth2');
+const { json } = require('express');
 
 
 exports.addAddress = async (data) => {
@@ -181,8 +182,14 @@ exports.showOrder = async (userId) => {
   const db = await getDB();
 
   const orders = await db.collection(dbVariables.orderCollection).find({ userId }) .sort({ createdAt: -1 }) .toArray();
+console.log("ORDER.............",JSON.stringify(orders,null,2));
 
   for (let order of orders) {
+    
+if (!order.items || !Array.isArray(order.items)) {
+  order.items = [];
+}
+
     for (let item of order.items) {
       const product = await db.collection(dbVariables.productCollection).findOne({ _id: new ObjectId(item.productId) }) || {};
       const variant = await db.collection(dbVariables.variantCollection).findOne({ _id: new ObjectId(item.variantId) }) || {};

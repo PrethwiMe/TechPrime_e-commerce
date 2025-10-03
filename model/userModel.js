@@ -217,7 +217,7 @@ exports.viewCartData = async (userId) => {
     {
       $group: {
         _id: "$userId",
-        items: { $push: "$$ROOT" }, // each variant becomes separate entry
+        items: { $push: "$$ROOT" }, 
         cartOriginal: { $sum: "$itemOriginal" },
         cartDiscount: { $sum: "$itemDiscount" },
         cartSubtotal: { $sum: "$itemSubtotal" }
@@ -229,6 +229,8 @@ exports.viewCartData = async (userId) => {
     .collection(dbVariables.cartCollection)
     .aggregate(query)
     .toArray();
+
+   
   return data[0] || null; // return null if no cart
 };
 //contol cart function

@@ -18,6 +18,8 @@ const { fail } = require('assert');
 const { error } = require('console');
 const joi = require('../utils/validation')
 const { ObjectId } = require("mongodb");
+const adminModal = require('../model/adminModel');
+
 
 
 
@@ -234,34 +236,60 @@ exports.checkoutView = async (req, res) => {
   const userId = req.session.user.userId;
   let data = await userProfileModel.checkOutView(userId);
 
+  console.log("data in checkOut", JSON.stringify(data, null, 2));
+
   const cartItems = Array.isArray(data.cartItems) ? data.cartItems : [];
 
+  const cartWithOffers = await Promise.all(
+    cartItems.map(async (item) => {
+      const productIdStr = item.product._id.toString();
+      let offer = await adminModal.viewOffers(productIdStr);
+      if (offer && offer.Active) {
+        const discount = offer.offerValue || 0;
+        const originalPrice = item.variant.price;
+        const discountedPrice = Math.max(0, originalPrice - discount);
+
+        return {
+          ...item,
+          originalPrice,
+          discountedPrice,
+          appliedOffer: offer
+        };
+      } else {
+        return {
+          ...item,
+          originalPrice: item.variant.price,
+          discountedPrice: item.variant.price,
+          appliedOffer: null
+        };
+      }
+    })
+  );
+
   let subtotal = 0;
-  cartItems.forEach(item => {
-    if (item.variant && item.variant.price) {
-      subtotal += item.variant.price * item.quantity;
-    }
+  cartWithOffers.forEach(item => {
+    subtotal += item.discountedPrice * item.quantity;
   });
 
   // Tax calculation
   let tax = 0;
   if (subtotal > 150000) {
-    tax = subtotal * 0.18;
+    tax = subtotal * 0.09;
   } else if (subtotal > 100000) {
-    tax = subtotal * 0.10;
+    tax = subtotal * 0.07;
   } else if (subtotal > 50000) {
     tax = subtotal * 0.05;
   }
 
   let deliveryCharge = subtotal > 100000 ? 0 : 100;
-
   let total = subtotal + tax + deliveryCharge;
 
-  const addresses = Array.isArray(data.addresses) ? data.addresses.map(a => a.addresses) : [];
-
+  const addresses = Array.isArray(data.addresses) 
+    ? data.addresses.map(a => a.addresses) 
+    : [];
 
   res.render("user-pages/checkOutPage.ejs", {
-    cartItems,
+    cartItems: cartWithOffers,
     addresses,
     subtotal,
     tax,
@@ -269,6 +297,7 @@ exports.checkoutView = async (req, res) => {
     total
   });
 };
+
 //add to order
 exports.addToOrder = async (req, res) => {
 

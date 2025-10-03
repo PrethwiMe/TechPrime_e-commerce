@@ -54,7 +54,6 @@ exports.razorpaySetup = async (req, res) => {
 
 exports.verifyPayment = async (req, res) => {
 
-  console.log("bodyyyy",req.body)
   try {
 
     const {
@@ -77,7 +76,6 @@ exports.verifyPayment = async (req, res) => {
 
 let order = await userProfileModel.showOrderVerify(razorpayOrderId)
 
-console.log("ordervarify loging",order);
 
 if(razorpayOrderId !== order.razorpayOrderId) return res.status(400).json({succss:false})
 

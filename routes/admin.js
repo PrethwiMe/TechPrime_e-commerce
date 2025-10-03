@@ -50,4 +50,10 @@ router.get('/orders',sessionHandle.adminConfirmed,adminController.orderPage)
 router.post('/orders/update-return-status',sessionHandle.adminConfirmed,adminController.orderAccept)
 //update each product
 router.post("/orders/update-item-status",sessionHandle.adminConfirmed,adminController.updateItems)
+//view offerpage
+router.get('/offers',sessionHandle.adminConfirmed,adminController.viewOffer)
+///offers/add
+router.post('/offers/add',sessionHandle.adminConfirmed,adminController.addOffers)
+//disable offer
+router.put('/offers/:offerId',sessionHandle.adminConfirmed,adminController.disableOffer)
 module.exports = router;
