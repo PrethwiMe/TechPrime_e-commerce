@@ -1,3 +1,4 @@
+const { couponPage } = require("../controller/admincontroller");
 
 module.exports={
      dbName : 'techprime_db',
@@ -10,5 +11,6 @@ module.exports={
      whishList:"wishList",
      addressCollection:"userAddress",
      orderCollection:"order",
-     offerCollection:"offers"
+     offerCollection:"offers",
+     couponCollection:"coupon"
 }

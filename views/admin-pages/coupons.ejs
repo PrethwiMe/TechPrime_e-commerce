@@ -1,0 +1,500 @@
+<%- include('partials/topbar') %>
+
+<style>
+  :root {
+    --primary-color: #6366f1;
+    --primary-dark: #4f46e5;
+    --secondary-color: #8b5cf6;
+    --accent-color: #ec4899;
+    --success-color: #10b981;
+    --warning-color: #71716f;
+    --danger-color: #ef4444;
+    --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    --card-shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.4);
+  }
+
+  .main-content {
+    min-height: 100vh;
+    background: #ffffff;
+    padding: 2rem;
+  }
+
+  .page-header {
+    background: var(--bg-gradient);
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .page-header h3 {
+    color: white;
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-add-coupon {
+    background: white;
+    color: var(--primary-color);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-add-coupon:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    background: #f8f9ff;
+  }
+
+  .coupons-card {
+    background: #1f2937;
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  .modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    background: #ffffff;
+  }
+
+  .modern-table thead {
+    background: var(--primary-color);
+  }
+
+  .modern-table thead th {
+    color: rgb(0, 0, 0);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+    padding: 1.25rem 1rem;
+    border: 1px solid #374151;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  }
+
+  .modern-table tbody tr {
+    border-bottom: 1px solid #374151;
+  }
+
+  .modern-table tbody td {
+    padding: 1.25rem 1rem;
+    vertical-align: middle;
+    color: #1f2937;
+    font-weight: 500;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    border: 1px solid #374151;
+  }
+
+  .coupon-code {
+    background: var(--primary-color);
+    color: rgb(0, 0, 0);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-weight: 500;
+    display: inline-block;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .discount-badge {
+    background: var(--success-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-weight: 500;
+    display: inline-block;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .date-badge {
+    background: var(--warning-color);
+    color: rgb(0, 0, 0);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    display: inline-block;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .action-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    border: none;
+    transition: all 0.2s ease;
+    margin: 0 0.25rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  }
+
+  .action-btn.edit {
+    background: var(--primary-color);
+    color: white;
+  }
+
+  .action-btn.edit:hover {
+    background: var(--primary-dark);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  }
+
+  .action-btn.delete {
+    background: var(--danger-color);
+    color: white;
+  }
+
+  .action-btn.delete:hover {
+    background: #dc2626;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+  }
+
+  .empty-state-icon {
+    font-size: 4rem;
+    color: #6b7280;
+    margin-bottom: 1rem;
+  }
+
+  .empty-state-text {
+    color: #1f2937;
+    font-size: 1.125rem;
+    font-weight: 500;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  }
+
+  .modal-content {
+    border: none;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-header {
+    background: var(--bg-gradient);
+    border: none;
+    padding: 1.5rem 2rem;
+  }
+
+  .modal-title {
+    color: white;
+    font-weight: 700;
+    font-size: 1.5rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  }
+
+  .modal-body {
+    padding: 2rem;
+    background: #1f2937;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-label {
+    color: #f9fafb;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: block;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  }
+
+  .form-control-modern {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid #374151;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background: #1f2937;
+    color: #f9fafb;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  }
+
+  .form-control-modern:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+
+  .form-control-modern:read-only {
+    background: #374151;
+    cursor: not-allowed;
+  }
+
+  .modal-footer {
+    background: #1f2937;
+    border: none;
+    padding: 1.5rem 2rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+  }
+
+  .btn-modal {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    border: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  }
+
+  .btn-modal.cancel {
+    background: #374151;
+    color: #f9fafb;
+  }
+
+  .btn-modal.cancel:hover {
+    background: #4b5563;
+  }
+
+  .btn-modal.submit {
+    background: var(--bg-gradient);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+
+  .btn-modal.submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .coupons-card {
+    animation: fadeIn 0.5s ease;
+  }
+</style>
+
+<div class="d-flex">
+  <%- include('partials/sidebar') %>
+
+  <!-- Main Content -->
+  <div class="flex-grow-1 main-content">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h3><i class="bi bi-ticket-perforated"></i> Coupons Management</h3>
+      <button class="btn-add-coupon" data-bs-toggle="modal" data-bs-target="#addCouponModal">
+        <i class="bi bi-plus-circle"></i> Add New Coupon
+      </button>
+    </div>
+
+    <% let couponList = typeof coupons !== 'undefined' ? coupons : []; %>
+
+    <!-- Coupons Card -->
+    <div class="coupons-card">
+      <% if (couponList.length > 0) { %>
+        <div class="table-wrapper">
+          <table class="table modern-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Coupon Code</th>
+                <th>Discount</th>
+                <th>Valid Until</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% couponList.forEach((coupon, index) => { %>
+                <tr>
+                  <td><strong>#<%= index + 1 %></strong></td>
+                  <td>
+                    <span class="coupon-code"><%= coupon.code || 'N/A' %></span>
+                  </td>
+                  <td>
+                    <span class="discount-badge"><%= coupon.discount != null ? coupon.discount + '%' : 'N/A' %></span>
+                  </td>
+                  <td>
+                    <span class="date-badge">
+                      <i class="bi bi-calendar-event"></i> 
+                      <%= coupon.validUntil ? new Date(coupon.validUntil).toISOString().split('T')[0] : 'N/A' %>
+                    </span>
+                  </td>
+                  <td>
+                    <a href="/admin/coupons/edit/<%= coupon._id || '#' %>" class="action-btn edit">
+                      <i class="bi bi-pencil-square"></i> Edit
+                    </a>
+                    <a href="/admin/coupons/delete/<%= coupon._id || '#' %>" class="action-btn delete" onclick="return confirm('Are you sure you want to delete this coupon?')">
+                      <i class="bi bi-trash"></i> Delete
+                    </a>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <i class="bi bi-inbox"></i>
+          </div>
+          <p class="empty-state-text">No coupons available yet. Create your first coupon to get started!</p>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Add Coupon Modal -->
+    <div class="modal fade" id="addCouponModal" tabindex="-1" aria-labelledby="addCouponModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <form id="addCouponForm" action="/admin/coupons/add" method="POST" class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addCouponModalLabel">
+              <i class="bi bi-plus-circle"></i> Create New Coupon
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="couponCode" class="form-label">
+                <i class="bi bi-tag"></i> Coupon Code
+              </label>
+              <input 
+                type="text" 
+                class="form-control-modern" 
+                id="couponCode" 
+                name="code" 
+                value="<%= generatedCode %>" 
+                readonly
+              >
+              <small style="color: #9ca3af; margin-top: 0.25rem; display: block;">
+                This code is automatically generated
+              </small>
+            </div>
+            <div class="form-group">
+              <label for="couponDiscount" class="form-label">
+                <i class="bi bi-percent"></i> Discount Percentage
+              </label>
+              <input 
+                type="number" 
+                class="form-control-modern" 
+                id="couponDiscount" 
+                name="discount" 
+                placeholder="Enter discount (1-100)" 
+                min="1" 
+                max="100" 
+                required
+              >
+            </div>
+            <div class="form-group">
+              <label for="validFrom" class="form-label">
+                <i class="bi bi-calendar-plus"></i> Valid From
+              </label>
+              <input 
+                type="date" 
+                class="form-control-modern" 
+                id="validFrom" 
+                name="validFrom"
+                required
+              >
+            </div>
+            <div class="form-group">
+              <label for="validUntil" class="form-label">
+                <i class="bi bi-calendar-check"></i> Valid Until
+              </label>
+              <input 
+                type="date" 
+                class="form-control-modern" 
+                id="validUntil" 
+                name="validUntil"
+                required
+              >
+            </div>
+            <div class="form-group">
+              <label for="minPurchase" class="form-label">
+                <i class="bi bi-currency-dollar"></i> Minimum Purchase
+              </label>
+              <input 
+                type="number" 
+                class="form-control-modern" 
+                id="minPurchase" 
+                name="minPurchase" 
+                placeholder="Enter minimum purchase amount" 
+                min="0" 
+                required
+              >
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-modal cancel" data-bs-dismiss="modal">
+              <i class="bi bi-x-circle"></i> Cancel
+            </button>
+            <button type="submit" class="btn-modal submit">
+              <i class="bi bi-check-circle"></i> Create Coupon
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Include SweetAlert2 and Axios -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+  // Add Coupon Form Submission
+  document.getElementById('addCouponForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+
+    try {
+      const response = await axios.post('/admin/coupons/add', data);
+      if (response.data.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: response.data.message,
+          timer: 1500,
+          showConfirmButton: false
+        }).then(() => {
+          window.location.reload();
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: response.data.message
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.response?.data?.message || 'Server error while adding coupon'
+      });
+    }
+  });
+</script>

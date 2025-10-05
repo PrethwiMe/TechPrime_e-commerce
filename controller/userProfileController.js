@@ -113,10 +113,10 @@ exports.viewUserEditpage = async (req, res) => {
 
   let data = await userModel.fetchUser(email)
   console.log(data);
- res.render('user-pages/editUserData.ejs', {
-      user: data || null,
-      image: data || null 
-    });
+  res.render('user-pages/editUserData.ejs', {
+    user: data || null,
+    image: data || null
+  });
 
 }
 //for verification sending email
@@ -233,93 +233,118 @@ exports.updatePassword = async (req, res) => {
 };
 //check
 exports.checkoutView = async (req, res) => {
-  const userId = req.session.user.userId;
-  let data = await userProfileModel.checkOutView(userId);
+  try {
+    const userId = req.session.user.userId;
 
-  console.log("data in checkOut", JSON.stringify(data, null, 2));
+    const cartSession = req.session.cart;
+console.log(req.session.cart);
+    if (!cartSession || !cartSession.items || cartSession.items.length === 0) {
+      return res.redirect("/cart");
+    }
 
-  const cartItems = Array.isArray(data.cartItems) ? data.cartItems : [];
+    let subtotal = cartSession.cartSubtotal;
 
-  const cartWithOffers = await Promise.all(
-    cartItems.map(async (item) => {
-      const productIdStr = item.product._id.toString();
-      let offer = await adminModal.viewOffers(productIdStr);
-      if (offer && offer.Active) {
-        const discount = offer.offerValue || 0;
-        const originalPrice = item.variant.price;
-        const discountedPrice = Math.max(0, originalPrice - discount);
+    // Tax calculation
+    let tax = 0;
+    if (subtotal > 150000) {
+      tax = subtotal * 0.09;
+    } else if (subtotal > 100000) {
+      tax = subtotal * 0.07;
+    } else if (subtotal > 50000) {
+      tax = subtotal * 0.05;
+    }
 
-        return {
-          ...item,
-          originalPrice,
-          discountedPrice,
-          appliedOffer: offer
-        };
-      } else {
-        return {
-          ...item,
-          originalPrice: item.variant.price,
-          discountedPrice: item.variant.price,
-          appliedOffer: null
-        };
-      }
-    })
-  );
+    // Delivery charge
+    let deliveryCharge = subtotal > 100000 ? 0 : 100;
+    let total = subtotal + tax + deliveryCharge;
 
-  let subtotal = 0;
-  cartWithOffers.forEach(item => {
-    subtotal += item.discountedPrice * item.quantity;
-  });
+    let data = await userProfileModel.checkOutView(userId);
+    const addresses = Array.isArray(data.addresses)
+      ? data.addresses.map((a) => a.addresses)
+      : [];
 
-  // Tax calculation
-  let tax = 0;
-  if (subtotal > 150000) {
-    tax = subtotal * 0.09;
-  } else if (subtotal > 100000) {
-    tax = subtotal * 0.07;
-  } else if (subtotal > 50000) {
-    tax = subtotal * 0.05;
+      //couponn
+
+      let coupon = await adminModal.viewCouponPage()
+
+    res.render("user-pages/checkOutPage.ejs", {
+      cartItems: cartSession.items,
+      addresses,
+      subtotal,
+      tax,
+      deliveryCharge,
+      total,
+     coupon: coupon || {}
+    });
+  } catch (error) {
+    console.error("Error in checkoutView:", error);
+    res.status(500).send("Internal Server Error");
   }
-
-  let deliveryCharge = subtotal > 100000 ? 0 : 100;
-  let total = subtotal + tax + deliveryCharge;
-
-  const addresses = Array.isArray(data.addresses) 
-    ? data.addresses.map(a => a.addresses) 
-    : [];
-
-  res.render("user-pages/checkOutPage.ejs", {
-    cartItems: cartWithOffers,
-    addresses,
-    subtotal,
-    tax,
-    deliveryCharge,
-    total
-  });
 };
 
 //add to order
 exports.addToOrder = async (req, res) => {
+  try {
+    const { paymentMethod, selectedAddress, couponCode } = req.body;
 
-  const order = req.body;
-  const { paymentMethod } = req.body;
+    if (paymentMethod === "cod") {
+      const userId = req.session.user.userId;
 
-  if (paymentMethod === "cod") {
-    //pass order and userId
-    const userId = req.session.user.userId
+      const cart = req.session.cart;
+      if (!cart || !cart.items.length) {
+        return res.status(400).json({ status: "error", message: "Cart is empty" });
+      }
 
-    const result = await userProfileModel.addNewOrder(userId, order);
-    const dltCart = await userProfileModel.deleteCart(userId)
-    if (result.acknowledged) return res.status(200).json({ status: "success", message: "OrederPlaced successfully" })
-    else return res.status(400).json({ status: "error", message: "failed please try after sometime" })
-  } else {
-    res.send("inProgress")
+      const order = {
+        userId,
+        items: cart.items.map(item => ({
+          productId: item.product._id,
+          variantId: item.variant._id,
+          quantity: item.quantity,
+          originalPrice: item.originalPrice,
+          discountedPrice: item.discountedPrice,
+          itemDiscount: item.itemDiscount,
+          subtotal: item.itemSubtotal,
+          appliedOffer: item.appliedOffer || null,
+          itemStatus: "Pending"
+        })),
+        subtotal: cart.cartSubtotal,
+        cartOriginal: cart.cartOriginal,
+        cartDiscount: cart.cartDiscount,
+        deliveryCharge: cart.deliveryCharge || 0,
+        tax: cart.tax || 0,
+        total: cart.cartSubtotal + Number(cart.deliveryCharge || 0) + Number(cart.tax || 0),
+        couponCode: couponCode || "",
+        paymentMethod,
+        paymentStatus: "pending",
+        status: "Pending",
+        selectedAddress,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const result = await userProfileModel.addNewOrder(userId, order);
+      const dltCart = await userProfileModel.deleteCart(userId);
+
+      if (result.acknowledged) {
+        req.session.cart = null;
+        return res.status(200).json({ status: "success", message: "Order placed successfully" });
+      } else {
+        return res.status(400).json({ status: "error", message: "Failed, please try again later" });
+      }
+    } else {
+      res.send("inProgress");
+    }
+  } catch (error) {
+    console.error("Error in addToOrder:", error);
+    res.status(500).json({ status: "error", message: "Internal Server Error" });
   }
-}
+};
+
 // view order user
 exports.viewOrder = async (req, res) => {
   try {
-   const userId = req.session.user.userId;
+    const userId = req.session.user.userId;
     let data = await userProfileModel.showOrder(userId);
     user = req.session.user
     //for image
@@ -588,14 +613,86 @@ exports.returnOrder = async (req, res) => {
     return res.status(400).json({ success: false, message: "return requst not complete" })
 }
 //cancel item
-exports.cancelItem = async (req,res) => {
+exports.cancelItem = async (req, res) => {
   console.log(req.body)
   const orderData = req.body;
   const response = await userProfileModel.canceleachItems(orderData)
-if (response) {
-  return res.status(200).json({success:true,message:"done"})
+  if (response) {
+    return res.status(200).json({ success: true, message: "done" })
 
-}else
-{
-  return res.status(400).json({success:false,message:"failed"})
-}}
+  } else {
+    return res.status(400).json({ success: false, message: "failed" })
+  }
+}
+exports.couponLogic = async (req, res) => {
+  try {
+    console.log("datas", JSON.stringify(req.body, null, 2));
+    const { code, subtotal, items } = req.body;
+    const subTotalNum = Number(subtotal) || 0;
+
+    const coupon = await userProfileModel.checkCoupon(code);
+    console.log("result", coupon);
+
+    if (!coupon || !coupon.isActive) {
+      return res.json({ success: false, message: "Invalid or inactive coupon" });
+    }
+
+    const now = new Date();
+    const validFrom = new Date(coupon.validFrom);
+    const validUntil = new Date(coupon.validUntil);
+
+    if (now < validFrom || now > validUntil) {
+      return res.json({ success: false, message: "Coupon expired or not yet active" });
+    }
+
+    if (subTotalNum < coupon.minimumPurchase) {
+      return res.json({
+        success: false,
+        message: `Minimum purchase of ₹${coupon.minimumPurchase} required for this coupon`,
+      });
+    }
+
+    // ✅ Calculate discount
+    let discountAmount = 0;
+    if (coupon.discountType === "percentage") {
+      discountAmount = Math.floor((subTotalNum * coupon.discount) / 100);
+    } else if (coupon.discountType === "flat") {
+      discountAmount = coupon.discount;
+    }
+
+    const newSubtotal = subTotalNum - discountAmount;
+
+    // ✅ Tax calculation
+    let tax = 0;
+    if (newSubtotal > 150000) tax = newSubtotal * 0.09;
+    else if (newSubtotal > 100000) tax = newSubtotal * 0.07;
+    else if (newSubtotal > 50000) tax = newSubtotal * 0.05;
+
+    const deliveryCharge = newSubtotal > 100000 ? 0 : 100;
+
+    const total = newSubtotal + tax + deliveryCharge;
+
+    // ✅ Update cart items with discounted price
+    let updatedItems = items.map((item) => {
+      return {
+        ...item,
+        appliedOffer: true,
+        discountedPrice:
+          coupon.discountType === "percentage"
+            ? item.price - (item.price * coupon.discount) / 100
+            : item.price,
+      };
+    });
+
+    return res.json({
+      success: true,
+      message: "Coupon applied successfully",
+      discount: discountAmount,        // frontend expects "discount"
+      discountedTotal: total,          // frontend expects "discountedTotal"
+      updatedItems,                    // updated cart items
+    });
+  } catch (err) {
+    console.error("Error in couponLogic:", err);
+    return res.status(500).json({ success: false, message: "Server error applying coupon" });
+  }
+};

@@ -99,6 +99,8 @@ router.post('/account/orders/return', userConfirmed,userProfileController.return
 router.post('/create-order',userConfirmed,paymentController. razorpaySetup)
 ///order verifyPayment
 router.post('/order/verifyPayment',userConfirmed,paymentController.verifyPayment)
+//coupon adding
+router.post("/checkout/apply-coupon",userConfirmed,userProfileController.couponLogic)
 
 module.exports = router;
   

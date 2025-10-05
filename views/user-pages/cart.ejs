@@ -22,6 +22,9 @@
     .product-name { font-weight: 600; font-size: 1.05rem; margin-bottom: 4px; }
     .product-details { font-size: 0.9rem; color: #666; }
     .price { font-weight: 700; font-size: 1.1rem; color: #000; }
+    .old-price { text-decoration: line-through; color: #888; font-weight: 500; margin-right: 8px; }
+    .offer-price { color: #28a745; font-weight: 700; font-size: 1.15rem; }
+    .offer-tag { background: #e8f8ee; color: #198754; padding: 3px 8px; border-radius: 6px; font-size: 0.8rem; margin-top: 6px; display: inline-block; }
     .specs { font-size: 0.85rem; color: #555; margin-top: 6px; }
     .specs span {
       display: inline-block;
@@ -103,7 +106,7 @@
             <div class="cart-item d-flex align-items-center justify-content-between" 
                  data-id="<%= item.product._id %>" 
                  data-variant="<%= item.variant._id %>" 
-                 data-price="<%= item.variant.price %>"
+                 data-price="<%= item.discountedPrice || item.variant.price %>"
                  data-user="<%=userId %>"
                  data-stock="<%= item.variant.stock %>">
 
@@ -112,7 +115,19 @@
                 <div>
                   <div class="product-name"><%= item.product.name %></div>
                   <div class="product-details"><%= item.product.companyDetails %> | <%= item.product.OS %></div>
-                  <div class="price">₹<span class="item-subtotal"><%= item.itemSubtotal %></span></div>
+                  <div class="price">
+                    <% if (item.appliedOffer) { %>
+                      <span class="old-price">₹<%= item.originalPrice %></span>
+                      <span class="offer-price">₹<%= item.discountedPrice %></span>
+                      <div class="offer-tag">
+                        Offer Applied: 
+                        <%= item.appliedOffer.appliesTo === "product" ? "Product Offer" : "Category Offer" %> 
+                        (₹<%= item.itemDiscount %> OFF)
+                      </div>
+                    <% } else { %>
+                      ₹<span class="item-subtotal"><%= item.itemSubtotal %></span>
+                    <% } %>
+                  </div>
                   <div class="specs">
                     <span><%= item.variant.processor %></span>
                     <span><%= item.variant.ram %> GB RAM</span>
@@ -150,9 +165,9 @@
               <span>Subtotal</span> 
               <span id="subtotal">₹<%= data.cartOriginal || 0 %></span>
             </div>
-            <div class="summary-line">
+            <div class="summary-line text-success">
               <span>Discount</span> 
-              <span id="discount">₹<%= data.cartDiscount || 0 %></span>
+              <span id="discount">- ₹<%= data.cartDiscount || 0 %></span>
             </div>
             <div class="summary-line total">
               <span>Total</span> 
@@ -179,12 +194,19 @@
           const price = parseFloat(item.dataset.price);
           const qty = parseInt(item.querySelector(".quantity-input").value);
           const itemSubtotal = price * qty;
-          item.querySelector(".item-subtotal").textContent = itemSubtotal;
+          const itemSubtotalElement = item.querySelector(".item-subtotal");
+          if (itemSubtotalElement) {
+            itemSubtotalElement.textContent = itemSubtotal;
+          } else {
+            const offerPriceElement = item.querySelector(".offer-price");
+            if (offerPriceElement) offerPriceElement.textContent = "₹" + itemSubtotal;
+          }
           subtotal += itemSubtotal;
         });
         document.getElementById("subtotal").textContent = "₹" + subtotal;
-        document.getElementById("discount").textContent = "₹0";
-        document.getElementById("total").textContent = "₹" + subtotal;
+document.getElementById("discount").textContent = "- ₹" + (<%= data ? data.cartDiscount : 0 %>);
+document.getElementById("subtotal").textContent = "₹" + (<%= data ? data.cartSubtotal : 0 %>);
+
       };
 
       const updateCart = async (productId, variantId, action) => {

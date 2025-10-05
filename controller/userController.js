@@ -10,6 +10,7 @@ const paginate = require('../utils/paginate');
 const { ObjectId } = require('mongodb');
 const joi = require('../utils/validation')
 const adminModal = require('../model/adminModel');
+const { json } = require('express');
 
 
 exports.loadHome = async (req, res) => {
@@ -385,7 +386,7 @@ exports.sortAndSearchProducts = async (req, res) => {
     }
 
     if (categories && categories.length > 0) {
-      query.catagoriesId = { $in: categories.map(c => c.trim()) };
+      query.categoriesId = { $in: categories.map(c => c.trim()) };
     }
 
         let products = await productModel.getFilteredProducts(query);
@@ -458,27 +459,118 @@ exports.addToCart = async (req, res) => {
 }
 //view cart
 exports.viewCart = async (req, res) => {
-  let userId = req.session.user.userId
+  try {
+    const userId = req.session.user.userId;
+    let data = await userModel.viewCartData(userId);
 
-  let cartOriginal = 0;
-  let cartDiscount = 0;
-  let cartSubtotal = 0;
+    if (!data || !Array.isArray(data.items) || data.items.length === 0) {
+      req.session.cart = null;
+      return res.render("user-pages/cart.ejs", {
+        data: null,
+        userId,
+        cartOriginal: 0,
+        cartDiscount: 0,
+        cartSubtotal: 0,
+      });
+    }
 
+    // Save initial cart structure early
+    req.session.cart = { userId, items: data.items };
 
-let data = await userModel.viewCartData(userId);
+    // OFFER LOGIC START
+    const cartWithOffers = await Promise.all(
+      data.items.map(async (item) => {
+        const productIdStr = item.product._id.toString();
+        const categoryIdStr = item.product.category?._id?.toString();
 
-  if (!data) {
-    return res.render("user-pages/cart.ejs", {
-      data: null,
+        const [productOffer, categoryOffer] = await Promise.all([
+          adminModal.viewOffers({
+            Active: true,
+            appliesTo: "product",
+            productId: productIdStr,
+          }),
+          adminModal.viewOffers({
+            Active: true,
+            appliesTo: "category",
+            categoryId: categoryIdStr,
+          }),
+        ]);
+
+        const originalPrice = item.variant.price;
+        const productDiscount = productOffer?.Active
+          ? productOffer.offerValue || 0
+          : 0;
+        const categoryDiscount = categoryOffer?.Active
+          ? categoryOffer.offerValue || 0
+          : 0;
+
+        let appliedOffer = null;
+        let discount = 0;
+
+        if (productDiscount >= categoryDiscount && productDiscount > 0) {
+          appliedOffer = productOffer;
+          discount = productDiscount;
+        } else if (categoryDiscount > 0) {
+          appliedOffer = categoryOffer;
+          discount = categoryDiscount;
+        }
+
+        const discountedPrice = Math.max(0, originalPrice - discount);
+
+        return {
+          ...item,
+          originalPrice,
+          discountedPrice,
+          appliedOffer,
+          itemDiscount: discount,
+          itemSubtotal: discountedPrice * item.quantity,
+        };
+      })
+    );
+
+    let cartOriginal = 0;
+    let cartDiscount = 0;
+    let cartSubtotal = 0;
+
+    cartWithOffers.forEach((item) => {
+      cartOriginal += item.originalPrice * item.quantity;
+      cartDiscount += item.itemDiscount * item.quantity;
+      cartSubtotal += item.itemSubtotal;
+    });
+
+    const updatedData = {
+      ...data,
+      items: cartWithOffers,
+      cartOriginal,
+      cartDiscount,
+      cartSubtotal,
+    };
+
+    req.session.cart = {
+      userId,
+      items: cartWithOffers,
+      cartOriginal,
+      cartDiscount,
+      cartSubtotal,
+    };
+
+    await new Promise((resolve, reject) => {
+      req.session.save((err) => (err ? reject(err) : resolve()));
+    });
+
+    res.render("user-pages/cart.ejs", {
+      data: updatedData,
+      userId,
       cartOriginal,
       cartDiscount,
       cartSubtotal,
     });
+  } catch (error) {
+    console.error("Error in viewCart:", error);
+    res.status(500).send("Internal Server Error");
   }
+};
 
-
-  res.render('user-pages/cart.ejs', { data,userId })
-}
 //cart + -
 exports.quntityControlCart = async (req, res) => {
   try {

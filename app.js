@@ -12,6 +12,13 @@ const passport = require('./config/passport');
 const limitTextLength = require("./middleware/limitChar");
 const Razorpay = require('razorpay');
 
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('⚠️ Unhandled Promise Rejection:');
+  console.error(reason); // shows what was rejected
+});
+
+
 var app = express()
 
 connectDB();

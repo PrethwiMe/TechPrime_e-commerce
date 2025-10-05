@@ -56,4 +56,8 @@ router.get('/offers',sessionHandle.adminConfirmed,adminController.viewOffer)
 router.post('/offers/add',sessionHandle.adminConfirmed,adminController.addOffers)
 //disable offer
 router.put('/offers/:offerId',sessionHandle.adminConfirmed,adminController.disableOffer)
+//view coupons
+router.get('/coupons',sessionHandle.adminConfirmed,adminController.couponPage)
+//add coupons
+router.post('/coupons/add',sessionHandle.adminConfirmed,adminController.addCoupon)
 module.exports = router;

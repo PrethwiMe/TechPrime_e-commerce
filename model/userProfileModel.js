@@ -182,7 +182,6 @@ exports.showOrder = async (userId) => {
   const db = await getDB();
 
   const orders = await db.collection(dbVariables.orderCollection).find({ userId }) .sort({ createdAt: -1 }) .toArray();
-console.log("ORDER.............",JSON.stringify(orders,null,2));
 
   for (let order of orders) {
     
@@ -382,3 +381,9 @@ exports.orderUpdate = async (razorpayOrderId, data) => {
 
   return updateOrder;
 };
+
+exports.checkCoupon = async (data) => {
+  const db = await getDB()
+  const response = await db.collection(dbVariables.couponCollection).findOne({code:data})
+  return response;
+}

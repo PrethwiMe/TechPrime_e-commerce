@@ -142,14 +142,18 @@ exports.viewCartData = async (userId) => {
   const db = await getDB();
 
   const query = [
-    { $match: { userId: userId } }, // filter by user
+    { $match: { userId: userId } },
     { $unwind: "$items" },
+
+    // Convert string IDs to ObjectId for lookups
     {
       $addFields: {
         "items.productIdObj": { $toObjectId: "$items.productId" },
         "items.variantIdObj": { $toObjectId: "$items.variantId" }
       }
     },
+
+    // Lookup product details
     {
       $lookup: {
         from: dbVariables.productCollection,
@@ -159,6 +163,32 @@ exports.viewCartData = async (userId) => {
       }
     },
     { $unwind: "$productDetails" },
+
+    // Prepare categoryIdObj safely (string or ObjectId)
+    {
+      $addFields: {
+        "productDetails.categoryIdObj": {
+          $cond: [
+            { $eq: [{ $type: "$productDetails.categoriesId" }, "string"] },
+            { $toObjectId: "$productDetails.categoriesId" },
+            "$productDetails.categoriesId"
+          ]
+        }
+      }
+    },
+
+    // Lookup category details
+    {
+      $lookup: {
+        from: dbVariables.categoryCollection || "categories",
+        localField: "productDetails.categoryIdObj",
+        foreignField: "_id",
+        as: "categoryDetails"
+      }
+    },
+    { $unwind: { path: "$categoryDetails", preserveNullAndEmptyArrays: true } },
+
+    // Lookup variant details
     {
       $lookup: {
         from: dbVariables.variantCollection,
@@ -168,6 +198,8 @@ exports.viewCartData = async (userId) => {
       }
     },
     { $unwind: "$variantDetails" },
+
+    // Compute effective price
     {
       $addFields: {
         effectivePrice: {
@@ -175,6 +207,8 @@ exports.viewCartData = async (userId) => {
         }
       }
     },
+
+    // Compute item totals
     {
       $addFields: {
         itemOriginal: { $multiply: ["$items.quantity", "$variantDetails.price"] },
@@ -187,6 +221,8 @@ exports.viewCartData = async (userId) => {
         }
       }
     },
+
+    // Project clean output, nest category inside product
     {
       $project: {
         _id: 0,
@@ -197,27 +233,35 @@ exports.viewCartData = async (userId) => {
           name: "$productDetails.name",
           description: "$productDetails.description",
           images: "$productDetails.images",
-          companyDetails: "$productDetails.companyDetails"
+          companyDetails: "$productDetails.companyDetails",
+          category: {
+            _id: "$categoryDetails._id",
+            name: "$categoryDetails.name",
+            description: "$categoryDetails.description",
+            isActive: "$categoryDetails.isActive"
+          }
         },
         variant: {
-          _id: "$variantDetails._id",   // <-- keep variantId
+          _id: "$variantDetails._id",
           processor: "$variantDetails.processor",
           price: "$variantDetails.price",
           ram: "$variantDetails.ram",
           storage: "$variantDetails.storage",
           graphicsCard: "$variantDetails.graphics",
           stock: "$variantDetails.stock",
-          color: "$variantDetails.color",
+          color: "$variantDetails.color"
         },
         itemOriginal: 1,
         itemDiscount: 1,
         itemSubtotal: 1
       }
     },
+
+    // Group all items by user
     {
       $group: {
         _id: "$userId",
-        items: { $push: "$$ROOT" }, 
+        items: { $push: "$$ROOT" },
         cartOriginal: { $sum: "$itemOriginal" },
         cartDiscount: { $sum: "$itemDiscount" },
         cartSubtotal: { $sum: "$itemSubtotal" }
@@ -230,9 +274,9 @@ exports.viewCartData = async (userId) => {
     .aggregate(query)
     .toArray();
 
-   
   return data[0] || null; // return null if no cart
 };
+
 //contol cart function
 exports.controllCart = async (userId, productId, variantId, op) => {
   const db = await getDB();

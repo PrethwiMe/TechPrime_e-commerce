@@ -7,16 +7,17 @@ const crypto = require("crypto");
 const { updateAddress } = require('./userProfileController');
 
 exports.razorpaySetup = async (req, res) => {
-
+console.log("data for backend",req.body);
 
   if (!req.session.user) {
     return res.status(401).json({ error: 'Please log in to proceed' });
   }
 
-  const { amount } = req.body
+  let { amount } = req.body
   if (!amount || isNaN(amount) || amount <= 0) {
     return res.status(400).json({ error: 'Invalid amount' });
   }
+ amount = Math.round(amount );
 
   const currency = 'INR';
   const userId = req.session.user.userId;
@@ -53,36 +54,75 @@ exports.razorpaySetup = async (req, res) => {
 //////////////////////////
 
 exports.verifyPayment = async (req, res) => {
-
   try {
-
     const {
       selectedAddress,
       paymentMethod,
-      items,
-      subtotal,
-      tax,
-      deliveryCharge,
-      total,
-      couponCode,
       razorpayPaymentId,
       razorpayOrderId,
       razorpaySignature,
+      couponCode
     } = req.body;
+
     const generatedSignature = crypto
       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
       .update(`${razorpayOrderId}|${razorpayPaymentId}`)
       .digest('hex');
 
-let order = await userProfileModel.showOrderVerify(razorpayOrderId)
+    if (generatedSignature !== razorpaySignature) {
+      return res.status(400).json({ success: false, message: "Invalid signature" });
+    }
 
+    //  Use session.cart
+    const cart = req.session.cart;
+    if (!cart || !cart.items.length) {
+      return res.status(400).json({ success: false, message: "Cart is empty" });
+    }
 
-if(razorpayOrderId !== order.razorpayOrderId) return res.status(400).json({succss:false})
+    // Fetch order placeholder
+    let order = await userProfileModel.showOrderVerify(razorpayOrderId);
+    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
 
-  let updateOrder = await userProfileModel.orderUpdate(razorpayOrderId,req.body)
-  if (updateOrder.modifiedCount>0) {
-    return res.json({ status: "success" });  }
-} catch (error) {
-    console.log(error);
+    // Update order with cart data
+    const updateOrder = await userProfileModel.orderUpdate(razorpayOrderId, {
+      userId: req.session.user.userId,
+      items: cart.items.map(item => ({
+        productId: item.product._id,
+        variantId: item.variant._id,
+        quantity: item.quantity,
+        originalPrice: item.originalPrice,
+        discountedPrice: item.discountedPrice,
+        itemDiscount: item.itemDiscount,
+        subtotal: item.itemSubtotal,
+        appliedOffer: item.appliedOffer || null,
+        itemStatus: "Pending"
+      })),
+      subtotal: cart.cartSubtotal,
+      cartOriginal: cart.cartOriginal,
+      cartDiscount: cart.cartDiscount,
+      total: cart.cartSubtotal + Number(cart.deliveryCharge || 0) + Number(cart.tax || 0),
+      deliveryCharge: cart.deliveryCharge || 0,
+      tax: cart.tax || 0,
+      couponCode: couponCode || "",
+      paymentMethod,
+      paymentStatus: "paid",
+      razorpayPaymentId,
+      razorpayOrderId,
+      razorpaySignature,
+      selectedAddress,
+      status: "Pending",
+      updatedAt: new Date()
+    });
+
+    if (updateOrder.modifiedCount > 0) {
+      //  Clear cart session after successful order
+      req.session.cart = null;
+      return res.json({ status: "success" });
+    } else {
+      return res.status(400).json({ status: "failed" });
+    }
+  } catch (error) {
+    console.log("Error in verifyPayment:", error);
+    res.status(500).json({ success: false });
   }
-}
+};

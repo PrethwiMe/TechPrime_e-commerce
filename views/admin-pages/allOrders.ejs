@@ -230,14 +230,14 @@
                             <small class="text-muted d-block"><%= item.variantDetails.processor %>, <%= item.variantDetails.ram %></small>
                           </td>
                           <td><%= item.quantity %></td>
-                          <td>₹ <%= item.price.toLocaleString() %></td>
-                          <td>₹ <%= (item.quantity * item.price).toLocaleString() %></td>
+                          <td>₹ <%= item.discountedPrice.toLocaleString() %></td>
+                          <td>₹ <%= (item.quantity * item.discountedPrice).toLocaleString() %></td>
                           <td>
                             <select class="form-select form-select-sm item-status" data-id="<%= order._id %>" data-variant-id="<%= item.variantId %>" data-current-status="<%= item.itemStatus || 'Pending' %>" <%= item.returnStatus ? 'disabled' : '' %>>
                               <option value="Pending" <%= (item.itemStatus || 'Pending') === 'Pending' ? 'selected' : '' %>>Pending</option>
                               <option value="Shipped" <%= item.itemStatus === 'Shipped' ? 'selected' : '' %>>Shipped</option>
                               <option value="Delivered" <%= item.itemStatus === 'Delivered' ? 'selected' : '' %>>Delivered</option>
-                              <orderManagement value="Cancelled" <%= item.itemStatus === 'Cancelled' ? 'selected' : '' %>>Cancelled</orderManagement>
+                              <option value="Cancelled" <%= item.itemStatus === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
                             </select>
                           </td>
                           <td>

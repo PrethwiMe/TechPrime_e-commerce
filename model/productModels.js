@@ -1,9 +1,6 @@
 const { ObjectId } = require('mongodb');
 const { getDB } = require('../config/mongodb');
 const dbVariables = require('../config/databse');
-const paginate = require('../utils/paginate');
-const { name } = require('ejs');
-const { pipeline } = require('nodemailer/lib/xoauth2');
 
 //  Insert product
 exports.insertProduct = async (productData) => {

@@ -1,12 +1,7 @@
-const { getDB } = require('../config/mongodb')
 const adminModel = require('../model/adminModel')
 //hasing modules
 const bcrypt = require('bcrypt');
-const saltRounds = 10;
-const myPlaintextPassword = 's0/\/\P4$$w0rD';
-const someOtherPlaintextPassword = 'not_bacon';
 const paginate = require('../utils/paginate');
-const { json } = require('express');
 const productModel = require('../model/productModels');
 const {offerValidation} = require('../utils/validation')
 
@@ -253,8 +248,6 @@ exports.addOffers = async (req, res) => {
     });
   }
 };
-
-
 exports.disableOffer = async (req,res) => {
   const id = req.params.offerId
   const response = adminModel.disableOffer(id,req.body)
@@ -262,3 +255,58 @@ exports.disableOffer = async (req,res) => {
 
      res.status(400).json({success:false,message:"error in delete"})
 }
+
+exports.couponPage =async (req, res) => {
+  const generateCouponCode = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 8; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  };
+
+  let result = await adminModel.viewCouponPage();
+
+  res.render('admin-pages/coupons.ejs', {
+    coupons: result || [],           
+    generatedCode: generateCouponCode()
+  });
+};
+
+
+exports.addCoupon = async (req, res) => {
+  try {
+    let { code, discount, validFrom, validUntil, minPurchase } = req.body;
+
+    discount = Number(discount);
+    minPurchase = Number(minPurchase) || 0;
+
+    if (discount < 1 || discount > 100) {
+      return res.status(400).send('Discount must be between 1 and 100%');
+    }
+
+    validFrom = validFrom ? new Date(validFrom) : new Date();
+    validUntil = validUntil ? new Date(validUntil) : null;
+
+    const newCoupon = {
+      code,
+      discount,
+      discountType: 'percentage', 
+      validFrom,
+      validUntil,
+      minimumPurchase: minPurchase,
+      isActive: true
+    }
+
+let response = await adminModel.addCoupon(newCoupon);
+if(response){
+  return res.status(200).json({success:true,message:"coupon added sussessfully"})
+}
+  return res.status(400).json({success:false,message:"coupon adding failed"})
+
+} catch (error) {
+    console.error(error);
+    res.status(500).send('Server error while adding coupon');
+  }
+};

@@ -1,9 +1,7 @@
 // mongo data 
 const dbVariables = require('../config/databse')
-const { getDB, connectDB } = require('../config/mongodb')
+const { getDB } = require('../config/mongodb')
 const { ObjectId } = require('mongodb');
-const paginate = require('../utils/paginate');
-const productModel = require('../model/productModels');
 
 
 //admin login data
@@ -282,6 +280,19 @@ exports.disableOffer = async(id,status) => {
 
 exports.viewOffers = async (id) => {
   const db = await getDB()
-     check = await db.collection(dbVariables.offerCollection).findOne({ Active: true, productId: id });
+     check = await db.collection(dbVariables.offerCollection).findOne(id);
      return check;
+}
+
+exports.addCoupon = async (data) => {
+ 
+  const db =await getDB();
+  const result = await db.collection(dbVariables.couponCollection).insertOne(data);
+  return result;
+}
+
+exports.viewCouponPage = async () => {
+  const db = await getDB();
+  const response = await db.collection(dbVariables.couponCollection).find().toArray();
+  return response;
 }
