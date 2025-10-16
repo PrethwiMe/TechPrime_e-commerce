@@ -67,7 +67,7 @@ exports.userControll = async (id) => {
       return true
     } else if (user.isActive === false) {
       // Enable the user
-      console.log("true");
+      console.log("false");
       let result = await db.collection(dbVariables.userCollection).updateOne(
         { _id: new ObjectId(id) },
         { $set: { isActive: true } }
@@ -299,6 +299,7 @@ exports.viewCouponPage = async () => {
 
 
 exports.checkOffers = async (query) => {
+
   try {
     const db = await getDB();
     const offerCollection = db.collection(dbVariables.offerCollection);
@@ -316,13 +317,12 @@ exports.checkOffers = async (query) => {
     let categoryOffer = null;
    
       categoryOffer = await offerCollection.findOne({
-        categoriesId: categoriesId,
+        categoryId: categoriesId,
         Active: true,
         startDate: { $lte: currentDate },
         endDate: { $gte: currentDate },
       });
     
-
     if (productOffer && categoryOffer) {
       return productOffer.offerValue >= categoryOffer.offerValue
         ? productOffer

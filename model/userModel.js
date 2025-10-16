@@ -308,12 +308,12 @@ exports.controllCart = async (userId, productId, variantId, op) => {
     { $set: { "items.$.quantity": newQuantity } }
   );
 
-  // ✅ Return only updated item info
+ 
   return {
     productId,
     variantId,
     quantity: newQuantity,
-    itemSubtotal: newQuantity * item.price, // assuming you store price in variant
+    itemSubtotal: newQuantity * item.price, 
   };
 };
 exports.removeProduct = async (productId, variantId, userId) => {
@@ -376,12 +376,25 @@ exports.updateEmail = async (id,email) => {
   return update;
 }
 
-// exports.updateOfferInCart = async (userId,productId, offerdata) => {
-//   try {
-//     const db = await getDB();
-//  const update = await db.collection(dbVariables.cartCollection).updateOne({ userId: userId,"items.productId":productId }, { $set: { discount: offerdata } });
-//   return update;
-// }catch (error) {
-//     console.log(error);
-//   }
-// }
+exports.updateOfferInCart = async (userId, productId, offerdata) => {
+  try {
+    const db = await getDB();
+    const update = await db
+      .collection(dbVariables.cartCollection)
+      .updateOne(
+        { userId: userId, "items.productId": productId },
+        {
+          $set: {
+            "items.$.appliesTo": offerdata.appliesTo,
+            "items.$.offerValue": offerdata.offerValue,
+            "items.$.startDate": offerdata.startDate,
+            "items.$.endDate": offerdata.endDate
+          }
+        }
+      );
+
+    return update;
+  } catch (error) {
+    console.log("Error in updateOfferInCart:", error);
+  }
+};
