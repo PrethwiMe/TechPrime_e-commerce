@@ -134,7 +134,11 @@ exports.checkOutView = async (userId) => {
           product: 1,
           variant: 1,
           quantity: "$items.quantity",
-          productName: "$items.productName"
+          productName: "$items.productName",
+          appliesTo: "$items.appliesTo",
+          endDate: "$items.endDate",
+          offerValue: "$items.offerValue",
+          startDate: "$items.startDate",
         }
       }
     ];

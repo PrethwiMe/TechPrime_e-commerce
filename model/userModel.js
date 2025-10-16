@@ -22,11 +22,9 @@ exports.insertUser = async (userdata) => {
 //find one user
 exports.fetchUser = async (email) => {
   try {
-    const db = getDB();
-    let data = await db
-      .collection(dbVariables.userCollection)
-      .findOne(
-        { email: email, isActive: true });
+    const db =await getDB();
+    let data = await db.collection(dbVariables.userCollection).findOne( { email: email, isActive: true });
+    console.log("fetchUser data:", data);
     return data;
   } catch (error) {
     console.log(error);

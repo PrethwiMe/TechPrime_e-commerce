@@ -296,8 +296,6 @@ exports.viewCouponPage = async () => {
   const response = await db.collection(dbVariables.couponCollection).find().toArray();
   return response;
 }
-
-
 exports.checkOffers = async (query) => {
 
   try {

@@ -26,6 +26,7 @@ const adminModal = require('../model/adminModel');
 exports.viewProfile = async (req, res) => {
 
   const userId = req.session.user
+  console.log("userId :::::", userId);
   const user = await userModel.fetchUser(userId.email);
 
   if (req.session.user) {
@@ -237,16 +238,106 @@ exports.checkoutView = async (req, res) => {
     const userId = req.session.user.userId;
 
     const data = await userProfileModel.checkOutView(userId);
+    console.log("checkout data:", JSON.stringify(data, null, 2));
     const cartItems = Array.isArray(data.cartItems) ? data.cartItems : [];
 
-    // Handle empty cart case
+    
     if (!cartItems || cartItems.length === 0) {
       return res.redirect("/cart");
     }
     
-    let subtotal = 0;
+    let subtotal = 0; 
+    let totalDiscount = 0;
     cartItems.forEach((item) => {
-      subtotal += item.variant.price * item.quantity;
+      const unitPrice = item.variant.price;
+      const unitDiscount = item.offerValue || 0; 
+      item.originalPrice = unitPrice;
+      item.discountedPrice = unitPrice - unitDiscount;
+      item.appliedOffer = unitDiscount > 0;
+      subtotal += unitPrice * item.quantity;
+      totalDiscount += unitDiscount * item.quantity;
+    });
+
+    const netSubtotal = subtotal - totalDiscount;
+
+    let tax = 0;
+    if (netSubtotal > 150000) {
+      tax = netSubtotal * 0.09;
+    } else if (netSubtotal > 100000) {
+      tax = netSubtotal * 0.07;
+    } else if (netSubtotal > 50000) {
+      tax = netSubtotal * 0.05;
+    }
+
+    let deliveryCharge = netSubtotal > 100000 ? 0 : 100;
+
+    let total = netSubtotal + tax + deliveryCharge;
+
+    const addresses = Array.isArray(data.addresses)
+      ? data.addresses.map((a) => a.addresses)
+      : [];
+
+    let coupons = await adminModal.viewCouponPage();
+
+    res.render("user-pages/checkOutPage.ejs", {
+      cartItems,
+      addresses,
+      subtotal,
+      totalDiscount,
+      tax,
+      deliveryCharge,
+      total,
+      coupon: coupons || []
+    });
+
+  } catch (error) {
+    console.error("Error in checkoutView:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+//add to order
+
+exports.addToOrder = async (req, res) => {
+  console.log("Request body:", req.body);
+  try {
+    const { paymentMethod, selectedAddress, couponCode, items } = req.body;
+    const userId = req.session.user.userId; 
+
+    if (paymentMethod !== "cod") {
+      return res.status(400).json({ status: "error", message: "Only COD supported for now" });
+    }
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ status: "error", message: "No items to order" });
+    }
+
+    let subtotal = 0;
+    let cartOriginal = 0;
+    let cartDiscount = 0;
+
+    const orderItems = items.map((item) => {
+      const originalPrice = Number(item.originalPrice) || 0;
+      const discountedPrice = Number(item.discountedPrice) || originalPrice;
+      const quantity = Number(item.quantity) || 1;
+
+      const itemDiscount = originalPrice - discountedPrice;
+      const subtotalItem = discountedPrice * quantity;
+
+      subtotal += subtotalItem;
+      cartOriginal += originalPrice * quantity;
+      cartDiscount += itemDiscount * quantity;
+
+      return {
+        productId: item.productId,
+        variantId: item.variantId,
+        quantity,
+        originalPrice,
+        discountedPrice,
+        itemDiscount,
+        subtotal: subtotalItem,
+        appliedOffer: item.appliedOffer || null,
+        itemStatus: "Pending",
+      };
     });
 
     let tax = 0;
@@ -260,88 +351,52 @@ exports.checkoutView = async (req, res) => {
 
     let deliveryCharge = subtotal > 100000 ? 0 : 100;
 
-    let total = subtotal + tax + deliveryCharge;
+    const total = subtotal + tax + deliveryCharge;
 
-    const addresses = Array.isArray(data.addresses)
-      ? data.addresses.map((a) => a.addresses)
-      : [];
-
-    let coupons = await adminModal.viewCouponPage();
-
-    res.render("user-pages/checkOutPage.ejs", {
-      cartItems,
-      addresses,
+    const order = {
+      userId,
+      items: orderItems,
       subtotal,
-      tax,
+      cartOriginal,
+      cartDiscount,
       deliveryCharge,
+      tax,
       total,
-      coupon: coupons || []
-    });
+      couponCode: couponCode || "",
+      paymentMethod,
+      paymentStatus: "pending",
+      status: "Pending",
+      selectedAddress,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
 
-  } catch (error) {
-    console.error("Error in checkoutView:", error);
-    res.status(500).send("Internal Server Error");
-  }
-};
+    const result = await userProfileModel.addNewOrder(userId, order);
 
-//add to order
-exports.addToOrder = async (req, res) => {
-  try {
-    const { paymentMethod, selectedAddress, couponCode } = req.body;
+    if (result.acknowledged) {
+      await userProfileModel.deleteCart(userId);
 
-    if (paymentMethod === "cod") {
-      const userId = req.session.user.userId;
-
-      const cart = req.session.cart;
-      if (!cart || !cart.items.length) {
-        return res.status(400).json({ status: "error", message: "Cart is empty" });
-      }
-
-      const order = {
-        userId,
-        items: cart.items.map(item => ({
-          productId: item.product._id,
-          variantId: item.variant._id,
-          quantity: item.quantity,
-          originalPrice: item.originalPrice,
-          discountedPrice: item.discountedPrice,
-          itemDiscount: item.itemDiscount,
-          subtotal: item.itemSubtotal,
-          appliedOffer: item.appliedOffer || null,
-          itemStatus: "Pending"
-        })),
-        subtotal: cart.cartSubtotal,
-        cartOriginal: cart.cartOriginal,
-        cartDiscount: cart.cartDiscount,
-        deliveryCharge: cart.deliveryCharge || 0,
-        tax: cart.tax || 0,
-        total: cart.cartSubtotal + Number(cart.deliveryCharge || 0) + Number(cart.tax || 0),
-        couponCode: couponCode || "",
-        paymentMethod,
-        paymentStatus: "pending",
-        status: "Pending",
-        selectedAddress,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      const result = await userProfileModel.addNewOrder(userId, order);
-      const dltCart = await userProfileModel.deleteCart(userId);
-
-      if (result.acknowledged) {
-        req.session.cart = null;
-        return res.status(200).json({ status: "success", message: "Order placed successfully" });
-      } else {
-        return res.status(400).json({ status: "error", message: "Failed, please try again later" });
-      }
+      return res.status(200).json({
+        status: "success",
+        message: "Order placed successfully",
+        orderSummary: {
+          subtotal,
+          cartOriginal,
+          cartDiscount,
+          tax,
+          deliveryCharge,
+          total,
+        },
+      });
     } else {
-      res.send("inProgress");
+      return res.status(400).json({ status: "error", message: "Failed to place order" });
     }
   } catch (error) {
     console.error("Error in addToOrder:", error);
     res.status(500).json({ status: "error", message: "Internal Server Error" });
   }
 };
+
 
 // view order user
 exports.viewOrder = async (req, res) => {

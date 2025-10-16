@@ -69,14 +69,14 @@
                     </div>
                   </div>
                   <div class="text-end">
-                    <% if (item.appliedOffer && item.discountedPrice) { %>
-                      <span class="text-strike">₹<%= item.variant?.price?.toFixed(2) %></span><br>
+                    <% if (item.appliedOffer && item.discountedPrice < item.originalPrice) { %>
+                      <span class="text-strike">₹<%= item.originalPrice?.toFixed(2) %></span><br>
                       <span class="text-success">₹<%= item.discountedPrice.toFixed(2) %></span><br>
                     <% } else { %>
-                      <span>₹<%= item.variant?.price?.toFixed(2) %></span><br>
+                      <span>₹<%= item.originalPrice?.toFixed(2) %></span><br>
                     <% } %>
                     <small>Qty: <%= item.quantity %></small><br>
-                    <strong>₹<%= ((item.appliedOffer ? item.discountedPrice : item.variant?.price) * item.quantity).toFixed(2) %></strong>
+                    <strong>₹<%= (item.discountedPrice * item.quantity).toFixed(2) %></strong>
                   </div>
                 </li>
               <% }) %>
@@ -93,10 +93,12 @@
           </div>
           <div class="card-body">
             <p class="d-flex justify-content-between"><span>Subtotal:</span> <span id="subtotal">₹<%= subtotal.toFixed(2) %></span></p>
-            <p class="d-flex justify-content-between text-success" id="discountRow" style="display: none;">
+            <% if (typeof totalDiscount !== 'undefined' && totalDiscount > 0) { %>
+            <p class="d-flex justify-content-between text-success" id="discountRow">
               <span>Discount:</span> 
-              <span id="discountAmount">₹0.00</span>
+              <span id="discountAmount">-₹<%= totalDiscount.toFixed(2) %></span>
             </p>
+            <% } %>
             <p class="d-flex justify-content-between"><span>Tax:</span> <span id="tax">₹<%= tax.toFixed(2) %></span></p>
             <p class="d-flex justify-content-between"><span>Delivery:</span> <span id="deliveryCharge">₹<%= deliveryCharge.toFixed(2) %></span></p>
             <hr>
@@ -268,7 +270,7 @@
       variantId: ci.variant?._id || ci.variantId,
       quantity: ci.quantity,
       price: ci.variant?.price || ci.price,
-      originalPrice: ci.variant?.price || ci.price,
+      originalPrice: ci.originalPrice || ci.variant?.price || ci.price,
       product: ci.product,
       variant: ci.variant,
       appliedOffer: ci.appliedOffer || false,
@@ -295,7 +297,7 @@
           cartItems = response.data.updatedItems.map(item => ({
             ...item,
             price: item.discountedPrice || item.originalPrice,
-            appliedOffer: !!item.discountedPrice,
+            appliedOffer: (item.discountedPrice < item.originalPrice),
             discountedPrice: item.discountedPrice || item.originalPrice
           }));
 
@@ -332,8 +334,20 @@
 
           // Update order summary
           document.getElementById("subtotal").textContent = `₹<%= subtotal.toFixed(2) %>`;
-          document.getElementById("discountRow").style.display = 'flex';
-          document.getElementById("discountAmount").textContent = `-₹${response.data.discount.toFixed(2)}`;
+          let discountRow = document.getElementById("discountRow");
+          if (!discountRow) {
+            const newDiscountRow = document.createElement("p");
+            newDiscountRow.className = "d-flex justify-content-between text-success";
+            newDiscountRow.id = "discountRow";
+            newDiscountRow.innerHTML = `
+              <span>Discount:</span> 
+              <span id="discountAmount">-₹${response.data.discount.toFixed(2)}</span>
+            `;
+            document.querySelector(".card-body").insertBefore(newDiscountRow, document.getElementById("tax").parentNode);
+            discountRow = newDiscountRow;
+          } else {
+            document.getElementById("discountAmount").textContent = `-₹${response.data.discount.toFixed(2)}`;
+          }
           document.getElementById("tax").textContent = `₹<%= tax.toFixed(2) %>`;
           document.getElementById("deliveryCharge").textContent = `₹<%= deliveryCharge.toFixed(2) %>`;
           document.getElementById("total").textContent = `₹${response.data.discountedTotal.toFixed(2)}`;
