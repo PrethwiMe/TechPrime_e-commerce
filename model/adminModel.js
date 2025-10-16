@@ -296,3 +296,42 @@ exports.viewCouponPage = async () => {
   const response = await db.collection(dbVariables.couponCollection).find().toArray();
   return response;
 }
+
+
+exports.checkOffers = async (query) => {
+  try {
+    const db = await getDB();
+    const offerCollection = db.collection(dbVariables.offerCollection);
+
+    const { productId, categoriesId } = query;
+    const currentDate = new Date();
+
+    let productOffer = await offerCollection.findOne({
+      productId: productId,
+      Active: true,
+      startDate: { $lte: currentDate },
+      endDate: { $gte: currentDate },
+    });
+
+    let categoryOffer = null;
+   
+      categoryOffer = await offerCollection.findOne({
+        categoriesId: categoriesId,
+        Active: true,
+        startDate: { $lte: currentDate },
+        endDate: { $gte: currentDate },
+      });
+    
+
+    if (productOffer && categoryOffer) {
+      return productOffer.offerValue >= categoryOffer.offerValue
+        ? productOffer
+        : categoryOffer;
+    }
+
+    return productOffer || categoryOffer || null;
+  } catch (error) {
+    console.error("Error checking offers:", error);
+    return null;
+  }
+};

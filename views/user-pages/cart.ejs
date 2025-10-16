@@ -24,6 +24,7 @@
     .price { font-weight: 700; font-size: 1.1rem; color: #000; }
     .old-price { text-decoration: line-through; color: #888; font-weight: 500; margin-right: 8px; }
     .offer-price { color: #28a745; font-weight: 700; font-size: 1.15rem; }
+    .unit-price { color: #000; font-weight: 700; font-size: 1.1rem; }
     .offer-tag { background: #e8f8ee; color: #198754; padding: 3px 8px; border-radius: 6px; font-size: 0.8rem; margin-top: 6px; display: inline-block; }
     .specs { font-size: 0.85rem; color: #555; margin-top: 6px; }
     .specs span {
@@ -33,6 +34,7 @@
       border-radius: 6px;
       margin: 2px 4px 2px 0;
     }
+    .item-total { font-weight: 600; font-size: 1rem; color: #333; margin-top: 10px; }
     .quantity-input { width: 60px; text-align: center; border-radius: 8px; }
     .btn-qty {
       border: none;
@@ -106,9 +108,10 @@
             <div class="cart-item d-flex align-items-center justify-content-between" 
                  data-id="<%= item.product._id %>" 
                  data-variant="<%= item.variant._id %>" 
-                 data-price="<%= item.discountedPrice || item.variant.price %>"
-                 data-user="<%=userId %>"
-                 data-stock="<%= item.variant.stock %>">
+                 data-price="<%= (item.discountedPrice || item.variant.price).toFixed(2) %>"
+                 data-original-price="<%= item.originalPrice.toFixed(2) %>"
+                 data-user="<%= userId %>"
+                 data-stock="<%= item.variant.stock || 0 %>">
 
               <a href="/all-product/product-details/<%= item.product._id %>" class="cart-item-link">
                 <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="me-3"/>
@@ -117,28 +120,31 @@
                   <div class="product-details"><%= item.product.companyDetails %> | <%= item.product.OS %></div>
                   <div class="price">
                     <% if (item.appliedOffer) { %>
-                      <span class="old-price">₹<%= item.originalPrice %></span>
-                      <span class="offer-price">₹<%= item.discountedPrice %></span>
+                      <span class="old-price">₹<%= item.originalPrice.toFixed(2) %></span>
+                      <span class="offer-price">₹<%= item.discountedPrice.toFixed(2) %></span>
                       <div class="offer-tag">
                         Offer Applied: 
                         <%= item.appliedOffer.appliesTo === "product" ? "Product Offer" : "Category Offer" %> 
-                        (₹<%= item.itemDiscount %> OFF)
+                        (₹<%= item.itemDiscount.toFixed(2) %> OFF)
                       </div>
                     <% } else { %>
-                      ₹<span class="item-subtotal"><%= item.itemSubtotal %></span>
+                      <span class="unit-price">₹<%= item.originalPrice.toFixed(2) %></span>
                     <% } %>
                   </div>
                   <div class="specs">
                     <span><%= item.variant.processor %></span>
                     <span><%= item.variant.ram %> GB RAM</span>
                     <span><%= item.variant.storage %> Storage</span>
-                    <span><%= item.variant.graphicsCard %></span>
+                    <span><%= item.variant.graphics %></span>
                     <% if (item.variant.stock == 0) { %>
                       <span class="text-danger">Out of Stock</span>
                     <% } else { %>
-                      <span><%= item.variant.stock %></span>
+                      <span>Stock: <%= item.variant.stock %></span>
                     <% } %>
                     <span><%= item.variant.color %></span>
+                  </div>
+                  <div class="item-total">
+                    <strong>Subtotal: ₹<span class="line-total"><%= item.itemSubtotal.toFixed(2) %></span></strong>
                   </div>
                 </div>
               </a>
@@ -163,15 +169,15 @@
           <% if (data) { %>
             <div class="summary-line">
               <span>Subtotal</span> 
-              <span id="subtotal">₹<%= data.cartOriginal || 0 %></span>
+              <span id="subtotal">₹<%= data.cartOriginal.toFixed(2) %></span>
             </div>
             <div class="summary-line text-success">
               <span>Discount</span> 
-              <span id="discount">- ₹<%= data.cartDiscount || 0 %></span>
+              <span id="discount">- ₹<%= data.cartDiscount.toFixed(2) %></span>
             </div>
             <div class="summary-line total">
               <span>Total</span> 
-              <span id="total">₹<%= data.cartSubtotal || 0 %></span>
+              <span id="total">₹<%= data.cartSubtotal.toFixed(2) %></span>
             </div>
             <button class="btn-checkout mt-3">Proceed to Checkout</button>
           <% } else { %>
@@ -189,24 +195,24 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const recalcSummary = () => {
-        let subtotal = 0;
+        let originalSubtotal = 0;
+        let discountedSubtotal = 0;
         document.querySelectorAll(".cart-item").forEach(item => {
-          const price = parseFloat(item.dataset.price);
-          const qty = parseInt(item.querySelector(".quantity-input").value);
-          const itemSubtotal = price * qty;
-          const itemSubtotalElement = item.querySelector(".item-subtotal");
-          if (itemSubtotalElement) {
-            itemSubtotalElement.textContent = itemSubtotal;
-          } else {
-            const offerPriceElement = item.querySelector(".offer-price");
-            if (offerPriceElement) offerPriceElement.textContent = "₹" + itemSubtotal;
+          const origUnit = parseFloat(item.dataset.originalPrice) || 0;
+          const discUnit = parseFloat(item.dataset.price) || 0;
+          const qty = parseInt(item.querySelector(".quantity-input").value) || 0;
+          const itemSubtotal = discUnit * qty;
+          const lineTotalEl = item.querySelector(".line-total");
+          if (lineTotalEl) {
+            lineTotalEl.textContent = itemSubtotal.toFixed(2);
           }
-          subtotal += itemSubtotal;
+          originalSubtotal += origUnit * qty;
+          discountedSubtotal += itemSubtotal;
         });
-        document.getElementById("subtotal").textContent = "₹" + subtotal;
-document.getElementById("discount").textContent = "- ₹" + (<%= data ? data.cartDiscount : 0 %>);
-document.getElementById("subtotal").textContent = "₹" + (<%= data ? data.cartSubtotal : 0 %>);
-
+        const totalDiscount = originalSubtotal - discountedSubtotal;
+        document.getElementById("subtotal").textContent = `₹${originalSubtotal.toFixed(2)}`;
+        document.getElementById("discount").textContent = `- ₹${totalDiscount.toFixed(2)}`;
+        document.getElementById("total").textContent = `₹${discountedSubtotal.toFixed(2)}`;
       };
 
       const updateCart = async (productId, variantId, action) => {
@@ -216,10 +222,13 @@ document.getElementById("subtotal").textContent = "₹" + (<%= data ? data.cartS
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ productId, variantId, action })
           });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.message || "Error updating cart");
+          const responseData = await res.json();
+          if (!res.ok) throw new Error(responseData.message || "Error updating cart");
+          // Optionally use responseData.item to update local state if needed (e.g., new stock)
+          return responseData;
         } catch (err) {
           Swal.fire("Error", err.message, "error");
+          throw err; // Re-throw to handle in caller
         }
       };
 
@@ -232,13 +241,15 @@ document.getElementById("subtotal").textContent = "₹" + (<%= data ? data.cartS
           });
           const data = await res.json();
           if (!res.ok) throw new Error(data.message || "Error deleting item");
+          return data;
         } catch (err) {
           Swal.fire("Error", err.message, "error");
+          throw err;
         }
       };
 
       document.querySelectorAll(".increase-qty").forEach(btn => {
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", async () => {
           let item = btn.closest(".cart-item");
           let input = item.querySelector(".quantity-input");
           let current = parseInt(input.value);
@@ -246,8 +257,8 @@ document.getElementById("subtotal").textContent = "₹" + (<%= data ? data.cartS
           const maxLimit = Math.min(10, stock);
           if (current < maxLimit) {
             input.value = current + 1;
+            await updateCart(item.dataset.id, item.dataset.variant, "increment");
             recalcSummary();
-            updateCart(item.dataset.id, item.dataset.variant, "increment");
           } else {
             Swal.fire("Limit Reached", `Maximum allowed quantity is ${maxLimit}`, "info");
           }
@@ -255,40 +266,40 @@ document.getElementById("subtotal").textContent = "₹" + (<%= data ? data.cartS
       });
 
       document.querySelectorAll(".decrease-qty").forEach(btn => {
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", async () => {
           let item = btn.closest(".cart-item");
           let input = item.querySelector(".quantity-input");
           let current = parseInt(input.value);
           if (current > 1) {
             input.value = current - 1;
+            await updateCart(item.dataset.id, item.dataset.variant, "decrement");
             recalcSummary();
-            updateCart(item.dataset.id, item.dataset.variant, "decrement");
           }
         });
       });
 
       document.querySelectorAll(".remove-item").forEach(btn => {
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", async () => {
           let item = btn.closest(".cart-item");
           Swal.fire({
             title: "Remove Item?",
             icon: "warning",
             showCancelButton: true,
             confirmButtonText: "Yes, remove it!"
-          }).then(res => {
+          }).then(async (res) => {
             if (res.isConfirmed) {
               const productId = item.dataset.id;
               const variantId = item.dataset.variant;
               const userId = item.dataset.user;
+              await deleteCartItem(productId, variantId, userId);
               item.remove();
               recalcSummary();
-              deleteCartItem(productId, variantId, userId);
             }
           });
         });
       });
 
-      document.querySelector(".btn-checkout").addEventListener("click", () => {
+      document.querySelector(".btn-checkout").addEventListener("click", async () => {
         const outOfStockItems = [];
         document.querySelectorAll(".cart-item").forEach(item => {
           if (parseInt(item.dataset.stock) === 0) {
@@ -303,16 +314,16 @@ document.getElementById("subtotal").textContent = "₹" + (<%= data ? data.cartS
             icon: "warning",
             showCancelButton: true,
             confirmButtonText: "Remove and proceed"
-          }).then(res => {
+          }).then(async (res) => {
             if (res.isConfirmed) {
-              outOfStockItems.forEach(item => {
+              for (const item of outOfStockItems) {
                 const productId = item.dataset.id;
                 const variantId = item.dataset.variant;
                 const userId = item.dataset.user;
+                await deleteCartItem(productId, variantId, userId);
                 item.remove();
-                recalcSummary();
-                deleteCartItem(productId, variantId, userId);
-              });
+              }
+              recalcSummary();
               Swal.fire("Updated", "Unavailable items removed. You can now proceed.", "success");
             }
           });

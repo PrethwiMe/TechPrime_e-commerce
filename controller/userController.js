@@ -441,20 +441,23 @@ exports.loadProductDetails = async (req, res) => {
 }
 //add to carts
 exports.addToCart = async (req, res) => {
+try {
 
-  if (!req.session.user) {
-    return res.json({
-      success: false,
-      loginRequired: true,
-      message: "Please login to continue."
-    });
-  }
-  const { productId, variantId, productName } = req.body;
+    const { productId, variantId, productName } = req.body;
   const Id = req.session.user.userId
   const name = req.session.user.name
   const data = await userModel.addToCartdb(Id, productId, variantId, productName)
+  //get category id, cmpre ofer and product offer
+  let result = await productModel.viewProducts(productId)
+  let categoriesId = result[0]. categoriesId;
+  let offerCheck = await adminModal.checkOffers({productId,categoriesId,Active:true})
+  if (offerCheck) {
+    let updateOffer = await userModel.updateOfferInCart(Id, productId,offerCheck) 
+  }
   return res.json(data);
-
+} catch (error) {
+  console.error(error);
+}
 
 }
 //view cart

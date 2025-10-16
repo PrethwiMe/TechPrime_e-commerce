@@ -236,15 +236,19 @@ exports.checkoutView = async (req, res) => {
   try {
     const userId = req.session.user.userId;
 
-    const cartSession = req.session.cart;
-console.log(req.session.cart);
-    if (!cartSession || !cartSession.items || cartSession.items.length === 0) {
+    const data = await userProfileModel.checkOutView(userId);
+    const cartItems = Array.isArray(data.cartItems) ? data.cartItems : [];
+
+    // Handle empty cart case
+    if (!cartItems || cartItems.length === 0) {
       return res.redirect("/cart");
     }
+    
+    let subtotal = 0;
+    cartItems.forEach((item) => {
+      subtotal += item.variant.price * item.quantity;
+    });
 
-    let subtotal = cartSession.cartSubtotal;
-
-    // Tax calculation
     let tax = 0;
     if (subtotal > 150000) {
       tax = subtotal * 0.09;
@@ -254,28 +258,26 @@ console.log(req.session.cart);
       tax = subtotal * 0.05;
     }
 
-    // Delivery charge
     let deliveryCharge = subtotal > 100000 ? 0 : 100;
+
     let total = subtotal + tax + deliveryCharge;
 
-    let data = await userProfileModel.checkOutView(userId);
     const addresses = Array.isArray(data.addresses)
       ? data.addresses.map((a) => a.addresses)
       : [];
 
-      //couponn
-
-      let coupon = await adminModal.viewCouponPage()
+    let coupons = await adminModal.viewCouponPage();
 
     res.render("user-pages/checkOutPage.ejs", {
-      cartItems: cartSession.items,
+      cartItems,
       addresses,
       subtotal,
       tax,
       deliveryCharge,
       total,
-     coupon: coupon || {}
+      coupon: coupons || []
     });
+
   } catch (error) {
     console.error("Error in checkoutView:", error);
     res.status(500).send("Internal Server Error");

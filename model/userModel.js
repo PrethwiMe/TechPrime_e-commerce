@@ -5,6 +5,7 @@ const dbVariables = require('../config/databse')
 const { getDB } = require('../config/mongodb')
 const { ObjectId } = require('mongodb');
 const { any } = require('joi');
+const e = require('connect-flash');
 
 exports.insertUser = async (userdata) => {
 
@@ -70,7 +71,6 @@ exports.addToCartdb = async (userId, productId, variantId, productName) => {
 
   // find cart for this user
   const userCart = await db.collection(dbVariables.cartCollection).findOne({ userId });
-
   // find variant stock
   const variantData = await db.collection(dbVariables.variantCollection)
     .findOne({ _id: new ObjectId(variantId) });
@@ -105,13 +105,12 @@ exports.addToCartdb = async (userId, productId, variantId, productName) => {
         return { success: false, message: "Cannot add more, stock limit reached" };
       }
     } else {
-      // product+variant not in cart → check stock before adding
+      // product variant not in cart check stock before adding
       if (stock > 0) {
         const result = await db.collection(dbVariables.cartCollection).updateOne(
           { userId },
           { $push: { items: { productId, variantId, quantity: 1, productName } } }
         );
-
         return result.modifiedCount > 0
           ? { success: true, message: "Product added to cart" }
           : { success: false, message: "Failed to add product to cart" };
@@ -121,7 +120,7 @@ exports.addToCartdb = async (userId, productId, variantId, productName) => {
     }
   }
 
-  // no cart for this user → create new cart
+  // no cart  user  create new cart
   if (stock > 0) {
     const newCart = {
       userId,
@@ -376,3 +375,13 @@ exports.updateEmail = async (id,email) => {
   const update = await db.collection(dbVariables.userCollection).updateOne({_id:new ObjectId(id)},{$set:{email:email}});
   return update;
 }
+
+// exports.updateOfferInCart = async (userId,productId, offerdata) => {
+//   try {
+//     const db = await getDB();
+//  const update = await db.collection(dbVariables.cartCollection).updateOne({ userId: userId,"items.productId":productId }, { $set: { discount: offerdata } });
+//   return update;
+// }catch (error) {
+//     console.log(error);
+//   }
+// }
