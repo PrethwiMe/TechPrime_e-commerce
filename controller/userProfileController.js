@@ -238,7 +238,7 @@ exports.checkoutView = async (req, res) => {
     const userId = req.session.user.userId;
 
     const data = await userProfileModel.checkOutView(userId);
-    console.log("checkout data:", JSON.stringify(data, null, 2));
+    console.log("/whishlist/adda:", JSON.stringify(data, null, 2));
     const cartItems = Array.isArray(data.cartItems) ? data.cartItems : [];
 
     
@@ -298,7 +298,7 @@ exports.checkoutView = async (req, res) => {
 //add to order
 
 exports.addToOrder = async (req, res) => {
-  console.log("Request body:", req.body);
+ 
   try {
     const { paymentMethod, selectedAddress, couponCode, items } = req.body;
     const userId = req.session.user.userId; 
@@ -683,12 +683,11 @@ exports.cancelItem = async (req, res) => {
 }
 exports.couponLogic = async (req, res) => {
   try {
-    console.log("datas", JSON.stringify(req.body, null, 2));
+   
     const { code, subtotal, items } = req.body;
     const subTotalNum = Number(subtotal) || 0;
 
     const coupon = await userProfileModel.checkCoupon(code);
-    console.log("result", coupon);
 
     if (!coupon || !coupon.isActive) {
       return res.json({ success: false, message: "Invalid or inactive coupon" });

@@ -258,7 +258,7 @@
           </table>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-secondary" data-bs-toggle="modal">Close</button>
         </div>
       </div>
     </div>
@@ -277,6 +277,16 @@
       discountedPrice: ci.discountedPrice || ci.variant?.price || ci.price
     }));
 
+    // Helper function to get current order values
+    function getCurrentOrderValues() {
+      return {
+        subtotal: parseFloat(document.getElementById("subtotal").textContent.replace("₹", "")),
+        tax: parseFloat(document.getElementById("tax").textContent.replace("₹", "")),
+        deliveryCharge: parseFloat(document.getElementById("deliveryCharge").textContent.replace("₹", "")),
+        total: parseFloat(document.getElementById("total").textContent.replace("₹", ""))
+      };
+    }
+
     // Apply Coupon
     document.getElementById("applyCouponBtn").addEventListener("click", async () => {
       const code = document.getElementById("couponCode").value.trim();
@@ -286,9 +296,10 @@
       }
 
       try {
+        const orderValues = getCurrentOrderValues();
         const response = await axios.post("/checkout/apply-coupon", {
           code,
-          subtotal: <%= subtotal %>,
+          subtotal: orderValues.subtotal,
           items: cartItems
         });
 
@@ -333,9 +344,10 @@
           });
 
           // Update order summary
-          document.getElementById("subtotal").textContent = `₹<%= subtotal.toFixed(2) %>`;
+          document.getElementById("subtotal").textContent = `₹${orderValues.subtotal.toFixed(2)}`;
           let discountRow = document.getElementById("discountRow");
           if (!discountRow) {
+            const taxElement = document.getElementById("tax").parentNode;
             const newDiscountRow = document.createElement("p");
             newDiscountRow.className = "d-flex justify-content-between text-success";
             newDiscountRow.id = "discountRow";
@@ -343,13 +355,12 @@
               <span>Discount:</span> 
               <span id="discountAmount">-₹${response.data.discount.toFixed(2)}</span>
             `;
-            document.querySelector(".card-body").insertBefore(newDiscountRow, document.getElementById("tax").parentNode);
-            discountRow = newDiscountRow;
+            taxElement.parentNode.insertBefore(newDiscountRow, taxElement);
           } else {
             document.getElementById("discountAmount").textContent = `-₹${response.data.discount.toFixed(2)}`;
           }
-          document.getElementById("tax").textContent = `₹<%= tax.toFixed(2) %>`;
-          document.getElementById("deliveryCharge").textContent = `₹<%= deliveryCharge.toFixed(2) %>`;
+          document.getElementById("tax").textContent = `₹${orderValues.tax.toFixed(2)}`;
+          document.getElementById("deliveryCharge").textContent = `₹${orderValues.deliveryCharge.toFixed(2)}`;
           document.getElementById("total").textContent = `₹${response.data.discountedTotal.toFixed(2)}`;
 
           Swal.fire("Success", response.data.message, "success");
@@ -376,16 +387,21 @@
       }
 
       const selectedAddress = JSON.parse(selectedAddressRaw);
+      const orderValues = getCurrentOrderValues();
+      
       const orderPayload = {
         selectedAddress,
         paymentMethod: selectedPayment,
         items: cartItems,
-        subtotal: "<%= subtotal.toFixed(2) %>",
-        tax: "<%= tax.toFixed(2) %>",
-        deliveryCharge: "<%= deliveryCharge.toFixed(2) %>",
-        total: document.getElementById("total").textContent.replace("₹", ""),
-        couponCode: document.getElementById("couponCode").value.trim()
+        subtotal: orderValues.subtotal,
+        tax: orderValues.tax,
+        deliveryCharge: orderValues.deliveryCharge,
+        total: orderValues.total,
+        amount: Math.round(orderValues.total * 100), // Amount in paise
+        couponCode: document.getElementById("couponCode").value.trim() || null
       };
+
+      console.log("Order Payload:", orderPayload);
 
       if (selectedPayment === "cod") {
         try {
@@ -396,31 +412,36 @@
           } else {
             Swal.fire("Error", res.data.message || "Order failed", "error");
           }
-        } catch {
-          Swal.fire("Error", "Something went wrong. Try again.", "error");
+        } catch (error) {
+          Swal.fire("Error", error.response?.data?.message || "Something went wrong. Try again.", "error");
         }
       } else {
+        // Online Payment
         try {
-          const orderRes = await axios.post("/create-order", { amount: parseFloat(document.getElementById("total").textContent.replace("₹", "")) * 100 });
-          const { id: orderId, amount, currency, orderId: dbOrderId } = orderRes.data;
+          const orderRes = await axios.post("/create-order", orderPayload);
+          const { id: razorpayOrderId, amount, currency, dbOrderId } = orderRes.data;
 
           const options = {
             key: "<%= process.env.RAZORPAY_KEY_ID %>",
             amount: amount,
-            currency,
-            order_id: orderId,
+            currency: currency,
+            order_id: razorpayOrderId,
             name: "TechCart",
             description: "Order Payment",
             handler: async function (response) {
               try {
-                const confirm = await axios.post("/order/verifyPayment", {
+                const verifyPayload = {
                   ...orderPayload,
                   paymentMethod: "online",
                   razorpayPaymentId: response.razorpay_payment_id,
                   razorpayOrderId: response.razorpay_order_id,
                   razorpaySignature: response.razorpay_signature,
-                  dbOrderId
-                });
+                  dbOrderId: dbOrderId
+                };
+
+                console.log("Verify Payload:", verifyPayload);
+
+                const confirm = await axios.post("/order/verifyPayment", verifyPayload);
 
                 if (confirm.data.status === "success") {
                   new bootstrap.Modal(document.getElementById("orderSuccessModal")).show();
@@ -429,13 +450,19 @@
                   Swal.fire("Error", confirm.data.message || "Order confirmation failed", "error");
                 }
               } catch (error) {
+                console.error("Payment verification error:", error);
                 Swal.fire("Error", error.response?.data?.message || "Payment verification failed", "error");
               }
+            },
+            prefill: {
+              name: selectedAddress.fullName,
+              contact: selectedAddress.phone
             },
             theme: { color: "#3399cc" }
           };
           new Razorpay(options).open();
         } catch (error) {
+          console.error("Payment initiation error:", error);
           Swal.fire("Error", error.response?.data?.message || "Could not start payment", "error");
         }
       }
