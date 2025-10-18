@@ -64,6 +64,14 @@
       .badge-status.return-pending { background: #fff3cd; color: #856404; }
       .badge-status.return-accepted { background: #e6f4ea; color: #198754; }
       .badge-status.return-rejected { background: #f8d7da; color: #dc3545; }
+      .badge-payment {
+        font-weight: 600;
+        padding: 0.4rem 0.8rem;
+        border-radius: 0.5rem;
+        font-size: 0.8rem;
+      }
+      .badge-payment.pending { background: #fff3cd; color: #856404; }
+      .badge-payment.completed { background: #e6f4ea; color: #198754; }
       .filter-chip, .cancel-all-btn {
         border: 1px solid #dee2e6;
         background: #fff;
@@ -92,6 +100,23 @@
         border-radius: 0.5rem;
         padding: 0.5rem 1rem;
         font-size: 0.9rem;
+        transition: all 0.3s ease;
+      }
+      .order-actions .btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      .repeat-payment-btn {
+        background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        border-color: #ffc107;
+        color: #212529;
+        font-weight: 600;
+      }
+      .repeat-payment-btn:hover {
+        background: linear-gradient(135deg, #fd7e14 0%, #ffc107 100%);
+        color: #212529;
+        transform: scale(1.05) rotate(2deg);
+        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
       }
       .detail-box {
         background: #f8f9fa;
@@ -108,6 +133,14 @@
       .detail-value { color: #212529; font-size: 1rem; margin-bottom: 1rem; }
       .modal-content { border-radius: 0.75rem; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
       .modal-header, .modal-footer { border: none; }
+      .payment-status-badge {
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+      }
     </style>
   </head>
   <body>
@@ -148,6 +181,12 @@
                   <% } else { %>
                     <span class="badge badge-status text-muted">Not Returned</span>
                   <% } %>
+                  <% if (order.paymentStatus) { %>
+                    <span class="badge badge-payment <%= order.paymentStatus.toLowerCase() === 'paid' ? 'completed' : order.paymentStatus.toLowerCase() %> payment-status-badge text-uppercase">
+                      <i class="bi me-1 <%= order.paymentStatus.toLowerCase() === 'pending' ? 'bi-hourglass-split' : 'bi-check2-circle' %>"></i>
+                      Payment <%= order.paymentStatus %>
+                    </span>
+                  <% } %>
                   <span class="text-muted">Order ID</span>
                   <strong><%= order.orderId %></strong>
                   <span class="text-muted"><i class="bi bi-calendar-date me-1"></i> <%= new Date(order.createdAt).toLocaleDateString() %></span>
@@ -164,6 +203,11 @@
                   <% } else if (order.status.toLowerCase() === 'delivered' && !order.returnOrder) { %>
                     <button class="btn btn-outline-warning return-order-btn" data-return="<%= order.orderId %>">
                       <i class="bi bi-arrow-return-left me-1"></i> Return
+                    </button>
+                  <% } %>
+                  <% if (order.paymentMethod === 'online' && order.paymentStatus && order.paymentStatus.toLowerCase() === 'pending') { %>
+                    <button class="btn repeat-payment-btn" data-order-id="<%= order.orderId %>">
+                      <i class="bi bi-arrow-clockwise me-1"></i> Repeat Payment
                     </button>
                   <% } %>
                   <button class="btn btn-outline-info view-address-btn" data-bs-toggle="modal" data-bs-target="#addressModal" data-address='<%= JSON.stringify(order.selectedAddress) %>' data-order-id="<%= order.orderId %>">
@@ -201,7 +245,7 @@
                           </div>
                         </td>
                         <td class="text-center"><%= item.quantity %></td>
-                        <td class="text-end"><%= parseFloat(item.price).toFixed(2) %>/-</td>
+                        <td class="text-end"><%= parseFloat(item.discountedPrice).toFixed(2) %>/-</td>
                         <td class="text-end">
                           <span class="badge badge-status <%= (item.itemStatus || 'pending').toLowerCase() %>">
                             Item <%= item.itemStatus || 'Pending' %>
@@ -338,6 +382,9 @@
         </div>
       </div>
     </div>
+    <script>
+      const RAZORPAY_KEY = "<%= process.env.RAZORPAY_KEY_ID %>"
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
@@ -408,10 +455,11 @@
           });
           if (!result.isConfirmed) return;
           try {
-            const response = await axios.post(url, { ...data.payload, ...(result.value && { reason: result.value }) });
+            const payload = { ...data.payload, ...(result.value && { reason: result.value }) };
+            const response = await axios.post(url, payload);
             if (response.data.success) {
               await Swal.fire({ title: successMsg.title, text: successMsg.text, icon: 'success', confirmButtonColor: '#0d6efd' });
-              updateFn(response);
+              if (updateFn) updateFn(response, result.value);
             } else {
               await Swal.fire({ title: 'Error', text: response.data.error || errorMsg, icon: 'error', confirmButtonColor: '#0d6efd' });
             }
@@ -503,6 +551,7 @@
           btn.addEventListener('click', () => {
             const isOrder = btn.classList.contains('return-order-btn');
             const [orderId, variantId] = isOrder ? [btn.dataset.return] : btn.dataset.returnItem.split('_');
+            const localResult = {}; // Placeholder for result.value in closure
             handleAction(isOrder ? '/account/orders/return' : '/account/orders/return-item', {
               text: `Request return for ${isOrder ? 'order' : 'item in order'} ${orderId}?`,
               input: {
@@ -518,7 +567,8 @@
             }, {
               title: 'Return Requested!',
               text: `Your ${isOrder ? 'order' : 'item'} return request has been submitted.`
-            }, `Failed to submit return request`, () => {
+            }, `Failed to submit return request`, (response) => {
+              localResult.value = result.value; // Simulate passing result.value
               if (isOrder) {
                 const card = btn.closest('.order-card');
                 card.dataset.status = 'return-pending';
@@ -533,7 +583,7 @@
                 returnReasonDiv.innerHTML = `
                   <div class="detail-box">
                     <div class="detail-label">Return Reason</div>
-                    <div class="detail-value">${result.value}</div>
+                    <div class="detail-value">${localResult.value || 'N/A'}</div>
                   </div>
                 `;
                 card.querySelector('.row.g-3').appendChild(returnReasonDiv);
@@ -546,6 +596,137 @@
             });
           });
         });
+
+        // Handle Repeat Payment for pending online payments
+        document.querySelectorAll('.repeat-payment-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const orderId = btn.dataset.orderId;
+            const confirmResult = await Swal.fire({
+              title: 'Repeat Payment',
+              text: `Initiate payment again for order ${orderId}? This will open the payment gateway.`,
+              icon: 'question',
+              showCancelButton: true,
+              confirmButtonColor: '#ffc107',
+              cancelButtonColor: '#6c757d',
+              confirmButtonText: 'Yes, Pay Now',
+              cancelButtonText: 'Cancel'
+            });
+            if (!confirmResult.isConfirmed) return;
+            try {
+              const response = await axios.post('/account/orders/repeat-payment', { orderId });
+              console.log('Repeat payment response:', response.data); // Debug log
+              if (response.data.success) {
+                const { id, amount, currency, orderId: respOrderId } = response.data;
+                await Swal.fire({
+                  title: 'Redirecting to Payment...',
+                  text: 'Opening secure payment gateway.',
+                  icon: 'info',
+                  timer: 1500,
+                  showConfirmButton: false
+                });
+
+                // Load Razorpay script if not loaded
+                if (typeof Razorpay === 'undefined') {
+                  const script = document.createElement('script');
+                  script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+                  script.async = true;
+                  script.onload = () => {
+                    console.log('Razorpay script loaded, opening checkout'); // Debug
+                    openRazorpayCheckout(id, amount, currency, respOrderId);
+                  };
+                  script.onerror = () => {
+                    console.error('Failed to load Razorpay script'); // Debug
+                    Swal.fire('Error', 'Failed to load payment gateway. Please try again.', 'error');
+                  };
+                  document.head.appendChild(script);
+                } else {
+                  console.log('Razorpay already loaded, opening checkout'); // Debug
+                  openRazorpayCheckout(id, amount, currency, respOrderId);
+                }
+              } else {
+                console.error('Repeat payment failed:', response.data.error); // Debug
+                await Swal.fire({
+                  title: 'Error',
+                  text: response.data.error || 'Failed to initiate repeat payment.',
+                  icon: 'error',
+                  confirmButtonColor: '#0d6efd'
+                });
+              }
+            } catch (error) {
+              console.error('Error initiating repeat payment:', error); // Debug
+              await Swal.fire({
+                title: 'Error',
+                text: 'An error occurred while initiating payment. Please try again.',
+                icon: 'error',
+                confirmButtonColor: '#0d6efd'
+              });
+            }
+          });
+        });
+
+        function openRazorpayCheckout(order_id, amount, currency, orderId) {
+          console.log('Opening Razorpay checkout with order_id:', order_id); // Debug
+          const options = {
+            key: RAZORPAY_KEY,
+            amount: amount / 100, // Amount in rupees for display
+            currency: currency,
+            name: 'Your Store Name', // Customize
+            description: `Payment for Order ${orderId}`,
+            order_id: order_id,
+            handler: async function (razorpayResponse) {
+              console.log('Razorpay response:', razorpayResponse); // Debug
+              try {
+                const verifyResponse = await axios.post('/order/verifyPayment', {
+                  razorpayPaymentId: razorpayResponse.razorpay_payment_id,
+                  razorpayOrderId: razorpayResponse.razorpay_order_id,
+                  razorpaySignature: razorpayResponse.razorpay_signature,
+                  dbOrderId:orderId
+                });
+                console.log('Verify response:', verifyResponse.data); // Debug
+                if (verifyResponse.data.success) {
+                  await Swal.fire({
+                    title: 'Payment Successful!',
+                    text: 'Order confirmed. Reloading page...',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                  });
+                  location.reload();
+                } else {
+                  await Swal.fire({
+                    title: 'Payment Verified Failed',
+                    text: verifyResponse.data.message || 'Please contact support.',
+                    icon: 'error'
+                  });
+                }
+              } catch (error) {
+                console.error('Verification error:', error); // Debug
+                await Swal.fire({
+                  title: 'Verification Error',
+                  text: 'Payment may have succeeded, but verification failed. Contact support.',
+                  icon: 'error'
+                });
+              }
+            },
+            prefill: {
+              // Optional: Fetch or hardcode user details
+              name: '',
+              email: '',
+              contact: ''
+            },
+            theme: {
+              color: '#0d6efd'
+            },
+            modal: {
+              ondismiss: function () {
+                console.log('Payment modal dismissed'); // Debug
+              }
+            }
+          };
+
+          const rzp = new Razorpay(options);
+          rzp.open();
+        }
       });
     </script>
   </body>

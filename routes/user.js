@@ -101,6 +101,9 @@ router.post('/create-order',userConfirmed,paymentController. razorpaySetup)
 router.post('/order/verifyPayment',userConfirmed,paymentController.verifyPayment)
 //coupon adding
 router.post("/checkout/apply-coupon",userConfirmed,userProfileController.couponLogic)
+//payment agin
+
+router.post('/account/orders/repeat-payment',userConfirmed,paymentController.repeatPayment)
 
 module.exports = router;
   

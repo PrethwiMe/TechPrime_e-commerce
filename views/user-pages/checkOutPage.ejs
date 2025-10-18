@@ -443,7 +443,7 @@
 
                 const confirm = await axios.post("/order/verifyPayment", verifyPayload);
 
-                if (confirm.data.status === "success") {
+                if (confirm.data.success) {
                   new bootstrap.Modal(document.getElementById("orderSuccessModal")).show();
                   confetti({ particleCount: 200, spread: 120, origin: { y: 0.6 } });
                 } else {

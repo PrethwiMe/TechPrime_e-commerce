@@ -26,7 +26,6 @@ const adminModal = require('../model/adminModel');
 exports.viewProfile = async (req, res) => {
 
   const userId = req.session.user
-  console.log("userId :::::", userId);
   const user = await userModel.fetchUser(userId.email);
 
   if (req.session.user) {

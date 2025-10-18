@@ -24,7 +24,6 @@ exports.fetchUser = async (email) => {
   try {
     const db =await getDB();
     let data = await db.collection(dbVariables.userCollection).findOne( { email: email, isActive: true });
-    console.log("fetchUser data:", data);
     return data;
   } catch (error) {
     console.log(error);

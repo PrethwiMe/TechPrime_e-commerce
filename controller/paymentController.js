@@ -9,7 +9,6 @@ const { updateAddress } = require('./userProfileController');
 
 
 exports.razorpaySetup = async (req, res) => {
-  console.log("data for backend", JSON.stringify(req.body, null, 2));
 
   if (!req.session.user) {
     return res.status(401).json({ error: 'Please log in to proceed' });
@@ -35,7 +34,7 @@ exports.razorpaySetup = async (req, res) => {
   const currency = 'INR';
   const userId = req.session.user.userId;
 
-  // 🧾 Calculate totals like COD
+  // Calculate totals
   let cartOriginal = 0;
   let cartDiscount = 0;
 
@@ -57,6 +56,7 @@ exports.razorpaySetup = async (req, res) => {
       subtotal: discounted,
       appliedOffer: item.appliedOffer || false,
       itemStatus: 'Pending'
+      
     };
   });
 
@@ -90,11 +90,10 @@ exports.razorpaySetup = async (req, res) => {
     currency
   };
 
-  // 🧠 Save to DB
-  await userProfileModel.addNewOrder(userId, orderData);
-
-  // 🧹 Clear cart
-  await userProfileModel.deleteCart(userId);
+  // Save to DB
+  let result = await userProfileModel.addNewOrder(userId, orderData);
+  //  Clear cart
+  //await userProfileModel.deleteCart(userId);
 
   res.status(200).json({
     id: razorpayOrder.id,
@@ -104,19 +103,17 @@ exports.razorpaySetup = async (req, res) => {
   });
 };
 
-
-
 //////////////////////////
 
 exports.verifyPayment = async (req, res) => {
+
+console.log("ddddd",req.body);
   try {
     const {
-      selectedAddress,
-      paymentMethod,
       razorpayPaymentId,
       razorpayOrderId,
       razorpaySignature,
-      couponCode
+      dbOrderId
     } = req.body;
 
     const generatedSignature = crypto
@@ -127,57 +124,100 @@ exports.verifyPayment = async (req, res) => {
     if (generatedSignature !== razorpaySignature) {
       return res.status(400).json({ success: false, message: "Invalid signature" });
     }
+    console.log("orderId", dbOrderId);
+    const order = await userProfileModel.showOrderVerify(dbOrderId);
 
-    //  Use session.cart
-    const cart = req.session.cart;
-    if (!cart || !cart.items.length) {
-      return res.status(400).json({ success: false, message: "Cart is empty" });
+    console.log("order is", order);
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
     }
 
-    // Fetch order placeholder
-    let order = await userProfileModel.showOrderVerify(razorpayOrderId);
-    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
+    console.log("razorpayOrderId", razorpayOrderId);
 
-    // Update order with cart data
     const updateOrder = await userProfileModel.orderUpdate(razorpayOrderId, {
-      userId: req.session.user.userId,
-      items: cart.items.map(item => ({
-        productId: item.product._id,
-        variantId: item.variant._id,
-        quantity: item.quantity,
-        originalPrice: item.originalPrice,
-        discountedPrice: item.discountedPrice,
-        itemDiscount: item.itemDiscount,
-        subtotal: item.itemSubtotal,
-        appliedOffer: item.appliedOffer || null,
-        itemStatus: "Pending"
-      })),
-      subtotal: cart.cartSubtotal,
-      cartOriginal: cart.cartOriginal,
-      cartDiscount: cart.cartDiscount,
-      total: cart.cartSubtotal + Number(cart.deliveryCharge || 0) + Number(cart.tax || 0),
-      deliveryCharge: cart.deliveryCharge || 0,
-      tax: cart.tax || 0,
-      couponCode: couponCode || "",
-      paymentMethod,
       paymentStatus: "paid",
       razorpayPaymentId,
-      razorpayOrderId,
       razorpaySignature,
-      selectedAddress,
-      status: "Pending",
-      updatedAt: new Date()
+      status: "Confirmed", 
     });
+console.log("updateOrder pcontroller ",updateOrder);
 
     if (updateOrder.modifiedCount > 0) {
-      //  Clear cart session after successful order
-      req.session.cart = null;
-      return res.json({ status: "success" });
+      return res.json({ success: true, message: "Payment verified successfully" });
     } else {
-      return res.status(400).json({ status: "failed" });
+      return res.status(400).json({ success: false, message: "Payment update failed" });
     }
+
   } catch (error) {
-    console.log("Error in verifyPayment:", error);
-    res.status(500).json({ success: false });
+    console.error("Error in verifyPayment:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.repeatPayment = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+
+    if (!req.session.user) {
+      return res.status(401).json({ error: 'Please log in to proceed' });
+    }
+
+    if (!orderId) {
+      return res.status(400).json({ error: 'Order ID is required' });
+    }
+
+    const userId = req.session.user.userId;
+    const order = await userProfileModel.getOrderByOrderId(userId, orderId);
+    if (!order || order.userId.toString() !== userId.toString()) {
+      return res.status(404).json({ success: false, error: 'Order not found or unauthorized' });
+    }
+
+    if (
+      order.status !== 'Pending' ||
+      order.paymentMethod !== 'online' ||
+      order.paymentStatus !== 'pending'
+    ) {
+      return res.status(400).json({ success: false, error: 'This order is not eligible for repeat payment' });
+    }
+
+    const amount = Math.round(order.total * 100);
+    const currency = 'INR';
+    const newReceipt = `receipt_repeat_${Date.now()}`;
+
+    const newRazorpayOrder = await req.app.locals.razorpay.orders.create({
+      amount,
+      currency,
+      receipt: newReceipt,
+      notes: {
+        userId: userId.toString(),
+        originalOrderId: order.orderId,
+        repeatAttempt: true
+      }
+    });
+console.log("New Razorpay order created for repeat payment:", newRazorpayOrder.id);
+    const updateResult = await userProfileModel.updateRetryPaymentOrder(order.razorpayOrderId, {
+      retryRazorpayOrderId: newRazorpayOrder.id,
+      retryReceipt: newReceipt,
+      updatedAt: new Date(),
+    });
+
+    console.log(updateResult," update result for repeat payment ");
+    if (updateResult.modifiedCount === 0) {
+      return res.status(500).json({ success: false, error: 'Failed to update order for repeat payment' });
+    }
+
+    res.json({
+      success: true,
+      paymentUrl: `/order/verifyPayment?razorpayOrderId=${newRazorpayOrder.id}`,
+      id: newRazorpayOrder.id,
+      amount: newRazorpayOrder.amount,
+      currency: newRazorpayOrder.currency,
+      orderId: order.orderId,
+    });
+
+    console.log("Repeat payment Razorpay order created:", newRazorpayOrder.id);
+  } catch (error) {
+    console.error('Repeat payment error:', error);
+    res.status(500).json({ success: false, error: 'Failed to initiate repeat payment' });
   }
 };

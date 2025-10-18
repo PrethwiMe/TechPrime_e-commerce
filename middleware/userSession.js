@@ -22,9 +22,6 @@ const userConfirmed = (req, res, next) => {
     phone: '7034271417',
     role: 'user'
   }
-  console.log("session middileware............");
-  
-    console.log(req.session.user);
     
   if (req.session.user || req.user) {
     return next(); 

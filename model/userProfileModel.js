@@ -367,23 +367,37 @@ exports.canceleachItems = async (data) => {
     return { success: false, message: "Something went wrong" };
   }
 };
-exports.showOrderVerify = async (id) => {
+exports.showOrderVerify = async (dbOrderId) => {
   const db = await getDB();
-  const order = await db.collection(dbVariables.orderCollection).findOne({razorpayOrderId:id})
-  return order
-}
+  return await db.collection(dbVariables.orderCollection).findOne(
+      {orderId : dbOrderId });
+};
+
 exports.orderUpdate = async (razorpayOrderId, data) => {
   const db = await getDB();
 
-  // Destructure fields from req.body
-  const { selectedAddress,paymentMethod,items,subtotal,tax,deliveryCharge,total,couponCode,razorpayPaymentId,razorpayOrderId: rOrderId,razorpaySignature} = data;
+  const existing = await db.collection(dbVariables.orderCollection).findOne({
+    $or: [
+      { razorpayOrderId: razorpayOrderId },
+      { "retryRazorpayOrderId.retryRazorpayOrderId": razorpayOrderId }
+    ]
+  });
+  const updateFields = { updatedAt: new Date() };
+  if (data.paymentStatus) updateFields.paymentStatus = data.paymentStatus;
+  if (data.razorpayPaymentId) updateFields.razorpayPaymentId = data.razorpayPaymentId;
+  if (data.razorpaySignature) updateFields.razorpaySignature = data.razorpaySignature;
+  if (data.status) updateFields.status = data.status;
 
-  const updateOrder = await db.collection(dbVariables.orderCollection).updateOne({ razorpayOrderId }, 
-      {$set: { selectedAddress,paymentMethod,items,subtotal,tax,deliveryCharge,total,couponCode,razorpayPaymentId,
-          razorpayOrderId: rOrderId,razorpaySignature,paymentStatus: "paid", status: "Pending", updatedAt: new Date()}}
-    );
-
-  return updateOrder;
+  const result = await db.collection(dbVariables.orderCollection).updateOne(
+    {
+      $or: [
+        { razorpayOrderId: razorpayOrderId },
+        { "retryRazorpayOrderId.retryRazorpayOrderId": razorpayOrderId }
+      ]
+    },
+    { $set: updateFields }
+  );
+  return result;
 };
 
 exports.checkCoupon = async (data) => {
@@ -391,3 +405,32 @@ exports.checkCoupon = async (data) => {
   const response = await db.collection(dbVariables.couponCollection).findOne({code:data})
   return response;
 }
+exports.getOrderByOrderId = async (userId,code) => {
+
+  const db = await getDB();
+  const order = await db.collection(dbVariables.orderCollection).findOne({orderId:code,userId:userId})
+  return order
+
+}
+exports.updateRetryPaymentOrder = async (razorpayOrderId, newRazorpayOrderId, newReceipt) => {
+  try {
+    const db = await getDB();
+
+    const result = await db.collection(dbVariables.orderCollection).updateOne(
+      { razorpayOrderId: razorpayOrderId },
+      {
+        $set: {
+          retryRazorpayOrderId: newRazorpayOrderId,
+          retryReceipt: newReceipt,
+          updatedAt: new Date(),
+        },
+      }
+    );
+
+    console.log('🔁 Retry payment fields updated:', result);
+    return result;
+  } catch (err) {
+    console.error('Error updating retry payment order:', err);
+    throw err;
+  }
+};
