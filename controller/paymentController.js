@@ -93,7 +93,7 @@ exports.razorpaySetup = async (req, res) => {
   // Save to DB
   let result = await userProfileModel.addNewOrder(userId, orderData);
   //  Clear cart
-  //await userProfileModel.deleteCart(userId);
+  await userProfileModel.deleteCart(userId);
 
   res.status(200).json({
     id: razorpayOrder.id,
@@ -107,7 +107,6 @@ exports.razorpaySetup = async (req, res) => {
 
 exports.verifyPayment = async (req, res) => {
 
-console.log("ddddd",req.body);
   try {
     const {
       razorpayPaymentId,
@@ -124,15 +123,12 @@ console.log("ddddd",req.body);
     if (generatedSignature !== razorpaySignature) {
       return res.status(400).json({ success: false, message: "Invalid signature" });
     }
-    console.log("orderId", dbOrderId);
     const order = await userProfileModel.showOrderVerify(dbOrderId);
 
-    console.log("order is", order);
     if (!order) {
       return res.status(404).json({ success: false, message: "Order not found" });
     }
 
-    console.log("razorpayOrderId", razorpayOrderId);
 
     const updateOrder = await userProfileModel.orderUpdate(razorpayOrderId, {
       paymentStatus: "paid",
@@ -140,7 +136,6 @@ console.log("ddddd",req.body);
       razorpaySignature,
       status: "Confirmed", 
     });
-console.log("updateOrder pcontroller ",updateOrder);
 
     if (updateOrder.modifiedCount > 0) {
       return res.json({ success: true, message: "Payment verified successfully" });
@@ -194,14 +189,12 @@ exports.repeatPayment = async (req, res) => {
         repeatAttempt: true
       }
     });
-console.log("New Razorpay order created for repeat payment:", newRazorpayOrder.id);
     const updateResult = await userProfileModel.updateRetryPaymentOrder(order.razorpayOrderId, {
       retryRazorpayOrderId: newRazorpayOrder.id,
       retryReceipt: newReceipt,
       updatedAt: new Date(),
     });
 
-    console.log(updateResult," update result for repeat payment ");
     if (updateResult.modifiedCount === 0) {
       return res.status(500).json({ success: false, error: 'Failed to update order for repeat payment' });
     }
@@ -215,7 +208,6 @@ console.log("New Razorpay order created for repeat payment:", newRazorpayOrder.i
       orderId: order.orderId,
     });
 
-    console.log("Repeat payment Razorpay order created:", newRazorpayOrder.id);
   } catch (error) {
     console.error('Repeat payment error:', error);
     res.status(500).json({ success: false, error: 'Failed to initiate repeat payment' });

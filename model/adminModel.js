@@ -290,10 +290,9 @@ exports.addCoupon = async (data) => {
   const result = await db.collection(dbVariables.couponCollection).insertOne(data);
   return result;
 }
-
 exports.viewCouponPage = async () => {
   const db = await getDB();
-  const response = await db.collection(dbVariables.couponCollection).find().toArray();
+  const response = await db.collection(dbVariables.couponCollection).find({isActive:true}).toArray();
   return response;
 }
 exports.checkOffers = async (query) => {
@@ -333,3 +332,25 @@ exports.checkOffers = async (query) => {
     return null;
   }
 };
+exports.deleteCoupon = async (couponId) => {
+const db = await getDB();
+console.log(couponId);
+const response = await db.collection(dbVariables.couponCollection).updateOne({_id: new ObjectId(couponId)},{$set:{isActive:false}})
+return response;
+
+}
+exports.editCoupon = async (couponId, data) => {
+
+  const db = await getDB();
+
+  data ={
+    couponId,
+    ...data
+  }
+  const response = await db.collection(dbVariables.couponCollection).updateOne(
+    { _id: new ObjectId(couponId) },
+    { $set: data }
+  );
+
+  return response;
+}

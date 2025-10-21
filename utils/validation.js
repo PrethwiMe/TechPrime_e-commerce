@@ -127,24 +127,82 @@ const categoryValidation = (data) => {
   return schema.validate(data);
 };
 
-/* =====================
-   COUPON VALIDATIONS
-   ===================== */
+
 const couponValidation = (data) => {
+ 
   const schema = Joi.object({
+  id: Joi.string().optional().messages({
+      "string.base": "Coupon ID must be a string"
+    }),
     code: Joi.string()
       .pattern(/^[A-Z0-9]{5,10}$/)
-      .message("Coupon code must be 5–10 chars (A-Z, 0-9 only)")
-      .required(),
-    discountType: Joi.string().valid("percentage", "fixed").required(),
-    discountValue: Joi.number().positive().required(),
-    minPurchase: Joi.number().positive().default(0),
-    expiryDate: Joi.date().greater("now").required(),
+      .required()
+      .messages({
+        "string.pattern.base": "Coupon code must be 5–10 chars (A-Z, 0-9 only)",
+        "any.required": "Coupon code is required"
+      }),
+
+    discount: Joi.number()
+      .positive()
+      .min(1)
+      .max(100)
+      .required()
+      .messages({
+        "number.base": "Discount must be a number",
+        "number.min": "Discount must be at least 1",
+        "number.max": "Discount cannot exceed 100",
+        "any.required": "Discount is required"
+      }),
+
+    minPurchase: Joi.number()
+      .positive()
+      .default(0)
+      .messages({
+        "number.base": "Minimum purchase must be a number",
+        "number.min": "Minimum purchase must be positive"
+      }),
+
+    validFrom: Joi.date()
+      .iso()
+      .required()
+      .custom((value, helpers) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const inputDate = new Date(value);
+        inputDate.setHours(0, 0, 0, 0);
+        if (inputDate < today) return helpers.error("date.less");
+        return value;
+      })
+      .messages({
+        "date.less": "Valid From must be today or a future date",
+        "any.required": "Valid From is required",
+      }),
+
+    validUntil: Joi.date()
+      .iso()
+      .required()
+      .custom((value, helpers) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const inputDate = new Date(value);
+        inputDate.setHours(0, 0, 0, 0);
+        if (inputDate < today) return helpers.error("date.less");
+        return value;
+      })
+      .greater(Joi.ref("validFrom"))
+      .messages({
+        "date.less": "Valid Until must be today or a future date",
+        "date.greater": "Valid Until must be after Valid From",
+        "any.required": "Valid Until is required",
+      }),
+
     isActive: Joi.boolean().default(true),
   });
 
-  return schema.validate(data);
+  return schema.validate(data, { abortEarly: false });
 };
+
+
 
 /* =====================
    ORDER VALIDATIONS
@@ -243,7 +301,7 @@ const offerValidation = (data) => {
     }),
 
     categoryId: Joi.when("appliesTo", {
-      is: "category",   // ✅ must match above
+      is: "category",   
       then: Joi.string().length(24).required().messages({
         "any.required": "Category ID is required when appliesTo is 'category'",
         "string.length": "Category ID must be a valid 24-character ObjectId"
@@ -275,9 +333,7 @@ const offerValidation = (data) => {
   return schema.validate(data, { abortEarly: false });
 };
 
-/* =====================
-   EXPORTS
-   ===================== */
+
 module.exports = {
   signupValidation,
   loginValidation,

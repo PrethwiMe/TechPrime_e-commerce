@@ -466,6 +466,7 @@ exports.viewCart = async (req, res) => {
     const userId = req.session.user.userId;
     let data = await userModel.viewCartData(userId);
 
+
     if (!data || !Array.isArray(data.items) || data.items.length === 0) {
       req.session.cart = null;
       return res.render("user-pages/cart.ejs", {

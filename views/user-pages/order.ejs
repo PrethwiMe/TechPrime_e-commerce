@@ -552,7 +552,7 @@
             const isOrder = btn.classList.contains('return-order-btn');
             const [orderId, variantId] = isOrder ? [btn.dataset.return] : btn.dataset.returnItem.split('_');
             const localResult = {}; // Placeholder for result.value in closure
-            handleAction(isOrder ? '/account/orders/return' : '/account/orders/return-item', {
+            handleAction(isOrder ? '/account/orders/return' : '/account/orders/return', {
               text: `Request return for ${isOrder ? 'order' : 'item in order'} ${orderId}?`,
               input: {
                 input: 'textarea',

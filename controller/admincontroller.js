@@ -3,7 +3,7 @@ const adminModel = require('../model/adminModel')
 const bcrypt = require('bcrypt');
 const paginate = require('../utils/paginate');
 const productModel = require('../model/productModels');
-const {offerValidation} = require('../utils/validation')
+const {offerValidation,couponValidation} = require('../utils/validation')
 
 
 // clear-require-cache.js
@@ -202,7 +202,6 @@ exports.viewOffer = async (req, res) => {
     });
   }
 };
-
 // add offers
 exports.addOffers = async (req, res) => {
   const { error, value } = offerValidation(req.body);
@@ -255,7 +254,6 @@ exports.disableOffer = async (req,res) => {
 
      res.status(400).json({success:false,message:"error in delete"})
 }
-
 exports.couponPage =async (req, res) => {
   const generateCouponCode = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -267,16 +265,19 @@ exports.couponPage =async (req, res) => {
   };
 
   let result = await adminModel.viewCouponPage();
-
   res.render('admin-pages/coupons.ejs', {
     coupons: result || [],           
     generatedCode: generateCouponCode()
   });
 };
-
-
 exports.addCoupon = async (req, res) => {
   try {
+    const {error, value} = couponValidation(req.body);
+    if (error) {
+      console.log("req.body",req.body);
+      console.log("errror",error);
+      return res.status(400).json({ success: false, message: error.details[0].message });
+    }
     let { code, discount, validFrom, validUntil, minPurchase } = req.body;
 
     discount = Number(discount);
@@ -310,3 +311,28 @@ if(response){
     res.status(500).send('Server error while adding coupon');
   }
 };
+exports.deleteCoupon = async (req, res) => {
+  const couponId = req.params.couponId;
+  console.log("Coupon ID to delete:", couponId);
+let response = await adminModel.deleteCoupon(couponId);
+console.log("Delete response:", response);
+if (response && response.modifiedCount > 0) {
+  return res.status(200).json({ success: true, message: "Coupon removed successfully" })
+}
+}
+exports.editCoupon = async (req, res) => {
+  try {
+    const { error, value } = couponValidation(req.body);
+    if (error) return res.status(400).json({ success: false, message:error.details[0].message, details: error.details });
+
+    const couponId = req.params.couponId;
+    let response = await adminModel.editCoupon(couponId, req.body);
+if (response && response.modifiedCount > 0) {
+      return res.status(200).json({ success: true, message: "Coupon updated successfully" });
+    }
+
+  } catch (error) {
+    console.error("Error editing coupon:", error);
+    res.status(500).json({ success: false, message: "Server error while editing coupon" });
+  }
+}

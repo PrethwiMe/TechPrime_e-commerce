@@ -60,4 +60,8 @@ router.put('/offers/:offerId',sessionHandle.adminConfirmed,adminController.disab
 router.get('/coupons',sessionHandle.adminConfirmed,adminController.couponPage)
 //add coupons
 router.post('/coupons/add',sessionHandle.adminConfirmed,adminController.addCoupon)
+//remoe coupons
+router.post('/coupons/delete/:couponId',sessionHandle.adminConfirmed,adminController.deleteCoupon)
+//edit coupons
+router.post('/coupons/edit/:couponId',sessionHandle.adminConfirmed,adminController.editCoupon)    
 module.exports = router;
