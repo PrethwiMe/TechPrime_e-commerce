@@ -427,7 +427,6 @@ exports.invoice = async (req, res) => {
     const userId = req.session.user.userId;
     const orderId = req.params;
     let data = await userProfileModel.invoiceData(userId, orderId);
-
     if (!data || !data.order) {
       return res.status(404).send("Invoice data not found");
     }
@@ -581,8 +580,8 @@ exports.invoice = async (req, res) => {
         .text(item.productName, itemX + 5, y + 5, { width: 90, ellipsis: true })
         .text(`${item.processor} / ${item.ram} / ${item.storage}`, descX + 5, y + 5, { width: 190, ellipsis: true })
         .text(item.quantity, qtyX + 5, y + 5, { align: 'center', width: 50 })
-        .text(`₹${Number(item.price).toLocaleString('en-IN')}`, priceX + 5, y + 5, { align: 'right', width: 50 })
-        .text(`₹${(item.quantity * item.price).toLocaleString('en-IN')}`, totalX + 5, y + 5, { align: 'right', width: 60 });
+        .text(`₹${Number(item.variantPrice).toLocaleString('en-IN')}`, priceX + 5, y + 5, { align: 'right', width: 50 })
+        .text(`₹${(item.quantity * item.variantPrice).toLocaleString('en-IN')}`, totalX + 5, y + 5, { align: 'right', width: 60 });
 
       doc
         .rect(itemX, y, tableWidth, rowHeight)

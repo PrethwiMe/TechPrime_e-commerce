@@ -57,7 +57,8 @@ router.post('/cart/delete',userController.deleteCart)
 //whishlist
 router.post('/wishlist',userConfirmed,userController.whishList)
 router.get('/viewWishList',userConfirmed,userController.whishListCall)
-
+//delete from wishlist
+router.post('/wishlist/delete',userConfirmed,userController.deleteWishList)
 //account settings account
 router.get('/account',userConfirmed,userProfileController.viewProfile)
 //view address

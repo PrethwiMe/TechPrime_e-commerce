@@ -372,7 +372,6 @@ exports.updateEmail = async (id,email) => {
   const update = await db.collection(dbVariables.userCollection).updateOne({_id:new ObjectId(id)},{$set:{email:email}});
   return update;
 }
-
 exports.updateOfferInCart = async (userId, productId, offerdata) => {
   try {
     const db = await getDB();
@@ -395,3 +394,8 @@ exports.updateOfferInCart = async (userId, productId, offerdata) => {
     console.log("Error in updateOfferInCart:", error);
   }
 };
+exports.deleteWishListProduct = async (userId,productId) => {
+  const db = await getDB();
+  const deleteData = await db.collection(dbVariables.whishList).deleteOne({ userId: userId, productId: productId });
+  return deleteData;
+}

@@ -185,8 +185,6 @@ exports.emailOfUser = async (req, res) => {
   let d = await sendMail(user.email, otp, "forgot")
   res.render('user-pages/otpForgot', { email: user.email, err: null })
 }
-
-
 exports.verifyForgotOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -244,7 +242,6 @@ exports.verifyForgotOtp = async (req, res) => {
     return res.status(500).send("Server error");
   }
 };
-
 exports.forgotResend = async (req, res) => {
   try {
     const mail = req.query.email;
@@ -262,9 +259,7 @@ exports.forgotResend = async (req, res) => {
     return res.status(500).json({ success: false, error: "Server error" });
   }
 };
-
 //forgot new password
-
 exports.savePassword = async (req, res) => {
   try {
     const { email, password, confirmPassword } = req.body;
@@ -574,7 +569,6 @@ exports.viewCart = async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 };
-
 //cart + -
 exports.quntityControlCart = async (req, res) => {
   try {
@@ -615,8 +609,7 @@ exports.deleteCart = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
-// controller
+// 
 exports.whishList = async (req, res) => {
   try {
     const userId = req.session?.user?.userId;
@@ -634,11 +627,26 @@ exports.whishList = async (req, res) => {
     res.json({ success: false, message: "Server error, try again later" });
   }
 };
-////whishList
+////view whishList
 exports.whishListCall = async (req,res) => {
   const id = req.session.user.userId
   let wishlist = await userModel.viewWishList(id);
   res.render('user-pages/whishlist.ejs',{wishlist})
 }
+//delete from wishlist
+exports.deleteWishList = async (req, res) => {
+try {
+  const userId = req.session.user.userId;
+  const{  productId } = req.body;
+  let result = await userModel.deleteWishListProduct(userId,productId)
 
+  if (result.modifiedCount > 0) {
+    return  res.json({ success: true, message: "product deleted from wishlist..!" });
+  }
+} catch (error) {
+  console.log(error);
+  res.status(500).json({ success: false, message: "product can not delete now..!" });
+}
+
+}
 
