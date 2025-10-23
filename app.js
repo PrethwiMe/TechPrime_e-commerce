@@ -13,9 +13,6 @@ const limitTextLength = require("./middleware/limitChar");
 const Razorpay = require('razorpay');
 const now = new Date();
 
-
-
-
 process.on('unhandledRejection', (reason, promise) => {
   console.error('⚠️ Unhandled Promise Rejection:');
   console.error(reason); 

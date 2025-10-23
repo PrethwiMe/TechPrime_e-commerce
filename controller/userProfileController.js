@@ -39,7 +39,7 @@ exports.viewProfile = async (req, res) => {
     })
   }
 
-  res.render('user-pages/profile.ejs', { user })
+  res.render('user-pages/profile.ejs', { user, image: null });
 }
 //add address
 exports.addAddress = async (req, res) => {

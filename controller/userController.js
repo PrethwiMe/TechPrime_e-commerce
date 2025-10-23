@@ -51,10 +51,16 @@ exports.loginAccess = async (req, res) => {
     }
 
     const user = await userModel.fetchUser(email);
+    console.log("Login attempt for user:", user);  
     if (!user) {
       return res.status(404).json({ error: 'User not found.' });
     }
-
+    if (!user.isActive) {
+      return res.status(403).json({ error: 'Account not activated. Please verify your email.' });
+    }
+    if (user.isActive === "blocked") {
+      return res.status(403).json({ error: 'Account is blocked. Please contact support.' });
+    }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ error: 'Invalid email or password.' });
@@ -436,9 +442,11 @@ exports.loadProductDetails = async (req, res) => {
 }
 //add to carts
 exports.addToCart = async (req, res) => {
-try {
+  try {
+  const { productId, variantId, productName } = req.body;
 
-    const { productId, variantId, productName } = req.body;
+  let deletefromWishlist = await userModel.deleteWishListProduct(req.session.user.userId,productId)
+
   const Id = req.session.user.userId
   const name = req.session.user.name
   const data = await userModel.addToCartdb(Id, productId, variantId, productName)

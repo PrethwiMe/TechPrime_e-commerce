@@ -61,11 +61,11 @@ exports.userControll = async (id) => {
       // Disable the user
       let result = await db.collection(dbVariables.userCollection).updateOne(
         { _id: new ObjectId(id) },
-        { $set: { isActive: false } }
+        { $set: { isActive: "blocked" } }
       );
       console.log(result);
       return true
-    } else if (user.isActive === false) {
+    } else if (user.isActive === "blocked") {
       // Enable the user
       console.log("false");
       let result = await db.collection(dbVariables.userCollection).updateOne(

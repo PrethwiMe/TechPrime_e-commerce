@@ -23,7 +23,7 @@ exports.insertUser = async (userdata) => {
 exports.fetchUser = async (email) => {
   try {
     const db =await getDB();
-    let data = await db.collection(dbVariables.userCollection).findOne( { email: email, isActive: true });
+    let data = await db.collection(dbVariables.userCollection).findOne( { email: email });
     return data;
   } catch (error) {
     console.log(error);
@@ -133,7 +133,6 @@ exports.addToCartdb = async (userId, productId, variantId, productName) => {
     return { success: false, message: "Product is out of stock" };
   }
 };
-
 exports.viewCartData = async (userId) => {
   const db = await getDB();
 
@@ -272,7 +271,6 @@ exports.viewCartData = async (userId) => {
 
   return data[0] || null; // return null if no cart
 };
-
 //contol cart function
 exports.controllCart = async (userId, productId, variantId, op) => {
   const db = await getDB();
@@ -398,4 +396,13 @@ exports.deleteWishListProduct = async (userId,productId) => {
   const db = await getDB();
   const deleteData = await db.collection(dbVariables.whishList).deleteOne({ userId: userId, productId: productId });
   return deleteData;
+}
+exports.deletefromWishlist = async (userId,productId) => {
+  try {
+    const db = await getDB();
+    const deleteData = await db.collection(dbVariables.whishList).deleteOne({ userId: userId, productId: productId });
+    return deleteData;
+  } catch (error) {
+    console.log(error);
+  }
 }
