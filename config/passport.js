@@ -1,6 +1,6 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const  getDB  = require('./mongodb');
+const  {getDB}  = require('./mongodb');
 const dbVariables = require('./databse');
 const userModel = require('../model/userModel')
 
@@ -37,7 +37,7 @@ passport.use(
             firstName: profile.name.givenName || '',
             lastName: profile.name.familyName || '',
             email: profile.emails[0].value,
-            password: null, // No password for Google users
+            password: null, 
             isActive: true,
             createdAt: new Date(),
             googleId: profile.id

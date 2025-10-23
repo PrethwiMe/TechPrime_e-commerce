@@ -10,7 +10,6 @@ const isUserLoggedIn = async (req, res, next) => {
 
     const db = await getDB();
     const user = await db.collection(dbVariables.userCollection).findOne({ _id: new ObjectId(req.session.user.userId) });
-console.log("from session ",user);
 
     if (!user || user.isActive === false || user.isActive === "blocked") {
       req.session.destroy((err) => {
@@ -47,7 +46,6 @@ const userConfirmed = async (req, res, next) => {
 
     const db = await getDB();
     const user = await db.collection(dbVariables.userCollection).findOne({ _id: new ObjectId(req.session.user.userId) });
-console.log("from session ",user);
     if (!user || user.isActive === false || user.isActive === "blocked") {
       req.session.destroy((err) => {
         if (err) console.error("Session destroy error:", err);

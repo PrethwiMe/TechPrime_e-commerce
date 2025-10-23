@@ -51,6 +51,10 @@ exports.loginAccess = async (req, res) => {
     }
 
     const user = await userModel.fetchUser(email);
+
+    if (user.googleId ) {
+      return res.status(400).json({ error: 'Please log in using Google OAuth.' });
+    }
     console.log("Login attempt for user:", user);  
     if (!user) {
       return res.status(404).json({ error: 'User not found.' });
@@ -326,6 +330,17 @@ exports.googleSuccessRedirect = async (req, res) => {
   if (!req.user) {
     return res.redirect('/login');
   }
+
+
+
+      req.session.user = {
+      userId: String(req.user._id),
+      firstName: req.user.firstName,
+      email: req.user.email,
+      role: req.user.role ,
+    };
+
+
   const data = await productModel.allProductsDisplay();
   const products = data;
   const categories = await productModel.getAllCategories();
