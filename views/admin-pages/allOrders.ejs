@@ -154,7 +154,7 @@
                   </td>
                   <td>₹ <%= parseFloat(order.total).toLocaleString() %></td>
                   <td>
-                    <select class="form-select form-select-sm order-status" data-id="<%= order._id %>" data-current-status="<%= order.status %>" <%= order.returnOrder ? 'disabled' : '' %>>
+                    <select class="form-select form-select-sm order-status" data-id="<%= order._id %>" data-current-status="<%= order.status %>" <%= order.returnOrder || order.status === 'Cancelled' || order.status === 'Delivered' ? 'disabled' : '' %>>
                       <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
                       <option value="Shipped" <%= order.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
                       <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
@@ -260,7 +260,7 @@
                           <td>₹ <%= item.discountedPrice.toLocaleString() %></td>
                           <td>₹ <%= (item.quantity * item.discountedPrice).toLocaleString() %></td>
                           <td>
-                            <select class="form-select form-select-sm item-status" data-id="<%= order._id %>" data-variant-id="<%= item.variantId %>" data-current-status="<%= item.itemStatus || 'Pending' %>" <%= item.returnStatus ? 'disabled' : '' %>>
+                            <select class="form-select form-select-sm item-status" data-id="<%= order._id %>" data-variant-id="<%= item.variantId %>" data-current-status="<%= item.itemStatus || 'Pending' %>" <%= item.returnStatus || item.itemStatus === 'Cancelled' || item.itemStatus === 'Delivered' ? 'disabled' : '' %>>
                               <option value="Pending" <%= (item.itemStatus || 'Pending') === 'Pending' ? 'selected' : '' %>>Pending</option>
                               <option value="Shipped" <%= item.itemStatus === 'Shipped' ? 'selected' : '' %>>Shipped</option>
                               <option value="Delivered" <%= item.itemStatus === 'Delivered' ? 'selected' : '' %>>Delivered</option>
@@ -340,13 +340,36 @@
           if (this.disabled) return;
           const { id, currentStatus } = this.dataset;
           const status = this.value;
+          const result = await Swal.fire({
+            title: `Update Order Status`,
+            text: `Are you sure you want to set order ${id} to ${status}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0d6efd',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: `Yes, set to ${status}`,
+            cancelButtonText: 'No, cancel'
+          });
+          if (!result.isConfirmed) {
+            this.value = currentStatus;
+            return;
+          }
           try {
             const { data } = await axios.post('/admin/order/updateOrderStatus', { orderId: id, status });
             if (data.success) {
               await showAlert('success', 'Order Status Updated', `Order status changed to "${status}"`);
               this.dataset.currentStatus = status;
               updateBadge(this.closest('.modal-content')?.querySelector('.badge-status'), status);
-              if (status === 'Cancelled') this.disabled = true;
+              if (status === 'Cancelled' || status === 'Delivered') {
+                this.disabled = true;
+                this.closest('tr').querySelectorAll('.item-status').forEach(sel => {
+                  if (sel.dataset.currentStatus !== 'Cancelled' && sel.dataset.currentStatus !== 'Delivered') {
+                    sel.value = status;
+                    sel.dataset.currentStatus = status;
+                    sel.disabled = true;
+                  }
+                });
+              }
             } else throw new Error('Failed to update order status!');
           } catch (err) {
             console.error('Error updating order status:', err);
@@ -364,7 +387,7 @@
           const itemStatus = this.value;
           const result = await Swal.fire({
             title: `Update Item Status`,
-            text: `Are you sure you want to set item in order ${id}?`,
+            text: `Are you sure you want to set item ${variantId} in order ${id} to ${itemStatus}?`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#0d6efd',
@@ -386,7 +409,23 @@
                 const modal = this.closest('.modal-content');
                 modal.querySelector('.order-total').textContent = parseFloat(data.updatedTotal).toLocaleString();
               }
-              if (itemStatus === 'Cancelled') this.disabled = true;
+              if (itemStatus === 'Cancelled' || itemStatus === 'Delivered') {
+                this.disabled = true;
+              }
+              // Update order status if all items have the same status
+              const allItems = Array.from(this.closest('tbody').querySelectorAll('.item-status'));
+              const allSameStatus = allItems.every(sel => sel.dataset.currentStatus === itemStatus);
+              if (allSameStatus) {
+                const orderSelect = this.closest('.modal-content').querySelector('.order-status');
+                if (orderSelect && !orderSelect.disabled) {
+                  orderSelect.value = itemStatus;
+                  orderSelect.dataset.currentStatus = itemStatus;
+                  updateBadge(this.closest('.modal-content').querySelector('.badge-status'), itemStatus);
+                  if (itemStatus === 'Cancelled' || itemStatus === 'Delivered') {
+                    orderSelect.disabled = true;
+                  }
+                }
+              }
             } else throw new Error(`Failed to set item status to ${itemStatus}.`);
           } catch (error) {
             console.error(`Error setting item status to ${itemStatus}:`, error);
