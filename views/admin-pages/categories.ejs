@@ -7,22 +7,20 @@
   <link rel="stylesheet" href="/stylesheets/adminDashboard.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
   <style>
     :root {
       --dark-primary: #1a1a2e;
       --dark-secondary: #16213e;
       --dark-accent: #0f3460;
-      --text-dark: #1f2937;
-      --text-light: #6b7280;
       --border-color: #e5e7eb;
       --success-color: #10b981;
+      --text-dark: #1f2937;
+      --text-light: #6b7280;
     }
 
-    body {
-      margin: 0;
-      padding: 0;
-      background: white;
-    }
+    body { margin: 0; background: white; }
 
     .admin-wrapper {
       display: flex;
@@ -50,22 +48,6 @@
       padding-top: 100px;
     }
 
-    .page-header {
-      background: linear-gradient(135deg, var(--dark-primary) 0%, var(--dark-secondary) 100%);
-      padding: 2rem;
-      border-radius: 1rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 10px 30px rgba(26, 26, 46, 0.15);
-    }
-
-    .page-header h2 {
-      color: white;
-      font-size: 1.875rem;
-      font-weight: 700;
-      margin: 0;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
     .form-section {
       background: white;
       padding: 2.5rem;
@@ -87,107 +69,14 @@
       font-size: 1.5rem;
       font-weight: 700;
       margin: 0;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
-    .form-label {
-      color: var(--text-dark);
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      font-size: 0.9375rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .form-label i {
-      color: var(--dark-primary);
-    }
-
-    .form-control,
-    .form-select {
+    .form-label { font-weight: 600; color: var(--text-dark); }
+    .form-control, .form-select {
       border: 2px solid var(--border-color);
       border-radius: 0.5rem;
       padding: 0.875rem 1rem;
-      color: var(--text-dark);
-      font-weight: 500;
-      transition: all 0.2s ease;
-      background: white;
     }
-
-    .form-control:focus,
-    .form-select:focus {
-      border-color: var(--dark-primary);
-      box-shadow: 0 0 0 3px rgba(26, 26, 46, 0.1);
-      outline: none;
-    }
-
-    .form-control::placeholder {
-      color: var(--text-light);
-    }
-
-    textarea.form-control {
-      min-height: 120px;
-      resize: vertical;
-    }
-
-    .form-check {
-      padding: 1rem;
-      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
-      border-radius: 0.5rem;
-      border: 2px solid var(--border-color);
-      transition: all 0.2s ease;
-    }
-
-    .form-check:hover {
-      border-color: var(--dark-primary);
-    }
-
-    .form-check-input {
-      width: 3rem;
-      height: 1.5rem;
-      cursor: pointer;
-      border: 2px solid var(--border-color);
-    }
-
-    .form-check-input:checked {
-      background-color: var(--success-color);
-      border-color: var(--success-color);
-    }
-
-    .form-check-input:focus {
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-    }
-
-    .form-check-label {
-      color: var(--text-dark);
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      margin-left: 0.5rem;
-    }
-
-    .alert {
-      border-radius: 0.75rem;
-      border: none;
-      padding: 1rem 1.5rem;
-      margin-bottom: 1.5rem;
-      font-weight: 500;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .alert-danger {
-      background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-      color: #991b1b;
-    }
-
-    .alert-danger i {
-      font-size: 1.25rem;
-    }
-
     .btn-submit {
       background: linear-gradient(135deg, var(--dark-primary) 0%, var(--dark-secondary) 100%);
       color: white;
@@ -195,71 +84,16 @@
       padding: 0.875rem 2rem;
       border-radius: 0.5rem;
       font-weight: 600;
-      font-size: 1rem;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(26, 26, 46, 0.3);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
+      box-shadow: 0 4px 12px rgba(26,26,46,0.3);
     }
-
     .btn-submit:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(26, 26, 46, 0.4);
-      background: linear-gradient(135deg, var(--dark-secondary) 0%, var(--dark-accent) 100%);
-      color: white;
+      box-shadow: 0 6px 20px rgba(26,26,46,0.4);
     }
-
-    .btn-submit:active {
-      transform: translateY(0);
-    }
-
-    .form-footer {
-      margin-top: 2rem;
-      padding-top: 2rem;
-      border-top: 2px solid var(--border-color);
-    }
-
     @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .mb-3 {
-      margin-bottom: 1.5rem;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .sidebar-fixed {
-        width: 0;
-        overflow: hidden;
-      }
-
-      .main-content {
-        margin-left: 0;
-        width: 100%;
-      }
-
-      .content-inner {
-        padding: 1rem;
-        padding-top: 80px;
-      }
-
-      .form-section {
-        padding: 1.5rem;
-      }
-
-      .form-section-header {
-        margin: -1.5rem -1.5rem 1.5rem -1.5rem;
-        padding: 1rem;
-      }
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
@@ -281,14 +115,7 @@
             <h3><i class="bi bi-folder-plus"></i> Add New Category</h3>
           </div>
 
-          <% if (error) { %>
-            <div class="alert alert-danger" role="alert">
-              <i class="bi bi-exclamation-triangle-fill"></i>
-              <span><%- error %></span>
-            </div>
-          <% } %>
-
-          <form action="/admin/categories/add" method="POST">
+          <form id="categoryForm">
             <div class="mb-3">
               <label for="name" class="form-label">
                 <i class="bi bi-tag-fill"></i> Category Name
@@ -312,7 +139,7 @@
                 class="form-control" 
                 id="description" 
                 rows="4"
-                placeholder="Provide a detailed description of this category..."
+                placeholder="Provide a detailed description..."
               ></textarea>
             </div>
 
@@ -331,7 +158,7 @@
               </div>
             </div>
 
-            <div class="form-footer">
+            <div class="form-footer mt-4">
               <button type="submit" class="btn-submit">
                 <i class="bi bi-check-circle-fill"></i> Add Category
               </button>
@@ -342,6 +169,59 @@
     </div>
   </div>
 
+  <!-- JS Files -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+    // Handle Category Form Submission
+    document.getElementById('categoryForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData.entries());
+      data.isActive = formData.get('isActive') === 'on';
+
+      try {
+        const response = await fetch('/admin/categories/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Category Added',
+            text: result.message || 'Category has been added successfully!',
+            confirmButtonColor: '#1a1a2e',
+            timer: 2000,
+            timerProgressBar: true
+          }).then(() => {
+            window.location.href = '/admin/view-categories'; // redirect after success
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: result.message || 'Something went wrong!',
+            confirmButtonColor: '#1a1a2e'
+          });
+        }
+
+      } catch (err) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Server Error',
+          text: 'An unexpected error occurred. Please try again later.',
+          confirmButtonColor: '#1a1a2e'
+        });
+        console.error(err);
+      }
+    });
+  </script>
+
 </body>
 </html>

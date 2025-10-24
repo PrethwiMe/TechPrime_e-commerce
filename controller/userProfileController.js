@@ -36,6 +36,8 @@ exports.viewProfile = async (req, res) => {
       _id: new ObjectId(id)
     }
     let data = await userModel.userCheck(query)
+
+    console.log("imageee",data);
     return res.render('user-pages/profile.ejs', {
       user, image: data || null
     })

@@ -3,191 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><%= product.name ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product Details' %> | TechCart</title>
+  <title><%= product && product.name ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product Details' %> | TechCart</title>
+  <link rel="icon" href="/images/favicon.ico" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
-    body {
-      background-color: #121212;
-      color: #eaeaea;
-      font-family: 'Segoe UI', sans-serif;
-    }
-    /* --- IMAGE GALLERY --- */
-    .main-img {
-      width: 100%;
-      height: 420px;
-      object-fit: contain;
-      border-radius: 12px;
-      box-shadow: 0 5px 25px rgba(0,0,0,0.4);
-      margin-bottom: 20px;
-      background: #fff;
-      padding: 10px;
-    }
-    .thumbs img {
-      height: 85px;
-      object-fit: contain;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-right: 12px;
-      transition: all 0.3s ease;
-      background: #fff;
-      padding: 5px;
-    }
-    .thumbs img:hover {
-      transform: scale(1.05);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.35);
-    }
-    /* --- ZOOM (keeps original layout) --- */
-    .zoom-container {
-      position: relative;
-      overflow: hidden;
-      border-radius: 12px;
-      box-shadow: 0 5px 25px rgba(0,0,0,0.4);
-      margin-bottom: 20px;
-      background: #fff;
-      padding: 10px;
-      height: 420px;
-    }
-    .zoom-container img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      transition: opacity 0.15s ease;
-      border-radius: 8px;
-      background: #fff;
-    }
-    .zoom-container:hover img {
-      opacity: 0;
-    }
-    .zoom-container:hover {
-      background-repeat: no-repeat;
-      background-size: 200% 200%;
-      cursor: zoom-in;
-    }
-    /* --- SCROLL SLIDER --- */
-    .scroll-container {
-      display: flex;
-      gap: 20px;
-      overflow-x: auto;
-      scroll-behavior: smooth;
-      padding-bottom: 15px;
-      margin-bottom: 25px;
-    }
-    .scroll-container::-webkit-scrollbar { display: none; }
-    .slide-card {
-      min-width: 220px;
-      flex: 0 0 auto;
-      border-radius: 12px;
-      background: #fff;
-      color: #000;
-      text-align: center;
-      padding: 18px;
-      border: 1px solid #ddd;
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-    .slide-card img {
-      height: 150px;
-      object-fit: contain;
-      margin-bottom: 12px;
-      transition: transform 0.3s ease;
-    }
+    body { background-color: #121212; color: #eaeaea; font-family: 'Segoe UI', sans-serif; }
+    .main-img { width: 100%; height: 420px; object-fit: contain; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.4); margin-bottom: 20px; background: #fff; padding: 10px; }
+    .thumbs img { height: 85px; object-fit: contain; border-radius: 8px; cursor: pointer; margin-right: 12px; transition: all 0.3s ease; background: #fff; padding: 5px; }
+    .thumbs img:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(0,0,0,0.35); }
+    .zoom-container { position: relative; overflow: hidden; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.4); margin-bottom: 20px; background: #fff; padding: 10px; height: 420px; }
+    .zoom-container img { width: 100%; height: 100%; object-fit: contain; transition: opacity 0.15s ease; border-radius: 8px; background: #fff; }
+    .zoom-container:hover img { opacity: 0; }
+    .zoom-container:hover { background-repeat: no-repeat; background-size: 150% 150%; cursor: zoom-in; }
+    .scroll-container { display: flex; gap: 20px; overflow-x: auto; scroll-behavior: smooth; padding-bottom: 15px; margin-bottom: 25px; }
+    .slide-card { min-width: 220px; flex: 0 0 auto; border-radius: 12px; background: #fff; color: #000; text-align: center; padding: 18px; border: 1px solid #ddd; transition: all 0.3s ease; cursor: pointer; }
+    .slide-card img { height: 150px; object-fit: contain; margin-bottom: 12px; transition: transform 0.3s ease; }
     .slide-card p { font-weight: 600; margin-bottom: 5px; }
     .slide-card span { color: #666; font-weight: 700; }
-    .slide-card:hover {
-      transform: translateY(-8px) scale(1.02);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.25), 0 0 10px rgba(100,150,255,0.3);
-      border-color: #ccc;
-    }
-    .slide-card:hover img { transform: scale(1.07); }
-    /* --- BUTTONS --- */
-    .btn-dark-custom {
-      background-color: #000;
-      color: #fff;
-      border-radius: 8px;
-      padding: 10px 20px;
-      font-weight: 500;
-      border: 1px solid #333;
-      transition: all 0.3s ease;
-    }
-    .btn-dark-custom:hover {
-      background-color: #fff;
-      color: #000;
-      border: 1px solid #000;
-      transform: translateY(-2px);
-    }
-    .btn-light-custom {
-      background-color: #fff;
-      color: #000;
-      border-radius: 8px;
-      padding: 10px 20px;
-      font-weight: 500;
-      border: 1px solid #ccc;
-      transition: all 0.3s ease;
-    }
-    .btn-light-custom:hover {
-      background-color: #000;
-      color: #fff;
-      border: 1px solid #000;
-      transform: translateY(-2px);
-    }
-    /* --- VARIANT CARDS --- */
-    .variant-card {
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      padding: 15px;
-      margin-bottom: 15px;
-      background: #fff;
-      color: #000;
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-    .variant-card:hover {
-      border-color: #4682b4;
-      box-shadow: 0 6px 20px rgba(70,130,180,0.25);
-      transform: translateY(-3px);
-    }
-    .variant-card.active {
-      border-color: #4682b4;
-      box-shadow: 0 6px 20px rgba(70,130,180,0.35);
-    }
-    /* --- SECTION TITLE --- */
-    .section-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      border-left: 5px solid #4682b4;
-      padding-left: 12px;
-      margin-bottom: 20px;
-    }
-    .review-card {
-      background: #1e1e1e;
-      color: #eee;
-      transition: all 0.3s ease;
-    }
-    .review-card.expanded {
-      background: #2e2e50; 
-      color: #fff;
-    }
-    .read-more {
-      color: #4682b4;
-      cursor: pointer;
-      font-weight: 500;
-    }
-    .breadcrumb {
-      background: transparent;
-      margin-bottom: 1rem;
-    }
-    .breadcrumb-item a {
-      color: #16aed4;
-      text-decoration: none;
-      transition: color 0.3s;
-    }
-    .breadcrumb-item a:hover {
-      color: #fff;
-    }
-    .breadcrumb-item.active {
-      color: #2b16c9;
-      font-weight: 600;
-    }
+    .slide-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 8px 20px rgba(0,0,0,0.25), 0 0 10px rgba(100,150,255,0.3); border-color: #ccc; }
+    .btn-dark-custom { background-color: #000; color: #fff; border-radius: 8px; padding: 10px 20px; font-weight: 500; border: 1px solid #333; transition: all 0.3s ease; }
+    .btn-dark-custom:hover { background-color: #fff; color: #000; border: 1px solid #000; transform: translateY(-2px); }
+    .btn-light-custom { background-color: #fff; color: #000; border-radius: 8px; padding: 10px 20px; font-weight: 500; border: 1px solid #ccc; transition: all 0.3s ease; }
+    .btn-light-custom:hover { background-color: #000; color: #fff; border: 1px solid #000; transform: translateY(-2px); }
+    .variant-card { border: 1px solid #ddd; border-radius: 12px; padding: 15px; margin-bottom: 15px; background: #fff; color: #000; transition: all 0.3s ease; cursor: pointer; }
+    .variant-card:hover { border-color: #4682b4; box-shadow: 0 6px 20px rgba(70,130,180,0.25); transform: translateY(-3px); }
+    .variant-card.active { border-color: #4682b4; box-shadow: 0 6px 20px rgba(70,130,180,0.35); }
+    .section-title { font-size: 1.5rem; font-weight: 700; border-left: 5px solid #4682b4; padding-left: 12px; margin-bottom: 20px; }
+    .review-card { background: #1e1e1e; color: #eee; transition: all 0.3s ease; }
+    .review-card.expanded { background: #2e2e50; color: #fff; }
+    .read-more { color: #4682b4; cursor: pointer; font-weight: 500; }
+    .breadcrumb { background: transparent; margin-bottom: 1rem; }
+    .breadcrumb-item a { color: #16aed4; text-decoration: none; transition: color 0.3s; }
+    .breadcrumb-item a:hover { color: #fff; }
+    .breadcrumb-item.active { color: #2b16c9; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -196,61 +44,69 @@
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="/">Home</a></li>
       <li class="breadcrumb-item"><a href="/search">All Products</a></li>
-      <li class="breadcrumb-item active" aria-current="page"><%= product.name ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product' %></li>
+      <li class="breadcrumb-item active" aria-current="page"><%= product && product.name ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product' %></li>
     </ol>
   </nav>
+
   <div class="container my-5">
     <div class="row g-5">
       <!-- Product Gallery -->
       <div class="col-lg-6">
         <div id="zoomContainer" class="zoom-container">
-          <img src="<%= product.images && product.images.length ? product.images[0] : '/images/fallback.jpg' %>" 
-               id="mainImage" 
-               alt="<%= product.name ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product Image' %>" 
-               onerror="this.src='/images/fallback.jpg'" />
+          <img id="mainImage" class="main-img" src="<%= (product && product.images && product.images.length) ? product.images[0] : '/images/fallback.jpg' %>" 
+               alt="<%= product && product.name ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product Image' %>" 
+               onerror="if(this.src !== '/images/fallback.jpg'){ this.src='/images/fallback.jpg'; }" />
         </div>
         <div class="d-flex thumbs">
-          <% (product.images || []).forEach(img => { %>
-            <img src="<%= img %>" alt="Thumbnail" onerror="this.src='/images/fallback.jpg'" onclick="setMainImage(this.src)" />
+          <% (product && product.images || []).forEach(img => { %>
+            <img src="<%= img %>" alt="Thumbnail" onerror="if(this.src !== '/images/fallback.jpg'){ this.src='/images/fallback.jpg'; }" onclick="setMainImage(this.src)" />
           <% }) %>
         </div>
       </div>
+
       <!-- Product Info -->
       <div class="col-lg-6">
-        <h2 class="fw-bold"><%= product.name ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product' %></h2>
-        <p class="text-secondary"><%= product.companyDetails ? product.companyDetails.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %> | Series: <%= product.series ? product.series.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></p>
+        <h2 class="fw-bold"><%= product && product.name ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product' %></h2>
+        <p class="text-secondary"><%= product && product.companyDetails ? product.companyDetails.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %> | Series: <%= product && product.series ? product.series.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></p>
+
         <div class="d-flex align-items-baseline gap-3 mb-3">
-          <h4 class="mb-0">
-            <small class="text-muted"><del>₹<%= product.originalPrice || '' %></del></small>
-          </h4>
+          <h4 class="mb-0"><small class="text-muted"><del>₹<%= product && product.originalPrice || '' %></del></small></h4>
           <h3 class="fw-bold mb-0" id="currentPrice">₹</h3>
           <span class="badge bg-success" id="stockBadge"></span>
         </div>
-        <p><%= product.description ? product.description.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></p>
+
+        <p><%= product && product.description ? product.description.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></p>
+
         <div class="d-flex gap-3 mb-4">
           <button id="addToCartBtn" class="btn-dark-custom"
-            data-product-name="<%= product.name ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %>"
-            data-product-id="<%= product._id || '' %>"
+            data-product-name="<%= product && product.name ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;') : '' %>"
+            data-product-id="<%= product && product._id || '' %>"
             data-variant-id="">
             Add to Cart
           </button>
-          <button class="btn-light-custom">❤ Wishlist</button>
+          <button id="wishlistBtn" class="btn-light-custom"
+            data-product-name="<%= product && product.name ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;') : '' %>"
+            data-product-id="<%= product && product._id || '' %>"
+            data-variant-id="">
+            ❤ Wishlist
+          </button>
         </div>
+
         <!-- Variants -->
         <h5 class="fw-bold mb-3">Available Variants</h5>
         <div id="variantsWrap">
-          <% if (product.combProduct && product.combProduct.length) { %>
+          <% if (product && product.combProduct && product.combProduct.length) { %>
             <% (product.combProduct || []).forEach((variant, idx) => { %>
               <div class="variant-card" data-variant-index="<%= idx %>">
-                <p class="fw-semibold mb-1"><%= variant.processor ? variant.processor.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></p>
+                <p class="fw-semibold mb-1"><%= variant && variant.processor ? variant.processor.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></p>
                 <small>
-                  RAM: <%= variant.ram ? variant.ram.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %> | 
-                  Storage: <%= variant.storage ? variant.storage.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %> | 
-                  GPU: <%= variant.graphics ? variant.graphics.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %>
+                  RAM: <%= variant && variant.ram ? variant.ram.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %> | 
+                  Storage: <%= variant && variant.storage ? variant.storage.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %> | 
+                  GPU: <%= variant && variant.graphics ? variant.graphics.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %>
                 </small>
                 <div class="d-flex justify-content-between align-items-center mt-2">
-                  <span class="fw-bold">₹<%= variant.price || '' %></span>
-                  <span class="badge bg-secondary"><%= variant.stock || 0 %> in stock</span>
+                  <span class="fw-bold">₹<%= variant && variant.price || '' %></span>
+                  <span class="badge bg-secondary"><%= variant && (variant.stock ?? 0) %> in stock</span>
                 </div>
               </div>
             <% }) %>
@@ -260,6 +116,7 @@
         </div>
       </div>
     </div>
+
     <!-- Specifications -->
     <div class="tab-pane fade show active mt-4" id="specs">
       <div class="section-title">Specifications</div>
@@ -272,15 +129,16 @@
             <tr><th scope="row">Graphics</th><td id="tdGraphics">—</td></tr>
             <tr><th scope="row">Display</th><td id="tdDisplay">—</td></tr>
             <tr><th scope="row">Color</th><td id="tdColor">—</td></tr>
-            <tr><th scope="row">Operating System</th><td><%= product.OS ? product.OS.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></td></tr>
-            <tr><th scope="row">Dimension</th><td><%= product.dimension ? product.dimension.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></td></tr>
-            <tr><th scope="row">Series</th><td><%= product.series ? product.series.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></td></tr>
-            <tr><th scope="row">Included Items</th><td><%= product.packageItems ? product.packageItems.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></td></tr>
-            <tr><th scope="row">Created At</th><td><%= product.createdAt ? new Date(product.createdAt).toDateString() : '' %></td></tr>
+            <tr><th scope="row">Operating System</th><td><%= product && product.OS ? product.OS.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></td></tr>
+            <tr><th scope="row">Dimension</th><td><%= product && product.dimension ? product.dimension.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></td></tr>
+            <tr><th scope="row">Series</th><td><%= product && product.series ? product.series.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></td></tr>
+            <tr><th scope="row">Included Items</th><td><%= product && product.packageItems ? product.packageItems.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></td></tr>
+            <tr><th scope="row">Created At</th><td><%= product && product.createdAt ? new Date(product.createdAt).toDateString() : '' %></td></tr>
           </tbody>
         </table>
       </div>
     </div>
+
     <!-- Flash Sale Section -->
     <div class="mt-5">
       <div class="d-flex justify-content-between align-items-center mb-3">
@@ -293,7 +151,7 @@
             <a href="/all-product/product-details/<%= p._id || '' %>" class="text-decoration-none">
               <img src="<%= (p.images && p.images[0]) || '/images/fallback.jpg' %>" 
                    alt="<%= p.name ? p.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product' %>" 
-                   onerror="this.src='/images/fallback.jpg'" />
+                   onerror="if(this.src !== '/images/fallback.jpg'){ this.src='/images/fallback.jpg'; }" />
               <p class="fw-semibold"><%= p.name ? p.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></p>
               <span class="fw-bold">₹<%= p.originalPrice || '' %></span>
             </a>
@@ -301,44 +159,56 @@
         <% }) %>
       </div>
     </div>
+
     <!-- Reviews Section -->
     <div class="mt-5">
       <div class="section-title">Customer Reviews</div>
       <div class="mb-4">
-        <% const dummyReviews = [
-            { name: "Alice", rating: 5, comment: "Amazing product! Highly recommend. The build quality is excellent and the performance is top notch. I have been using it for a few weeks and I'm extremely satisfied with the purchase." },
-            { name: "Bob", rating: 4, comment: "Good quality but delivery took time. Overall the experience is positive, but the delay was frustrating." },
-            { name: "Charlie", rating: 5, comment: "Exceeded my expectations! The display is stunning and the battery lasts long. Perfect for gaming and work." },
-        ]; %>
+        <% 
+        const dummyReviews = [
+          { name: "Alice", rating: 5, comment: "Amazing product! Highly recommend. The build quality is excellent and the performance is top notch. I have been using it for a few weeks and I am extremely satisfied with the purchase." },
+          { name: "Bob", rating: 4, comment: "Good quality but delivery took time. Overall the experience is positive, but the delay was frustrating." },
+          { name: "Charlie", rating: 5, comment: "Exceeded my expectations! The display is stunning and the battery lasts long. Perfect for gaming and work." }
+        ]; 
+        %>
         <% dummyReviews.forEach((r, idx) => { %>
           <div class="review-card p-3 mb-3 rounded shadow-sm" data-index="<%= idx %>">
             <div class="d-flex justify-content-between align-items-center mb-2">
-              <strong><%= r.name ? r.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></strong>
-              <span><% for(let i=0;i<r.rating;i++){ %>⭐<% } %></span>
+              <strong><%= r.name %></strong>
+              <span><% for(let i=0; i<r.rating; i++){ %>⭐<% } %></span>
             </div>
-            <p class="review-text mb-1"><%= r.comment ? r.comment.split(' ').slice(0,3).join(' ').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %>...</p>
+            <p class="review-text mb-1"><%= r.comment.split(' ').slice(0,10).join(' ') %>...</p>
             <a href="javascript:void(0)" class="read-more">Read more</a>
           </div>
         <% }) %>
       </div>
     </div>
   </div>
+
   <%- include('partials/footer') %>
-  <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <script>
-    if (!window.bootstrap) {
-      document.write('<script src="/local/bootstrap.bundle.min.js"></script>');
+    // ---------- Debug bootstrap ----------
+    console.groupCollapsed('Product Details — debug log');
+    console.time('page-total');
+    window.addEventListener('error', e => console.error('Uncaught error:', e.message, e.filename + ':' + e.lineno));
+    window.addEventListener('unhandledrejection', e => console.error('Unhandled promise rejection:', e.reason));
+
+    // Safely embed product data (simpler, less error-prone)
+    try {
+      window.PRODUCT = <%- JSON.stringify(product || {}) %>;
+      window.DUMMY_REVIEWS = <%- JSON.stringify(dummyReviews || []) %>;
+      console.debug('Embedded PRODUCT and DUMMY_REVIEWS', { product: PRODUCT, dummyReviews: DUMMY_REVIEWS });
+    } catch (err) {
+      console.error('Failed to embed JSON safely:', err);
+      window.PRODUCT = {};
+      window.DUMMY_REVIEWS = [];
     }
-  </script>
-  <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script>
-    if (!window.Swal) {
-      document.write('<script src="/local/sweetalert2.min.js"></script>');
-    }
-  </script>
-  <script>
-    // Global product object
-    const PRODUCT = <%- JSON.stringify(product || {}) %>;
+
+    // DOM elements
     const variantsWrap = document.getElementById('variantsWrap');
     const priceEl = document.getElementById('currentPrice');
     const stockBadgeEl = document.getElementById('stockBadge');
@@ -349,18 +219,39 @@
     const tdDisplay = document.getElementById('tdDisplay');
     const tdColor = document.getElementById('tdColor');
     const addToCartBtn = document.getElementById('addToCartBtn');
-    const wishlistBtn = document.querySelector('.btn-light-custom');
+    const wishlistBtn = document.getElementById('wishlistBtn');
     const zoomContainer = document.getElementById('zoomContainer');
     const mainImage = document.getElementById('mainImage');
 
+    // Utility: debounce
+    function debounce(func, wait) {
+      let timeout;
+      return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    }
+
+    function setMainImage(src) {
+      console.debug('setMainImage called with', src);
+      if (!src) {
+        mainImage.src = '/images/fallback.jpg';
+        if (zoomContainer) zoomContainer.style.backgroundImage = `url('/images/fallback.jpg')`;
+        return;
+      }
+      mainImage.src = src;
+      if (zoomContainer) zoomContainer.style.backgroundImage = `url('${src}')`;
+    }
+
     function selectVariant(index) {
-      const variants = PRODUCT.combProduct || [];
+      const variants = (window.PRODUCT && PRODUCT.combProduct) || [];
       if (!variants.length) return;
       const i = Math.max(0, Math.min(index, variants.length - 1));
       const v = variants[i];
+
       // Active UI
-      [...variantsWrap.querySelectorAll('.variant-card')].forEach(c => c.classList.remove('active'));
-      const activeCard = variantsWrap.querySelector(`.variant-card[data-variant-index="${i}"]`);
+      if (variantsWrap) [...variantsWrap.querySelectorAll('.variant-card')].forEach(c => c.classList.remove('active'));
+      const activeCard = variantsWrap && variantsWrap.querySelector(`.variant-card[data-variant-index="${i}"]`);
       if (activeCard) activeCard.classList.add('active');
 
       // Price & stock
@@ -378,6 +269,8 @@
       // Update buttons' variantId
       if (addToCartBtn) addToCartBtn.setAttribute('data-variant-id', v._id || '');
       if (wishlistBtn) wishlistBtn.setAttribute('data-variant-id', v._id || '');
+
+      console.debug('Variant selected', { index: i, variant: v });
     }
 
     function bindVariantClicks() {
@@ -390,58 +283,52 @@
       });
     }
 
-    function setMainImage(src) {
-      if (!src) {
-        mainImage.src = '/images/fallback.jpg';
-        zoomContainer.style.backgroundImage = `url('/images/fallback.jpg')`;
-        return;
-      }
-      mainImage.src = src;
-      zoomContainer.style.backgroundImage = `url('${src}')`;
+    // Zoom mousemove with reasonable debounce
+    if (zoomContainer) {
+      zoomContainer.addEventListener('mousemove', debounce(e => {
+        const rect = zoomContainer.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        zoomContainer.style.backgroundPosition = x + '% ' + y + '%';
+      }, 100));
     }
 
-    // Debounce function
-    function debounce(func, wait) {
-      let timeout;
-      return function (...args) {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), wait);
-      };
-    }
-
-    mainImage?.addEventListener('load', () => setMainImage(mainImage.src));
-    zoomContainer?.addEventListener('mousemove', debounce(e => {
-      const rect = zoomContainer.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 100;
-      const y = ((e.clientY - rect.top) / rect.height) * 100;
-      zoomContainer.style.backgroundPosition = x + '% ' + y + '%';
-    }, 10));
-
-    // Init
-    document.addEventListener('DOMContentLoaded', () => {
-      if (PRODUCT.images?.length) setMainImage(PRODUCT.images[0]);
-      if (PRODUCT.combProduct?.length) selectVariant(0);
-      bindVariantClicks();
+    mainImage && mainImage.addEventListener('load', () => {
+      console.debug('mainImage loaded', { src: mainImage.src, naturalWidth: mainImage.naturalWidth });
+      setMainImage(mainImage.src);
     });
 
-    // Add to Cart functionality
+    document.addEventListener('DOMContentLoaded', () => {
+      console.time('DOMContentLoaded');
+      try {
+        if (PRODUCT.images?.length) setMainImage(PRODUCT.images[0]);
+        if (PRODUCT.combProduct?.length) selectVariant(0);
+        bindVariantClicks();
+        console.debug('DOMContentLoaded init done');
+      } catch (err) {
+        console.error('Error during DOMContentLoaded init:', err);
+      }
+      console.timeEnd('DOMContentLoaded');
+    });
+
+    // Add to Cart functionality with timeout + logging
     if (addToCartBtn) {
       addToCartBtn.addEventListener('click', async () => {
+        console.debug('AddToCart clicked');
         const productId = addToCartBtn.getAttribute('data-product-id');
         const variantId = addToCartBtn.getAttribute('data-variant-id');
         const productName = addToCartBtn.getAttribute('data-product-name');
+
         if (!variantId) {
-          Swal.fire({
-            title: 'Select a Variant',
-            text: 'Please select a variant before adding to cart.',
-            icon: 'warning',
-            confirmButtonText: 'OK'
-          });
+          Swal.fire({ title: 'Select a Variant', text: 'Please select a variant before adding to cart.', icon: 'warning', confirmButtonText: 'OK' });
           return;
         }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => { controller.abort(); console.warn('addToCart fetch aborted due to timeout'); }, 5000);
+
         try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 5000);
+          console.time('fetch-addToCart');
           const res = await fetch('/cart/add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -449,177 +336,121 @@
             signal: controller.signal
           });
           clearTimeout(timeoutId);
+          console.timeEnd('fetch-addToCart');
+
           if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
           const data = await res.json();
+          console.debug('addToCart response', data);
+
           if (data.loginRequired) {
-            Swal.fire({
-              icon: 'warning',
-              title: 'Login Required',
-              text: data.message || 'Please login to continue.',
-              showCancelButton: true,
-              confirmButtonText: 'Login',
-              cancelButtonText: 'Cancel'
-            }).then(r => {
-              if (r.isConfirmed) window.location.href = '/login';
-            });
+            Swal.fire({ icon: 'warning', title: 'Login Required', text: data.message || 'Please login to continue.', showCancelButton: true, confirmButtonText: 'Login', cancelButtonText: 'Cancel' }).then(r => { if (r.isConfirmed) window.location.href = '/login'; });
             return;
           }
+
           if (data.success) {
-            Swal.fire({
-              icon: 'success',
-              title: 'Added to Cart!',
-              text: 'Your product has been added.',
-              showCancelButton: true,
-              confirmButtonText: 'Go to Cart 🛒',
-              cancelButtonText: 'Continue Shopping',
-              timer: 3000,
-              timerProgressBar: true
-            }).then(result => {
-              if (result.isConfirmed) {
-                window.location.href = '/cart';
-              }
-            });
+            Swal.fire({ icon: 'success', title: 'Added to Cart!', text: 'Your product has been added.', showCancelButton: true, confirmButtonText: 'Go to Cart 🛒', cancelButtonText: 'Continue Shopping', timer: 3000, timerProgressBar: true }).then(result => { if (result.isConfirmed) window.location.href = '/cart'; });
           } else {
-            if (data.message === 'Variant not found') {
-              Swal.fire({
-                title: 'Variant Unavailable',
-                text: 'The selected variant is not available.',
-                icon: 'error',
-                confirmButtonText: 'OK'
-              });
-            } else if (data.message === 'Cannot add more, stock limit reached') {
-              Swal.fire({
-                title: 'Stock Limit Reached',
-                text: 'You cannot add more of this item due to stock limitations.',
-                icon: 'warning',
-                confirmButtonText: 'OK'
-              });
-            } else if (data.message === 'Product is out of stock') {
-              Swal.fire({
-                title: 'Out of Stock',
-                text: 'This product is currently out of stock.',
-                icon: 'warning',
-                confirmButtonText: 'OK'
-              });
-            } else {
-              Swal.fire({
-                title: 'Error',
-                text: data.message || 'Failed to update the cart.',
-                icon: 'error',
-                confirmButtonText: 'OK'
-              });
-            }
+            let errorTitle = 'Error';
+            let errorText = data.message || 'Failed to update the cart.';
+            if (data.message === 'Variant not found') { errorTitle = 'Variant Unavailable'; errorText = 'The selected variant is not available.'; }
+            else if (data.message === 'Cannot add more, stock limit reached') { errorTitle = 'Stock Limit Reached'; errorText = 'You cannot add more of this item due to stock limitations.'; }
+            else if (data.message === 'Product is out of stock') { errorTitle = 'Out of Stock'; errorText = 'This product is currently out of stock.'; }
+
+            Swal.fire({ title: errorTitle, text: errorText, icon: data.message === 'Variant not found' ? 'error' : 'warning', confirmButtonText: 'OK' });
           }
         } catch (err) {
-          console.error('Fetch error:', err);
-          Swal.fire({
-            title: 'Error',
-            text: `Failed to add to cart: ${err.message || 'Server error'}`,
-            icon: 'error',
-            confirmButtonText: 'OK'
-          });
+          clearTimeout(timeoutId);
+          console.error('Fetch error (addToCart):', err);
+          Swal.fire({ title: 'Error', text: `Failed to add to cart: ${err.message || 'Server error'}`, icon: 'error', confirmButtonText: 'OK' });
         }
       });
     }
 
-    // Add to Wishlist functionality
+    // Wishlist functionality
     if (wishlistBtn) {
       wishlistBtn.addEventListener('click', async () => {
-        const productId = addToCartBtn.getAttribute('data-product-id');
+        console.debug('Wishlist clicked');
+        const productId = wishlistBtn.getAttribute('data-product-id');
         const variantId = wishlistBtn.getAttribute('data-variant-id');
-        const productName = addToCartBtn.getAttribute('data-product-name');
+        const productName = wishlistBtn.getAttribute('data-product-name');
+
         if (!variantId) {
-          Swal.fire({
-            title: 'Select a Variant',
-            text: 'Please select a variant before adding to wishlist.',
-            icon: 'warning',
-            confirmButtonText: 'OK'
-          });
+          Swal.fire({ title: 'Select a Variant', text: 'Please select a variant before adding to wishlist.', icon: 'warning', confirmButtonText: 'OK' });
           return;
         }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => { controller.abort(); console.warn('wishlist fetch aborted due to timeout'); }, 5000);
+
         try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 5000);
-          const res = await fetch('/wishlist/add', {
+          console.time('fetch-wishlist');
+          const res = await fetch('/wishlist', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productId, variantId })
+            body: JSON.stringify({ productId, variantId, productName }),
+            signal: controller.signal
           });
           clearTimeout(timeoutId);
+          console.timeEnd('fetch-wishlist');
+
           if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
           const data = await res.json();
+          console.debug('wishlist response', data);
+
           if (data.loginRequired) {
-            Swal.fire({
-              icon: 'warning',
-              title: 'Login Required',
-              text: data.message || 'Please login to continue.',
-              showCancelButton: true,
-              confirmButtonText: 'Login',
-              cancelButtonText: 'Cancel'
-            }).then(r => {
-              if (r.isConfirmed) window.location.href = '/login';
-            });
+            Swal.fire({ icon: 'warning', title: 'Login Required', text: data.message || 'Please login to add to wishlist.', showCancelButton: true, confirmButtonText: 'Login', cancelButtonText: 'Cancel' }).then(r => { if (r.isConfirmed) window.location.href = '/login'; });
             return;
           }
+
           if (data.success) {
-            Swal.fire({
-              icon: 'success',
-              title: 'Added to Wishlist ❤️',
-              text: 'Item saved to your wishlist!',
-              confirmButtonColor: '#e74c3c',
-              iconColor: '#e74c3c',
-              showCancelButton: true,
-              confirmButtonText: 'View Wishlist',
-              cancelButtonText: 'Close',
-              timer: 3000,
-              timerProgressBar: true
-            }).then(result => {
-              if (result.isConfirmed) {
-                window.location.href = '/wishlist';
-              }
-            });
+            Swal.fire({ icon: 'success', title: 'Added to Wishlist!', text: 'Your product has been added to your wishlist.', showCancelButton: true, confirmButtonText: 'Go to Wishlist', cancelButtonText: 'Continue Shopping', timer: 3000, timerProgressBar: true }).then(result => { if (result.isConfirmed) window.location.href = '/viewWishList'; });
           } else {
-            Swal.fire({
-              title: 'Error',
-              text: data.message || 'Failed to add to wishlist.',
-              icon: 'error',
-              confirmButtonText: 'OK'
-            });
+            let errorTitle = 'Error';
+            let errorText = data.message || 'Failed to add to wishlist.';
+            if (data.message === 'Variant not found') { errorTitle = 'Variant Unavailable'; errorText = 'The selected variant is not available.'; }
+            else if (data.message === 'Product already in wishlist') { errorTitle = 'Already in Wishlist'; errorText = 'This product is already in your wishlist.'; }
+
+            Swal.fire({ title: errorTitle, text: errorText, icon: data.message === 'Variant not found' ? 'error' : 'warning', confirmButtonText: 'OK' });
           }
         } catch (err) {
-          console.error('Fetch error:', err);
-          Swal.fire({
-            title: 'Error',
-            text: `Failed to add to wishlist: ${err.message || 'Server error'}`,
-            icon: 'error',
-            confirmButtonText: 'OK'
-          });
+          clearTimeout(timeoutId);
+          console.error('Fetch error (wishlist):', err);
+          Swal.fire({ title: 'Error', text: `Failed to add to wishlist: ${err.message || 'Server error'}`, icon: 'error', confirmButtonText: 'OK' });
         }
       });
     }
 
     // Reviews toggle
-    const reviewCards = document.querySelectorAll('.review-card');
-    const dummyReviews = <%- JSON.stringify(dummyReviews || []) %>;
-    if (dummyReviews && dummyReviews.length) {
-      reviewCards.forEach(card => {
-        const readMore = card.querySelector('.read-more');
-        const reviewText = card.querySelector('.review-text');
-        if (readMore && reviewText && dummyReviews[card.dataset.index]) {
-          const fullText = dummyReviews[card.dataset.index].comment;
-          readMore.addEventListener('click', () => {
-            const expanded = card.classList.toggle('expanded');
-            if (expanded) {
-              reviewText.textContent = fullText.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-              readMore.textContent = 'Show less';
-            } else {
-              reviewText.textContent = fullText.split(' ').slice(0, 3).join(' ').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '...';
-              readMore.textContent = 'Read more';
-            }
-          });
-        }
-      });
+    try {
+      const reviewCards = document.querySelectorAll('.review-card');
+      if (window.DUMMY_REVIEWS && window.DUMMY_REVIEWS.length) {
+        reviewCards.forEach(card => {
+          const readMore = card.querySelector('.read-more');
+          const reviewText = card.querySelector('.review-text');
+          const idx = parseInt(card.dataset.index);
+
+          if (readMore && reviewText && window.DUMMY_REVIEWS[idx]) {
+            const fullText = window.DUMMY_REVIEWS[idx].comment;
+            const shortText = fullText.split(' ').slice(0, 10).join(' ') + '...';
+
+            readMore.addEventListener('click', () => {
+              const expanded = card.classList.toggle('expanded');
+              if (expanded) { reviewText.textContent = fullText; readMore.textContent = 'Show less'; }
+              else { reviewText.textContent = shortText; readMore.textContent = 'Read more'; }
+            });
+          }
+        });
+      }
+    } catch (err) {
+      console.error('Reviews init error:', err);
     }
+
+    // Finalize debug
+    window.addEventListener('load', () => {
+      console.timeEnd('page-total');
+      console.debug('window.load fired — all resources finished (images, subresources).');
+      console.groupEnd();
+    });
   </script>
 </body>
 </html>

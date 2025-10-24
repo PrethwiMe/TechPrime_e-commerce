@@ -118,30 +118,41 @@ exports.renderAddCategories = (req, res) => {
 
 //add catagories
 exports.addCategories = async (req, res) => {
-  const { name, description, status } = req.body;
-  const isActive = req.body.isActive === 'on';
-
-  if (!name || name.trim() === '') {
-    return res.render('admin-pages/categories', { error: "Category name is required" })
-  }
-  if (!description || description.trim() === '') {
-    return res.render('admin-pages/categories', { error: "Description is required" })
-  }
-
-  let data = {
-    name: name.trim(),
-    description: description.trim(),
-    isActive,
-    createdAt: new Date()
-  };
-
   try {
-    let result = await productModel.insetCategories(data);
-    if (result) {
-      res.redirect('/admin/view-categories');
+    console.log("Request Body:", req.body);
+    let { name, description } = req.body;
+    const isActive = req.body.isActive === true;
+
+    name = name.toUpperCase();
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ success: false, message: "Category name is required" });
     }
+    if (!description || description.trim() === '') {
+      return res.status(400).json({ success: false, message: "Description is required" });
+    }
+
+    const data = {
+      name: name.trim(),
+      description: description.trim(),
+      isActive,
+      createdAt: new Date()
+    };
+
+    const result = await productModel.insetCategories(data);
+
+    if (result === "exists") {
+      return res.status(409).json({ success: false, message: "Category already exists" });
+    }
+
+    if (result.insertedId) {
+      return res.status(200).json({ success: true, message: "Category added successfully" });
+    }
+
+    res.status(500).json({ success: false, message: "Something went wrong" });
+
   } catch (error) {
-    res.send(error);
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
@@ -151,8 +162,6 @@ exports.viewCatagories = async (req, res) => {
 
   res.render('admin-pages/viewCategories.ejs', { categories })
 }
-
-
 //controll categories
 exports.controleCategories = async (req, res) => {
   console.log("call reached here");

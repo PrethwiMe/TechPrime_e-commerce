@@ -36,6 +36,9 @@ exports.getAllCategories = async () => {
 // Insert category
 exports.insetCategories = async (data) => {
   const db = getDB();
+
+  const categoryExists = await db.collection(dbVariables.categoriesCollection).findOne({ name: data.name });
+  if (categoryExists) return "exists";
   const result = await db.collection(dbVariables.categoriesCollection).insertOne(data);
   return result;
 };
