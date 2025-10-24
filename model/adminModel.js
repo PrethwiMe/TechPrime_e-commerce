@@ -176,10 +176,6 @@ exports.updateItemStatus = async (params) => {
   try {
     let { orderId, variantId, itemStatus } = params;
     const db = await getDB();
-
-    console.log("=== updateItemStatus CALLED ===");
-    console.log("Incoming params:", { orderId, variantId, itemStatus });
-
     let result = await db.collection(dbVariables.orderCollection).updateOne(
       { _id: new ObjectId(orderId)  }, 
       {
@@ -265,25 +261,21 @@ exports.offerAdd = async (data) => {
   const response = await db.collection(dbVariables.offerCollection).insertOne(newOffer);
   return { inserted: true, response }; 
 };
-
 exports.offerView = async (data) => {
   const db = getDB();
   const response = await db.collection(dbVariables.offerCollection).find({Active:true}).toArray();
   return response
 }
-
 exports.disableOffer = async(id,status) => {
   const db = await getDB();
   const response = await db.collection(dbVariables.offerCollection).updateOne({_id: new ObjectId(id)},{$set:{Active:status.Active}})
   return response
 }
-
 exports.viewOffers = async (id) => {
   const db = await getDB()
      check = await db.collection(dbVariables.offerCollection).findOne(id);
      return check;
 }
-
 exports.addCoupon = async (data) => {
  
   const db =await getDB();
@@ -353,4 +345,13 @@ exports.editCoupon = async (couponId, data) => {
   );
 
   return response;
+}
+exports.updateItemsStatus = async (orderId, status) => {
+  const db = await getDB();
+  const result = await db.collection(dbVariables.orderCollection).updateMany(
+    { _id: new ObjectId(orderId) },
+    { $set: { "items.$[].itemStatus": status } }
+  );
+  return result;
+
 }

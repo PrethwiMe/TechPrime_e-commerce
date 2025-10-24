@@ -143,7 +143,9 @@ exports.editOrderStatus = async (req, res) => {
     const result = await adminModel.updateOrderStatus(orderId, status);
     if (!result)
       return res.status(404).json({ success: false, message: "Order not found" });
+// all item change sts
 
+  await adminModel.updateItemsStatus(orderId, status);
     res.status(200).json({
       success: true,
       message: "Order status updated successfully",
