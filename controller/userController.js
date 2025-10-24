@@ -178,8 +178,8 @@ exports.resendOtp = async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000);
     console.log(otp);
 
-    let data = await userModel.resendotpData(mail, otp, "")
-    let msg = await sendMail(mail, otp);
+    let data = await userModel.resendotpData(mail, otp)
+    let msg = await sendMail(mail, otp,"signup"   );
     return res.json({ success: true });
   } catch (error) {
     console.log(error);
