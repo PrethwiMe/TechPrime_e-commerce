@@ -18,6 +18,8 @@ router.get('/signup',isUserLoggedIn,userController.renderSignupPage);
 router.post('/signupData',userController.handleSignup)
 //resend otp
 router.post('/resend-otp',userController.resendOtp)
+//render otp page verification
+router.get('/verify-mail',userController.renderVerifyMailPage)
 //verify otp
 router.post('/verify-email',userController.verifyUserOtp)
 //loginpage with session

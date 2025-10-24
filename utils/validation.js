@@ -257,21 +257,28 @@ const paymentValidation = (data) => {
    ===================== */
 const userProfileValidation = (data) => {
   const schema = Joi.object({
-    id: Joi.string().required().messages({
-      "any.required": "User ID is required"
-    }),
-    firstName: Joi.string().min(2).max(30).required().messages({
-      "string.min": "First name must have at least 2 characters",
-      "any.required": "First name is required"
-    }),
-    lastName: Joi.string().min(2).max(30).required().messages({
-      "string.min": "Last name must have at least 2 characters",
-      "any.required": "Last name is required"
-    }),
+    id: Joi.string().optional(),  // changed to optional
+
+    firstName: Joi.string()
+      .min(2)
+      .max(30)
+      .optional()
+      .messages({
+        "string.min": "First name must have at least 2 characters",
+      }),
+
+    lastName: Joi.string()
+      .min(2)
+      .max(30)
+      .optional()
+      .messages({
+        "string.min": "Last name must have at least 2 characters",
+      }),
+
     phone: Joi.string()
       .pattern(/^[6-9]\d{9}$/)
       .message("Phone must be a valid 10-digit Indian number")
-      .required(),
+      .optional(),
   });
 
   return schema.validate(data, { abortEarly: false }); // show all errors at once

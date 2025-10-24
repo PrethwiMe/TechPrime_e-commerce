@@ -1,5 +1,6 @@
 <%- include('partials/header') %>
 <link rel="stylesheet" href="/stylesheets/vrifyUser.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
   body {
@@ -74,12 +75,6 @@
   .otp-actions a:hover {
     color: #555;
   }
-
-  #message,
-  #resendStatus {
-    font-size: 14px;
-    margin-top: 8px;
-  }
 </style>
 
 <div class="otp-container">
@@ -92,25 +87,22 @@
 
   <!-- OTP Form -->
   <form id="verifyForm">
-    <input type="hidden" id="email" value="<%= userMail %>">
+    <input type="hidden" id="email" value="<%= email %>">
     <input 
       type="text" 
       id="otp"
       placeholder="Enter your OTP" 
-      
+      required
     >
     <button class="mt-2" type="submit">Verify Email</button>
   </form>
-
-  <p id="message"></p>
-  <span id="resendStatus"></span>
 
   <div class="otp-actions">
     <a href="/login">Back to Login</a>
     <button 
       type="button" 
       id="resendOtpBtn"
-      data-email="<%= userMail %>"
+      data-email="<%= email %>"
     >
       Resend OTP
     </button>
@@ -120,11 +112,16 @@
 <script>
   // Resend OTP handler
   document.getElementById('resendOtpBtn').addEventListener('click', async () => {
-    const statusSpan = document.getElementById('resendStatus');
     const email = document.getElementById('resendOtpBtn').dataset.email;
 
-    statusSpan.style.color = 'black';
-    statusSpan.textContent = 'Sending...';
+    Swal.fire({
+      title: 'Sending OTP...',
+      text: 'Please wait while we resend the OTP.',
+      icon: 'info',
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
 
     try {
       const response = await fetch('/resend-otp', {
@@ -136,46 +133,87 @@
       const result = await response.json();
 
       if (result.success) {
-        statusSpan.style.color = 'green';
-        statusSpan.textContent = '✅ OTP resent successfully!';
+        Swal.fire({
+          icon: 'success',
+          title: 'OTP Sent!',
+          text: 'A new OTP has been sent to your email.',
+          timer: 2000,
+          showConfirmButton: false
+        });
       } else {
-        statusSpan.style.color = 'red';
-        statusSpan.textContent = '❌ ' + (result.error || 'Failed to resend OTP.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed!',
+          text: result.error || 'Unable to resend OTP. Try again.',
+        });
       }
     } catch {
-      statusSpan.style.color = 'red';
-      statusSpan.textContent = '❌ Server error';
+      Swal.fire({
+        icon: 'error',
+        title: 'Server Error',
+        text: 'Something went wrong while resending the OTP.',
+      });
     }
   });
 
   // OTP verification handler
-  document.getElementById("verifyForm").addEventListener("submit", function(event) {
+  document.getElementById("verifyForm").addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const email = document.getElementById("email").value;
     const otp = document.getElementById("otp").value;
 
-    fetch("/verify-email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, otp })
-    })
-    .then(res => res.json())
-    .then(data => {
-      const msg = document.getElementById("message");
-      msg.textContent = data.message;
-      msg.style.color = data.success ? "green" : "red";
+    if (!otp.trim()) {
+      return Swal.fire({
+        icon: 'warning',
+        title: 'Missing OTP',
+        text: 'Please enter your OTP before verifying.'
+      });
+    }
+
+    Swal.fire({
+      title: 'Verifying...',
+      text: 'Please wait while we verify your OTP.',
+      icon: 'info',
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    try {
+      const res = await fetch("/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp })
+      });
+      const data = await res.json();
 
       if (data.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Email Verified!',
+          text: data.message || 'Your email has been successfully verified.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+
         setTimeout(() => {
           window.location.href = "/login";
-        }, 1500);
+        }, 1800);
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Verification Failed',
+          text: data.message || 'Invalid OTP. Please try again.'
+        });
       }
-    })
-    .catch(() => {
-      document.getElementById("message").textContent = "Something went wrong.";
-      document.getElementById("message").style.color = "red";
-    });
+    } catch {
+      Swal.fire({
+        icon: 'error',
+        title: 'Server Error',
+        text: 'Something went wrong while verifying OTP.'
+      });
+    }
   });
 </script>
 

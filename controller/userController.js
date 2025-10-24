@@ -76,7 +76,6 @@ exports.loginAccess = async (req, res) => {
       email: user.email,
       phone: user.phone,
       role: user.role,
-      profileImage:user.profileImage.url
     };
 
     return res.json({ success: true, redirect: '/' });
@@ -101,8 +100,13 @@ exports.handleSignup = async (req, res) => {
       confirmPassword
     });
 
+    req.session.emailData = email;
+
     if (error) {
-      return res.render('user-pages/signup', { error: error.details[0].message });
+      return res.status(400).json({
+        success: false,
+        message: error.details[0].message
+      });
     }
 
     //  Check if email already exists
@@ -112,7 +116,10 @@ exports.handleSignup = async (req, res) => {
     const existingUser = await userModel.userCheck(data);
     console.log(existingUser);
     if (existingUser) {
-      return res.render('user-pages/signup', { error: 'Email is already registered. Please log in or use another email.' });
+      return res.status(400).json({
+        success: false,
+        message: 'Email is already registered. Please log in or use another email.'
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -138,15 +145,33 @@ exports.handleSignup = async (req, res) => {
     if (result) {
       console.log("OTP....!!", otp);
       await sendMail(email, otp, "signup");
-      return res.render('user-pages/verify-mail', { error: null, userMail: email });
+      return res.json({
+        success: true,
+        userMail: email
+      });
     }
 
-    res.send("Please try again later.");
+    return res.status(500).json({
+      success: false,
+      message: "Please try again later."
+    });
   } catch (err) {
     console.error(err);
-    return res.status(500).render('error', { error: 'Server error. Please try again.' });
+    return res.status(500).json({
+      success: false,
+      message: 'Server error. Please try again.'
+    });
   }
 };
+
+exports.renderVerifyMailPage = (req, res) => {  
+  
+  if (!req.session.emailData) return res.redirect('/signup');
+email = req.session.emailData;
+  res.render('user-pages/verify-mail', { email, error: null })
+}
+
+
 exports.resendOtp = async (req, res) => {
   try {
     let mail = req.body.email
@@ -161,6 +186,9 @@ exports.resendOtp = async (req, res) => {
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
+
+
+
 exports.verifyUserOtp = async (req, res) => {
   //otp from front end
   const { email, otp } = req.body
@@ -180,6 +208,7 @@ exports.verifyUserOtp = async (req, res) => {
 
 
 }
+
 //forgot password page loading
 exports.loadForgotPage = (req, res) => {
   res.render('user-pages/forgot_page.ejs', { error: null })

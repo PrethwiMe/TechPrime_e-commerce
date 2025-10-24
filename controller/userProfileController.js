@@ -19,6 +19,8 @@ const { error } = require('console');
 const joi = require('../utils/validation')
 const { ObjectId } = require("mongodb");
 const adminModal = require('../model/adminModel');
+const dbVariables = require('../config/databse')
+
 
 
 
@@ -112,6 +114,7 @@ exports.viewUserEditpage = async (req, res) => {
   const email = req.session.user.email
 
   let data = await userModel.fetchUser(email)
+
   console.log(data);
   res.render('user-pages/editUserData.ejs', {
     user: data || null,
@@ -163,7 +166,6 @@ exports.verifyEmailOtp = async (req, res) => {
 exports.userImage = async (req, res) => {
   try {
     const { error } = joi.userProfileValidation(req.body);
-    console.log("error        :", error);
     if (error) {
       return res.status(400).json({
         success: false,
@@ -173,38 +175,43 @@ exports.userImage = async (req, res) => {
     }
 
     const { firstName, lastName, phone, id } = req.body;
+    let updateData = { firstName, lastName, phone, id };
 
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: "No file uploaded" });
-    }
-    const result = await uploadToCloudinary(req.file.buffer);
-    const { public_id, secure_url, created_at } = result;
 
-    const data = {
-      firstName, lastName, phone, id,
-      profileImage: {
+    if (req.file && req.file.buffer) {
+      const result = await uploadToCloudinary(req.file.buffer);
+      const { public_id, secure_url, created_at } = result;
+
+      updateData.profileImage = {
         public_id,
         url: secure_url,
-        uploadedAt: created_at
-      },
-    };
+        uploadedAt: created_at,
+      };
+    } else {
+      const db = await getDB();
+      const existingUser = await db.collection(dbVariables.userCollection).findOne({ _id: new ObjectId(id) });
+      if (existingUser && existingUser.profileImage) {
+        updateData.profileImage = existingUser.profileImage;
+      }
+    }
 
-    const updateProfile = await userProfileModel.updateUser(data);
+    const updateProfile = await userProfileModel.updateUser(updateData);
 
     return res.json({
       success: true,
       message: "Profile updated successfully",
-      data: updateProfile
+      data: updateProfile,
     });
-
   } catch (error) {
-    console.error("Error in userImage:", error);
+    console.error("❌ Error in userImage:", error);
     return res.status(500).json({
       success: false,
-      message: error.message || "Server error"
+      message: error.message || "Server error",
     });
   }
 };
+
+
 exports.updatePassword = async (req, res) => {
   const { firstName, email, phone, currentPassword, newPassword, confirmPassword } = req.body;
 
