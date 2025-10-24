@@ -135,42 +135,50 @@ exports.orderPage = async (req, res) => {
 };
 //edit order page
 exports.editOrderStatus = async (req, res) => {
-    try {
-        const { orderId, status } = req.body;
+  try {
+    const { orderId, status } = req.body;
+    if (!orderId || !status)
+      return res.status(400).json({ success: false, message: "Missing fields" });
 
-        console.log(req.body); // Debugging
+    const result = await adminModel.updateOrderStatus(orderId, status);
+    if (!result)
+      return res.status(404).json({ success: false, message: "Order not found" });
 
-        await adminModel.updateOrderStatus(orderId, status);
-
-     return res.status(200).json({success:true,message:"Done"})
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, message: 'Server Error' });
-    }
+    res.status(200).json({
+      success: true,
+      message: "Order status updated successfully",
+      data: { orderId, status }
+    });
+  } catch (err) {
+    console.error("editOrderStatus error:", err.message);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
 };
-//accept return
-exports.orderAccept = async(req,res) => {
-  console.log(req.body);
-  //ojectid
-  const id = req.body.orderId;
-  const status = req.body.returnStatus
 
-  const result = await adminModel.returnAccept(id,status)
+exports.orderAccept = async (req, res) => {
+  try {
+    const { orderId, returnStatus } = req.body;
+    const result = await adminModel.returnAccept(orderId, returnStatus);
+    res.status(result ? 200 : 400).json({
+      success: !!result,
+      message: result ? "Product return accepted" : "Failed to accept return"
+    });
+  } catch (err) {
+    console.error(" orderAccept error:", err);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
 
-  if(result) return res.status(200).json({success:true,message:"product Accepted"})
-    else return res.status(400).json({success:false, message:"failed to accept product"})
+exports.updateItems = async (req, res) => {
+  try {
+    const result = await adminModel.updateItemStatus(req.body);
+    res.status(result ? 200 : 400).json({ success: !!result });
+  } catch (err) {
+    console.error(" updateItems error:", err);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
 
-}
-//item controll
-exports.updateItems = async (req,res) => {
-
-  console.log(req.body);
-
-const response = await adminModel.updateItemStatus(req.body);
-if(response) return res.status(200).json({success:true})
-else return res.status(400).json({success:false})
-}
 //viewOffer
 exports.viewOffer = async (req, res) => {
   try {

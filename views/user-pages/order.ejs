@@ -160,7 +160,7 @@
           <button class="btn filter-chip" data-filter="cancelled"><i class="bi bi-x-circle me-1"></i> Cancelled</button>
         </div>
       </header>
-      <% if (orders.some(order => order.status.toLowerCase() === 'pending' && !order.returnOrder)) { %>
+      <% if (orders.some(order => (order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped') && !order.returnOrder)) { %>
         <button class="btn cancel-all-btn mb-4" id="cancelAllBtn"><i class="bi bi-x-circle-fill me-1"></i> Cancel All</button>
       <% } %>
       <section id="ordersList" class="vstack gap-3">
@@ -192,12 +192,8 @@
                   <span class="text-muted"><i class="bi bi-calendar-date me-1"></i> <%= new Date(order.createdAt).toLocaleDateString() %></span>
                 </div>
                 <div class="order-actions d-flex gap-2">
-                  <% if (order.status.toLowerCase() === 'pending' && !order.returnOrder) { %>
-                    <button class="btn btn-outline-danger cancel-order-btn" data-cancel="<%= order.orderId %>">
-                      <i class="bi bi-x-circle me-1"></i> Cancel
-                    </button>
-                  <% } else if (order.status.toLowerCase() === 'shipped' && !order.returnOrder) { %>
-                    <button class="btn btn-outline-danger cancel-order-btn" data-cancel="<%= order.orderId %>">
+                  <% if ((order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped') && !order.returnOrder) { %>
+                    <button class="btn btn-outline-danger cancel-order-btn" data-cancel="<%= order.orderId %>" data-payment-method="<%= order.paymentMethod %>">
                       <i class="bi bi-x-circle me-1"></i> Cancel
                     </button>
                   <% } else if (order.status.toLowerCase() === 'delivered' && !order.returnOrder) { %>
@@ -259,8 +255,8 @@
                             <button class="btn btn-outline-warning btn-sm return-item-btn" data-return-item="<%= order.orderId %>_<%= item.variantId %>">
                               <i class="bi bi-arrow-return-left me-1"></i> Return
                             </button>
-                          <% } else if (!item.itemStatus || item.itemStatus !== 'cancelled' && !order.returnOrder && !item.returnStatus) { %>
-                            <button class="btn btn-outline-danger btn-sm cancel-item-btn" data-cancel-item="<%= order.orderId %>_<%= item.variantId %>_<%= order.status %>">
+                          <% } else if (!item.itemStatus || (item.itemStatus !== 'cancelled' && !order.returnOrder && !item.returnStatus && (order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped'))) { %>
+                            <button class="btn btn-outline-danger btn-sm cancel-item-btn" data-cancel-item="<%= order.orderId %>_<%= item.variantId %>_<%= order.status %>_<%= order.paymentMethod %>">
                               <i class="bi bi-x-circle me-1"></i> Cancel
                             </button>
                           <% } %>
@@ -481,23 +477,32 @@
         };
 
         document.getElementById('cancelAllBtn')?.addEventListener('click', () => {
-          const pendingOrders = Array.from(document.querySelectorAll('.order-card[data-status="pending"] .cancel-order-btn')).map(btn => btn.dataset.cancel);
-          if (!pendingOrders.length) {
-            Swal.fire({ title: 'No Pending Orders', text: 'No pending orders to cancel.', icon: 'info', confirmButtonColor: '#0d6efd' });
+          const cancellableOrders = Array.from(document.querySelectorAll('.order-card[data-status="pending"], .order-card[data-status="shipped"]'))
+            .filter(card => !card.querySelector('.badge-status.return-pending'))
+            .map(card => card.querySelector('.cancel-order-btn').dataset.cancel);
+          if (!cancellableOrders.length) {
+            Swal.fire({ title: 'No Cancellable Orders', text: 'No pending or shipped orders to cancel.', icon: 'info', confirmButtonColor: '#0d6efd' });
             return;
           }
           handleAction('/account/orders/cancel-all', {
-            text: `Cancel ${pendingOrders.length} pending order${pendingOrders.length > 1 ? 's' : ''}?`,
-            payload: { orderIds: pendingOrders }
+            text: `Cancel ${cancellableOrders.length} order${cancellableOrders.length > 1 ? 's' : ''}?`,
+            payload: { orderIds: cancellableOrders },
+            input: {
+              input: 'textarea',
+              inputLabel: 'Reason for Cancellation',
+              inputPlaceholder: 'Enter reason for cancellation...',
+              inputAttributes: { 'aria-label': 'Cancellation reason' },
+              inputValidator: value => !value ? 'Provide a reason!' : value.trim().split(/\s+/).length > 50 ? `Reason must not exceed 50 words.` : null
+            }
           }, {
             title: 'All Orders Cancelled!',
-            text: 'All pending orders have been cancelled.'
+            text: 'All eligible orders have been cancelled.'
           }, 'Failed to cancel all orders', () => {
-            pendingOrders.forEach(orderId => {
+            cancellableOrders.forEach(orderId => {
               const card = document.querySelector(`.order-card .cancel-order-btn[data-cancel="${orderId}"]`).closest('.order-card');
               updateCardStatus(card, 'cancelled', 'Cancelled', ['.cancel-order-btn', '.cancel-item-btn']);
             });
-            if (!document.querySelector('.order-card[data-status="pending"] .cancel-order-btn')) {
+            if (!document.querySelector('.order-card[data-status="pending"] .cancel-order-btn, .order-card[data-status="shipped"] .cancel-order-btn')) {
               document.getElementById('cancelAllBtn')?.remove();
             }
           });
@@ -506,16 +511,24 @@
         document.querySelectorAll('.cancel-order-btn').forEach(btn => {
           btn.addEventListener('click', () => {
             const orderId = btn.dataset.cancel;
+            const paymentMethod = btn.dataset.paymentMethod;
             handleAction('/account/orders/cancel', {
               text: `Cancel order ${orderId}?`,
-              payload: { orderId }
+              input: {
+                input: 'textarea',
+                inputLabel: 'Reason for Cancellation',
+                inputPlaceholder: 'Enter reason for cancellation...',
+                inputAttributes: { 'aria-label': 'Cancellation reason' },
+                inputValidator: value => !value ? 'Provide a reason!' : value.trim().split(/\s+/).length > 50 ? `Reason must not exceed 50 words.` : null
+              },
+              payload: { orderId, paymentMethod }
             }, {
               title: 'Cancelled!',
               text: 'Your order has been cancelled.'
             }, 'Failed to cancel order', () => {
               const card = btn.closest('.order-card');
               updateCardStatus(card, 'cancelled', 'Cancelled', ['.cancel-order-btn', '.cancel-item-btn']);
-              if (!document.querySelector('.order-card[data-status="pending"] .cancel-order-btn')) {
+              if (!document.querySelector('.order-card[data-status="pending"] .cancel-order-btn, .order-card[data-status="shipped"] .cancel-order-btn')) {
                 document.getElementById('cancelAllBtn')?.remove();
               }
             });
@@ -524,10 +537,17 @@
 
         document.querySelectorAll('.cancel-item-btn').forEach(btn => {
           btn.addEventListener('click', () => {
-            const [orderId, variantId, status] = btn.dataset.cancelItem.split('_');
+            const [orderId, variantId, status, paymentMethod] = btn.dataset.cancelItem.split('_');
             handleAction('/account/orders/cancel-item', {
               text: `Cancel item in order ${orderId}?`,
-              payload: { orderId, variantId, status }
+              input: {
+                input: 'textarea',
+                inputLabel: 'Reason for Cancellation',
+                inputPlaceholder: 'Enter reason for cancellation...',
+                inputAttributes: { 'aria-label': 'Cancellation reason' },
+                inputValidator: value => !value ? 'Provide a reason!' : value.trim().split(/\s+/).length > 50 ? `Reason must not exceed 50 words.` : null
+              },
+              payload: { orderId, variantId, status, paymentMethod }
             }, {
               title: 'Item Cancelled!',
               text: 'The item has been cancelled.'
@@ -539,7 +559,7 @@
               const card = row.closest('.order-card');
               if (!card.querySelector('.cancel-item-btn')) {
                 updateCardStatus(card, 'cancelled', 'Cancelled', ['.cancel-order-btn']);
-                if (!document.querySelector('.order-card[data-status="pending"] .cancel-order-btn')) {
+                if (!document.querySelector('.order-card[data-status="pending"] .cancel-order-btn, .order-card[data-status="shipped"] .cancel-order-btn')) {
                   document.getElementById('cancelAllBtn')?.remove();
                 }
               }
@@ -554,7 +574,7 @@
           btn.addEventListener('click', () => {
             const isOrder = btn.classList.contains('return-order-btn');
             const [orderId, variantId] = isOrder ? [btn.dataset.return] : btn.dataset.returnItem.split('_');
-            const localResult = {}; // Placeholder for result.value in closure
+            const localResult = {};
             handleAction(isOrder ? '/account/orders/return' : '/account/orders/return', {
               text: `Request return for ${isOrder ? 'order' : 'item in order'} ${orderId}?`,
               input: {
@@ -571,7 +591,7 @@
               title: 'Return Requested!',
               text: `Your ${isOrder ? 'order' : 'item'} return request has been submitted.`
             }, `Failed to submit return request`, (response) => {
-              localResult.value = result.value; // Simulate passing result.value
+              localResult.value = response.data.reason || 'N/A';
               if (isOrder) {
                 const card = btn.closest('.order-card');
                 card.dataset.status = 'return-pending';
@@ -586,7 +606,7 @@
                 returnReasonDiv.innerHTML = `
                   <div class="detail-box">
                     <div class="detail-label">Return Reason</div>
-                    <div class="detail-value">${localResult.value || 'N/A'}</div>
+                    <div class="detail-value">${localResult.value}</div>
                   </div>
                 `;
                 card.querySelector('.row.g-3').appendChild(returnReasonDiv);
@@ -600,7 +620,6 @@
           });
         });
 
-        // Handle Repeat Payment for pending online payments
         document.querySelectorAll('.repeat-payment-btn').forEach(btn => {
           btn.addEventListener('click', async () => {
             const orderId = btn.dataset.orderId;
@@ -617,7 +636,7 @@
             if (!confirmResult.isConfirmed) return;
             try {
               const response = await axios.post('/account/orders/repeat-payment', { orderId });
-              console.log('Repeat payment response:', response.data); // Debug log
+              console.log('Repeat payment response:', response.data);
               if (response.data.success) {
                 const { id, amount, currency, orderId: respOrderId } = response.data;
                 await Swal.fire({
@@ -628,26 +647,25 @@
                   showConfirmButton: false
                 });
 
-                // Load Razorpay script if not loaded
                 if (typeof Razorpay === 'undefined') {
                   const script = document.createElement('script');
                   script.src = 'https://checkout.razorpay.com/v1/checkout.js';
                   script.async = true;
                   script.onload = () => {
-                    console.log('Razorpay script loaded, opening checkout'); // Debug
+                    console.log('Razorpay script loaded, opening checkout');
                     openRazorpayCheckout(id, amount, currency, respOrderId);
                   };
                   script.onerror = () => {
-                    console.error('Failed to load Razorpay script'); // Debug
+                    console.error('Failed to load Razorpay script');
                     Swal.fire('Error', 'Failed to load payment gateway. Please try again.', 'error');
                   };
                   document.head.appendChild(script);
                 } else {
-                  console.log('Razorpay already loaded, opening checkout'); // Debug
+                  console.log('Razorpay already loaded, opening checkout');
                   openRazorpayCheckout(id, amount, currency, respOrderId);
                 }
               } else {
-                console.error('Repeat payment failed:', response.data.error); // Debug
+                console.error('Repeat payment failed:', response.data.error);
                 await Swal.fire({
                   title: 'Error',
                   text: response.data.error || 'Failed to initiate repeat payment.',
@@ -656,7 +674,7 @@
                 });
               }
             } catch (error) {
-              console.error('Error initiating repeat payment:', error); // Debug
+              console.error('Error initiating repeat payment:', error);
               await Swal.fire({
                 title: 'Error',
                 text: 'An error occurred while initiating payment. Please try again.',
@@ -668,24 +686,24 @@
         });
 
         function openRazorpayCheckout(order_id, amount, currency, orderId) {
-          console.log('Opening Razorpay checkout with order_id:', order_id); // Debug
+          console.log('Opening Razorpay checkout with order_id:', order_id);
           const options = {
             key: RAZORPAY_KEY,
-            amount: amount / 100, // Amount in rupees for display
+            amount: amount / 100,
             currency: currency,
-            name: 'Your Store Name', // Customize
+            name: 'Your Store Name',
             description: `Payment for Order ${orderId}`,
             order_id: order_id,
             handler: async function (razorpayResponse) {
-              console.log('Razorpay response:', razorpayResponse); // Debug
+              console.log('Razorpay response:', razorpayResponse);
               try {
                 const verifyResponse = await axios.post('/order/verifyPayment', {
                   razorpayPaymentId: razorpayResponse.razorpay_payment_id,
                   razorpayOrderId: razorpayResponse.razorpay_order_id,
                   razorpaySignature: razorpayResponse.razorpay_signature,
-                  dbOrderId:orderId
+                  dbOrderId: orderId
                 });
-                console.log('Verify response:', verifyResponse.data); // Debug
+                console.log('Verify response:', verifyResponse.data);
                 if (verifyResponse.data.success) {
                   await Swal.fire({
                     title: 'Payment Successful!',
@@ -703,7 +721,7 @@
                   });
                 }
               } catch (error) {
-                console.error('Verification error:', error); // Debug
+                console.error('Verification error:', error);
                 await Swal.fire({
                   title: 'Verification Error',
                   text: 'Payment may have succeeded, but verification failed. Contact support.',
@@ -712,7 +730,6 @@
               }
             },
             prefill: {
-              // Optional: Fetch or hardcode user details
               name: '',
               email: '',
               contact: ''
@@ -722,7 +739,7 @@
             },
             modal: {
               ondismiss: function () {
-                console.log('Payment modal dismissed'); // Debug
+                console.log('Payment modal dismissed');
               }
             }
           };

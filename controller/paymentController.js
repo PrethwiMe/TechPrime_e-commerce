@@ -9,145 +9,118 @@ const { updateAddress } = require('./userProfileController');
 
 
 exports.razorpaySetup = async (req, res) => {
+  try {
+    if (!req.session.user) return res.status(401).json({ error: "Please log in to proceed" });
 
-  if (!req.session.user) {
-    return res.status(401).json({ error: 'Please log in to proceed' });
-  }
+    let { amount, selectedAddress, paymentMethod, items, subtotal, tax, deliveryCharge, total, couponCode } = req.body;
+    if (!amount || isNaN(amount) || amount <= 0) {
+      return res.status(400).json({ error: "Invalid amount" });
+    }
 
-  let {
-    amount,
-    selectedAddress,
-    paymentMethod,
-    items,
-    subtotal,
-    tax,
-    deliveryCharge,
-    total,
-    couponCode
-  } = req.body;
+    const userId = req.session.user.userId;
+    amount = Math.round(amount);
+    const currency = "INR";
 
-  if (!amount || isNaN(amount) || amount <= 0) {
-    return res.status(400).json({ error: 'Invalid amount' });
-  }
+    let cartOriginal = 0, cartDiscount = 0;
+    const updatedItems = items.map(item => {
+      const original = item.originalPrice * item.quantity;
+      const discounted = (item.discountedPrice || item.originalPrice) * item.quantity;
+      const itemDiscount = original - discounted;
 
-  amount = Math.round(amount);
-  const currency = 'INR';
-  const userId = req.session.user.userId;
+      cartOriginal += original;
+      cartDiscount += itemDiscount;
 
-  // Calculate totals
-  let cartOriginal = 0;
-  let cartDiscount = 0;
+      return {
+        productId: item.productId,
+        variantId: item.variantId,
+        quantity: item.quantity,
+        originalPrice: item.originalPrice,
+        discountedPrice: item.discountedPrice || item.originalPrice,
+        itemDiscount,
+        subtotal: discounted,
+        appliedOffer: !!item.appliedOffer,
+        itemStatus: "Pending"
+      };
+    });
 
-  const updatedItems = items.map((item) => {
-    const original = item.originalPrice * item.quantity;
-    const discounted = item.discountedPrice ? item.discountedPrice * item.quantity : original;
-    const itemDiscount = original - discounted;
+    const razorpayOrder = await req.app.locals.razorpay.orders.create({
+      amount, currency, receipt: `receipt_${Date.now()}`, notes: { userId }
+    });
 
-    cartOriginal += original;
-    cartDiscount += itemDiscount;
-
-    return {
-      productId: item.productId,
-      variantId: item.variantId,
-      quantity: item.quantity,
-      originalPrice: item.originalPrice,
-      discountedPrice: item.discountedPrice || item.originalPrice,
-      itemDiscount,
-      subtotal: discounted,
-      appliedOffer: item.appliedOffer || false,
-      itemStatus: 'Pending'
-      
+    const orderData = {
+      orderId: `ORD${Math.floor(10000000 + Math.random() * 90000000)}`,
+      userId,
+      items: updatedItems,
+      subtotal: subtotal || cartOriginal - cartDiscount,
+      cartOriginal,
+      cartDiscount,
+      deliveryCharge: deliveryCharge || 0,
+      tax,
+      total,
+      couponCode: couponCode || "",
+      paymentMethod,
+      paymentStatus: "pending",
+      status: "Pending",
+      selectedAddress,
+      razorpayOrderId: razorpayOrder.id,
+      receipt: razorpayOrder.receipt,
+      amount,
+      currency,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
-  });
 
-  const razorpayOrder = await req.app.locals.razorpay.orders.create({
-    amount,
-    currency,
-    receipt: `receipt_${Date.now()}`,
-    notes: { userId },
-  });
+    await userProfileModel.addNewOrder(userId, orderData);
+    await userProfileModel.deleteCart(userId);
 
-  const orderData = {
-    orderId: `ORD${Math.floor(10000000 + Math.random() * 90000000)}`,
-    userId,
-    items: updatedItems,
-    subtotal: subtotal || cartOriginal - cartDiscount,
-    cartOriginal,
-    cartDiscount,
-    deliveryCharge: deliveryCharge || 0,
-    tax,
-    total,
-    couponCode: couponCode || '',
-    paymentMethod,
-    paymentStatus: 'pending',
-    status: 'Pending',
-    selectedAddress,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    razorpayOrderId: razorpayOrder.id,
-    receipt: razorpayOrder.receipt,
-    amount,
-    currency
-  };
-
-  // Save to DB
-  let result = await userProfileModel.addNewOrder(userId, orderData);
-  //  Clear cart
-  await userProfileModel.deleteCart(userId);
-
-  res.status(200).json({
-    id: razorpayOrder.id,
-    amount: razorpayOrder.amount,
-    currency: razorpayOrder.currency,
-    dbOrderId: orderData.orderId,
-  });
+    res.status(200).json({
+      id: razorpayOrder.id,
+      amount: razorpayOrder.amount,
+      currency: razorpayOrder.currency,
+      dbOrderId: orderData.orderId,
+    });
+  } catch (err) {
+    console.error(" Razorpay setup error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 };
+
 
 //////////////////////////
 
 exports.verifyPayment = async (req, res) => {
-
   try {
-    const {
-      razorpayPaymentId,
-      razorpayOrderId,
-      razorpaySignature,
-      dbOrderId
-    } = req.body;
+    const { razorpayPaymentId, razorpayOrderId, razorpaySignature, dbOrderId } = req.body;
 
     const generatedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(`${razorpayOrderId}|${razorpayPaymentId}`)
-      .digest('hex');
+      .digest("hex");
 
     if (generatedSignature !== razorpaySignature) {
       return res.status(400).json({ success: false, message: "Invalid signature" });
     }
+
     const order = await userProfileModel.showOrderVerify(dbOrderId);
-
-    if (!order) {
-      return res.status(404).json({ success: false, message: "Order not found" });
-    }
-
+    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
 
     const updateOrder = await userProfileModel.orderUpdate(razorpayOrderId, {
       paymentStatus: "paid",
       razorpayPaymentId,
       razorpaySignature,
-      status: "Confirmed", 
+      status: "pending",
     });
 
-    if (updateOrder.modifiedCount > 0) {
-      return res.json({ success: true, message: "Payment verified successfully" });
-    } else {
-      return res.status(400).json({ success: false, message: "Payment update failed" });
-    }
-
-  } catch (error) {
-    console.error("Error in verifyPayment:", error);
+    res.json({
+      success: updateOrder.modifiedCount > 0,
+      message: updateOrder.modifiedCount > 0 ? "Payment verified successfully" : "Payment update failed"
+    });
+  } catch (err) {
+    console.error("❌ verifyPayment error:", err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
 
 exports.repeatPayment = async (req, res) => {
   try {

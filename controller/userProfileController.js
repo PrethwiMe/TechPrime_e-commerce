@@ -306,10 +306,10 @@ exports.checkoutView = async (req, res) => {
 //add to order
 
 exports.addToOrder = async (req, res) => {
- 
   try {
     const { paymentMethod, selectedAddress, couponCode, items } = req.body;
-    const userId = req.session.user.userId; 
+    const userId = req.session.user?.userId;
+    if (!userId) return res.status(401).json({ status: "error", message: "Login required" });
 
     if (paymentMethod !== "cod") {
       return res.status(400).json({ status: "error", message: "Only COD supported for now" });
@@ -319,49 +319,40 @@ exports.addToOrder = async (req, res) => {
       return res.status(400).json({ status: "error", message: "No items to order" });
     }
 
-    let subtotal = 0;
-    let cartOriginal = 0;
-    let cartDiscount = 0;
+    // Calculate totals
+    let subtotal = 0, cartOriginal = 0, cartDiscount = 0;
+    const orderItems = items.map(item => {
+      const original = +item.originalPrice || 0;
+      const discount = +item.discountedPrice || original;
+      const quantity = +item.quantity || 1;
+      const itemDiscount = original - discount;
+      const sub = discount * quantity;
 
-    const orderItems = items.map((item) => {
-      const originalPrice = Number(item.originalPrice) || 0;
-      const discountedPrice = Number(item.discountedPrice) || originalPrice;
-      const quantity = Number(item.quantity) || 1;
-
-      const itemDiscount = originalPrice - discountedPrice;
-      const subtotalItem = discountedPrice * quantity;
-
-      subtotal += subtotalItem;
-      cartOriginal += originalPrice * quantity;
+      subtotal += sub;
+      cartOriginal += original * quantity;
       cartDiscount += itemDiscount * quantity;
 
       return {
         productId: item.productId,
         variantId: item.variantId,
         quantity,
-        originalPrice,
-        discountedPrice,
+        originalPrice: original,
+        discountedPrice: discount,
         itemDiscount,
-        subtotal: subtotalItem,
-        appliedOffer: item.appliedOffer || null,
+        subtotal: sub,
+        appliedOffer: !!item.appliedOffer,
         itemStatus: "Pending",
       };
     });
 
-    let tax = 0;
-    if (subtotal > 150000) {
-      tax = subtotal * 0.09;
-    } else if (subtotal > 100000) {
-      tax = subtotal * 0.07;
-    } else if (subtotal > 50000) {
-      tax = subtotal * 0.05;
-    }
+    const tax = subtotal > 150000 ? subtotal * 0.09 :
+                subtotal > 100000 ? subtotal * 0.07 :
+                subtotal > 50000  ? subtotal * 0.05 : 0;
 
-    let deliveryCharge = subtotal > 100000 ? 0 : 100;
-
+    const deliveryCharge = subtotal > 100000 ? 0 : 100;
     const total = subtotal + tax + deliveryCharge;
 
-    const order = {
+    const orderData = {
       userId,
       items: orderItems,
       subtotal,
@@ -379,31 +370,23 @@ exports.addToOrder = async (req, res) => {
       updatedAt: new Date(),
     };
 
-    const result = await userProfileModel.addNewOrder(userId, order);
-
-    if (result.acknowledged) {
-      await userProfileModel.deleteCart(userId);
-
-      return res.status(200).json({
-        status: "success",
-        message: "Order placed successfully",
-        orderSummary: {
-          subtotal,
-          cartOriginal,
-          cartDiscount,
-          tax,
-          deliveryCharge,
-          total,
-        },
-      });
-    } else {
+    const result = await userProfileModel.addNewOrder(userId, orderData);
+    if (!result.acknowledged) {
       return res.status(400).json({ status: "error", message: "Failed to place order" });
     }
+
+    await userProfileModel.deleteCart(userId);
+    res.status(200).json({
+      status: "success",
+      message: "Order placed successfully",
+      orderSummary: { subtotal, cartOriginal, cartDiscount, tax, deliveryCharge, total }
+    });
   } catch (error) {
-    console.error("Error in addToOrder:", error);
+    console.error(" addToOrder error:", error);
     res.status(500).json({ status: "error", message: "Internal Server Error" });
   }
 };
+
 
 
 // view order user
