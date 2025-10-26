@@ -62,7 +62,7 @@
       .badge-status.delivered { background: #e6f4ea; color: #198754; }
       .badge-status.cancelled { background: #f8d7da; color: #842029; }
       .badge-status.return-pending { background: #fff3cd; color: #856404; }
-      .badge-status.return-accepted { background: #e6f4ea; color: #198754; }
+      .badge-status.return-approved { background: #e6f4ea; color: #198754; }
       .badge-status.return-rejected { background: #f8d7da; color: #dc3545; }
       .badge-payment {
         font-weight: 600;
@@ -141,6 +141,18 @@
         50% { opacity: 0.7; }
         100% { opacity: 1; }
       }
+      .item-return-info {
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+      }
+      .item-return-info .detail-label {
+        font-size: 0.75rem;
+        margin-bottom: 0.125rem;
+      }
+      .item-return-info .detail-value {
+        font-size: 0.8rem;
+        margin-bottom: 0;
+      }
     </style>
   </head>
   <body>
@@ -160,7 +172,7 @@
           <button class="btn filter-chip" data-filter="cancelled"><i class="bi bi-x-circle me-1"></i> Cancelled</button>
         </div>
       </header>
-      <% if (orders.some(order => (order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped') && !order.returnOrder)) { %>
+      <% if (orders.some(order => (order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped') && !order.items.some(item => item.itemStatus === 'Delivered'))) { %>
         <button class="btn cancel-all-btn mb-4" id="cancelAllBtn"><i class="bi bi-x-circle-fill me-1"></i> Cancel All</button>
       <% } %>
       <section id="ordersList" class="vstack gap-3">
@@ -173,14 +185,6 @@
                     <i class="bi me-1 <%= order.status.toLowerCase() === 'pending' ? 'bi-hourglass-split' : order.status.toLowerCase() === 'shipped' ? 'bi-truck' : order.status.toLowerCase() === 'delivered' ? 'bi-check2-circle' : 'bi-x-circle' %>"></i>
                     <%= order.status %>
                   </span>
-                  <% if (order.returnOrder) { %>
-                    <span class="badge badge-status return-<%= order.returnOrder.toLowerCase() %> text-uppercase">
-                      <i class="bi me-1 <%= order.returnOrder === 'Pending' ? 'bi-hourglass-split' : order.returnOrder === 'Accepted' ? 'bi-check2-circle' : 'bi-x-circle' %>"></i>
-                      Return <%= order.returnOrder %>
-                    </span>
-                  <% } else { %>
-                    <span class="badge badge-status text-muted">Not Returned</span>
-                  <% } %>
                   <% if (order.paymentStatus) { %>
                     <span class="badge badge-payment <%= order.paymentStatus.toLowerCase() === 'paid' ? 'completed' : order.paymentStatus.toLowerCase() %> payment-status-badge text-uppercase">
                       <i class="bi me-1 <%= order.paymentStatus.toLowerCase() === 'pending' ? 'bi-hourglass-split' : 'bi-check2-circle' %>"></i>
@@ -192,13 +196,9 @@
                   <span class="text-muted"><i class="bi bi-calendar-date me-1"></i> <%= new Date(order.createdAt).toLocaleDateString() %></span>
                 </div>
                 <div class="order-actions d-flex gap-2">
-                  <% if ((order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped') && !order.returnOrder) { %>
+                  <% if ((order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped') && !order.items.some(item => item.itemStatus === 'Delivered')) { %>
                     <button class="btn btn-outline-danger cancel-order-btn" data-cancel="<%= order.orderId %>" data-payment-method="<%= order.paymentMethod %>">
                       <i class="bi bi-x-circle me-1"></i> Cancel
-                    </button>
-                  <% } else if (order.status.toLowerCase() === 'delivered' && !order.returnOrder) { %>
-                    <button class="btn btn-outline-warning return-order-btn" data-return="<%= order.orderId %>">
-                      <i class="bi bi-arrow-return-left me-1"></i> Return
                     </button>
                   <% } %>
                   <% if (order.paymentMethod === 'online' && order.paymentStatus && order.paymentStatus.toLowerCase() === 'pending') { %>
@@ -236,10 +236,16 @@
                       <tr>
                         <td>
                           <div class="d-flex align-items-center gap-2">
-                            <img class="order-item-thumb" src="<%= item.product?.images[0] || '/images/placeholder.jpg' %>" alt="Item image" />
+                            <img class="order-item-thumb" src="<%= item.product?.images[0] || '/images/placeholder.jpg' %>"alt="Item image" />
                             <div>
-                              <div class="fw-semibold"><%= item.product?.name || 'Product Name' %></div>
+                              <div class="fw-semibold"><%= item.productName || 'Product Name' %></div>
                               <small>Category: Laptops & Accessories</small>
+                              <% if (item.itemReturn && item.returnReason) { %>
+                                <div class="item-return-info">
+                                  <div class="detail-label">Return Reason</div>
+                                  <div class="detail-value"><%= item.returnReason %></div>
+                                </div>
+                              <% } %>
                             </div>
                           </div>
                         </td>
@@ -251,11 +257,18 @@
                           </span>
                         </td>
                         <td class="text-end">
-                          <% if (item.itemStatus === 'Delivered' && !order.returnOrder && !item.returnStatus) { %>
-                            <button class="btn btn-outline-warning btn-sm return-item-btn" data-return-item="<%= order.orderId %>_<%= item.variantId %>">
-                              <i class="bi bi-arrow-return-left me-1"></i> Return
-                            </button>
-                          <% } else if (!item.itemStatus || (item.itemStatus !== 'cancelled' && !order.returnOrder && !item.returnStatus && (order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped'))) { %>
+                          <% if (item.itemStatus === 'Delivered') { %>
+                            <% if (item.itemReturn) { %>
+                              <span class="badge badge-status return-<%= item.itemReturn.toLowerCase() %>">
+                                <i class="bi me-1 <%= item.itemReturn.toLowerCase() === 'pending' ? 'bi-hourglass-split' : item.itemReturn.toLowerCase() === 'approved' ? 'bi-check2-circle' : 'bi-x-circle' %>"></i>
+                                Return: <%= item.itemReturn %>
+                              </span>
+                            <% } else { %>
+                              <button class="btn btn-outline-warning btn-sm return-item-btn" data-return-item="<%= order.orderId %>_<%= item.variantId %>">
+                                <i class="bi bi-arrow-return-left me-1"></i> Return
+                              </button>
+                            <% } %>
+                          <% } else if ((!item.itemStatus || item.itemStatus !== 'Delivered' && item.itemStatus !== 'Cancelled') && (order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped')) { %>
                             <button class="btn btn-outline-danger btn-sm cancel-item-btn" data-cancel-item="<%= order.orderId %>_<%= item.variantId %>_<%= order.status %>_<%= order.paymentMethod %>">
                               <i class="bi bi-x-circle me-1"></i> Cancel
                             </button>
@@ -279,14 +292,6 @@
                     <div class="detail-value fs-5 fw-bold"><%= parseFloat(order.total).toFixed(2) %>/-</div>
                   </div>
                 </div>
-                <% if (order.returnOrder) { %>
-                  <div class="col-12">
-                    <div class="detail-box">
-                      <div class="detail-label">Return Reason</div>
-                      <div class="detail-value"><%= order.returnReason || 'N/A' %></div>
-                    </div>
-                  </div>
-                <% } %>
               </div>
             </div>
           </article>
@@ -478,7 +483,7 @@
 
         document.getElementById('cancelAllBtn')?.addEventListener('click', () => {
           const cancellableOrders = Array.from(document.querySelectorAll('.order-card[data-status="pending"], .order-card[data-status="shipped"]'))
-            .filter(card => !card.querySelector('.badge-status.return-pending'))
+            .filter(card => !card.querySelectorAll('tr').some(tr => tr.querySelector('.badge-status.delivered')))
             .map(card => card.querySelector('.cancel-order-btn').dataset.cancel);
           if (!cancellableOrders.length) {
             Swal.fire({ title: 'No Cancellable Orders', text: 'No pending or shipped orders to cancel.', icon: 'info', confirmButtonColor: '#0d6efd' });
@@ -570,13 +575,12 @@
           });
         });
 
-        document.querySelectorAll('.return-order-btn, .return-item-btn').forEach(btn => {
+        document.querySelectorAll('.return-item-btn').forEach(btn => {
           btn.addEventListener('click', () => {
-            const isOrder = btn.classList.contains('return-order-btn');
-            const [orderId, variantId] = isOrder ? [btn.dataset.return] : btn.dataset.returnItem.split('_');
+            const [orderId, variantId] = btn.dataset.returnItem.split('_');
             const localResult = {};
-            handleAction(isOrder ? '/account/orders/return' : '/account/orders/return', {
-              text: `Request return for ${isOrder ? 'order' : 'item in order'} ${orderId}?`,
+            handleAction('/account/orders/return-item', {
+              text: `Request return for item in order ${orderId}?`,
               input: {
                 input: 'textarea',
                 inputLabel: 'Reason for Return',
@@ -584,37 +588,31 @@
                 inputAttributes: { 'aria-label': 'Return reason' },
                 inputValidator: value => !value ? 'Provide a reason!' : value.trim().split(/\s+/).length > 50 ? `Reason must not exceed 50 words.` : null
               },
-              payload: { orderId, ...(variantId && { variantId }), returnStatus: 'Pending' },
+              payload: { orderId, variantId, itemReturn: 'Pending' },
               confirmColor: '#ffc107',
               confirmText: 'Submit Return'
             }, {
               title: 'Return Requested!',
-              text: `Your ${isOrder ? 'order' : 'item'} return request has been submitted.`
+              text: `Your item return request has been submitted.`
             }, `Failed to submit return request`, (response) => {
               localResult.value = response.data.reason || 'N/A';
-              if (isOrder) {
-                const card = btn.closest('.order-card');
-                card.dataset.status = 'return-pending';
-                const returnBadge = document.createElement('span');
-                returnBadge.className = 'badge badge-status return-pending text-uppercase';
-                returnBadge.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Return Pending';
-                card.querySelector('.badge-status.text-muted').replaceWith(returnBadge);
-                btn.remove();
-                card.querySelectorAll('.return-item-btn').forEach(b => b.remove());
+              const row = btn.closest('tr');
+              const actionsTd = row.querySelector('td:last-child');
+              const returnBadge = document.createElement('span');
+              returnBadge.className = 'badge badge-status return-pending';
+              returnBadge.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Return: Pending';
+              actionsTd.innerHTML = '';
+              actionsTd.appendChild(returnBadge);
+              const itemDiv = row.querySelector('td:first-child div:last-child');
+              const existingReason = itemDiv.querySelector('.item-return-info');
+              if (!existingReason) {
                 const returnReasonDiv = document.createElement('div');
-                returnReasonDiv.className = 'col-12';
+                returnReasonDiv.className = 'item-return-info';
                 returnReasonDiv.innerHTML = `
-                  <div class="detail-box">
-                    <div class="detail-label">Return Reason</div>
-                    <div class="detail-value">${localResult.value}</div>
-                  </div>
+                  <div class="detail-label">Return Reason</div>
+                  <div class="detail-value">${localResult.value}</div>
                 `;
-                card.querySelector('.row.g-3').appendChild(returnReasonDiv);
-              } else {
-                const row = btn.closest('tr');
-                row.querySelector('.badge-status').className = 'badge badge-status return-pending';
-                row.querySelector('.badge-status').textContent = 'Item Return Pending';
-                btn.remove();
+                itemDiv.appendChild(returnReasonDiv);
               }
             });
           });

@@ -44,9 +44,6 @@
     .badge-status.shipped { background-color: #e7f3fe; color: #0d6efd; }
     .badge-status.delivered { background-color: #e6f4ea; color: #198754; }
     .badge-status.cancelled { background-color: #f8d7da; color: #842029; }
-    .badge-status.return-pending { background-color: #fff3cd; color: #856404; }
-    .badge-status.return-accepted { background-color: #e6f4ea; color: #198754; }
-    .badge-status.return-rejected { background-color: #f8d7da; color: #dc3545; }
     .badge-status.paid { background-color: #e6f4ea; color: #198754; }
     .badge-status.not-paid { background-color: #f8d7da; color: #842029; }
     .form-select-sm {
@@ -57,16 +54,16 @@
       border-color: #0d6efd;
       box-shadow: 0 0 4px rgba(13, 110, 253, 0.3);
     }
-    .form-select-sm option[value="Pending"], .form-select-sm option[value="return-pending"] {
+    .form-select-sm option[value="Pending"] {
       color: #856404;
       background-color: #fff3cd;
     }
     .form-select-sm option[value="Shipped"] { color: #0d6efd; background-color: #e7f3fe; }
-    .form-select-sm option[value="Delivered"], .form-select-sm option[value="return-accepted"] {
+    .form-select-sm option[value="Delivered"] {
       color: #198754;
       background-color: #e6f4ea;
     }
-    .form-select-sm option[value="Cancelled"], .form-select-sm option[value="return-rejected"] {
+    .form-select-sm option[value="Cancelled"] {
       color: #dc3545;
       background-color: #f8d7da;
     }
@@ -129,7 +126,6 @@
                 <th>Variant</th>
                 <th>Total</th>
                 <th>Status</th>
-                <th>Return</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -154,19 +150,12 @@
                   </td>
                   <td>₹ <%= parseFloat(order.total).toLocaleString() %></td>
                   <td>
-                    <select class="form-select form-select-sm order-status" data-id="<%= order._id %>" data-current-status="<%= order.status %>" <%= order.returnOrder || order.status === 'Cancelled' || order.status === 'Delivered' ? 'disabled' : '' %>>
+                    <select class="form-select form-select-sm order-status" data-id="<%= order._id %>" data-current-status="<%= order.status %>" <%= order.status === 'Cancelled' || order.status === 'Delivered' ? 'disabled' : '' %>>
                       <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
                       <option value="Shipped" <%= order.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
                       <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
                       <option value="Cancelled" <%= order.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
                     </select>
-                  </td>
-                  <td>
-                    <% if (order.returnOrder) { %>
-                      <span class="badge badge-status return-<%= order.returnOrder.toLowerCase() %>"><%= order.returnOrder %></span>
-                    <% } else { %>
-                      <span class="text-muted">Not Returned</span>
-                    <% } %>
                   </td>
                   <td>
                     <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editOrderModal-<%= order._id %>">
@@ -245,7 +234,6 @@
                         <th>Price</th>
                         <th>Subtotal</th>
                         <th>Status</th>
-                        <th>Return</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -260,50 +248,22 @@
                           <td>₹ <%= item.discountedPrice.toLocaleString() %></td>
                           <td>₹ <%= (item.quantity * item.discountedPrice).toLocaleString() %></td>
                           <td>
-                            <select class="form-select form-select-sm item-status" data-id="<%= order._id %>" data-variant-id="<%= item.variantId %>" data-current-status="<%= item.itemStatus || 'Pending' %>" <%= item.returnStatus || item.itemStatus === 'Cancelled' || item.itemStatus === 'Delivered' ? 'disabled' : '' %>>
+                            <select class="form-select form-select-sm item-status" data-id="<%= order._id %>" data-variant-id="<%= item.variantId %>" data-current-status="<%= item.itemStatus || 'Pending' %>" <%= item.itemStatus === 'Cancelled' || item.itemStatus === 'Delivered' ? 'disabled' : '' %>>
                               <option value="Pending" <%= (item.itemStatus || 'Pending') === 'Pending' ? 'selected' : '' %>>Pending</option>
                               <option value="Shipped" <%= item.itemStatus === 'Shipped' ? 'selected' : '' %>>Shipped</option>
                               <option value="Delivered" <%= item.itemStatus === 'Delivered' ? 'selected' : '' %>>Delivered</option>
                               <option value="Cancelled" <%= item.itemStatus === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
                             </select>
                           </td>
-                          <td>
-                            <% if (item.returnStatus) { %>
-                              <select class="form-select form-select-sm item-return-status" data-id="<%= order._id %>" data-variant-id="<%= item.variantId %>" data-reason="<%= item.returnReason || 'N/A' %>" data-current-return-status="<%= item.returnStatus %>">
-                                <option value="Pending" <%= item.returnStatus === 'Pending' ? 'selected' : '' %>>Pending</option>
-                                <option value="Accepted" <%= item.returnStatus === 'Accepted' ? 'selected' : '' %>>Accepted</option>
-                                <option value="Rejected" <%= item.returnStatus === 'Rejected' ? 'selected' : '' %>>Rejected</option>
-                              </select>
-                              <small class="text-muted d-block">Reason: <%= item.returnReason || 'N/A' %></small>
-                            <% } else { %>
-                              <span class="text-muted">Not Returned</span>
-                            <% } %>
-                          </td>
                         </tr>
                       <% }) %>
                     </tbody>
                   </table>
                 </div>
-                <h6 class="fw-bold text-secondary mt-3 mb-2">Return Details</h6>
-                <ul class="list-group list-group-flush small">
-                  <li class="list-group-item"><strong>Status:</strong> 
-                    <span class="badge badge-status return-status <%= order.returnOrder ? 'return-' + order.returnOrder.toLowerCase() : 'text-muted' %>"><%= order.returnOrder || 'Not Returned' %></span>
-                  </li>
-                  <% if (order.returnOrder) { %>
-                    <li class="list-group-item"><strong>Reason:</strong> <%= order.returnReason || 'N/A' %></li>
-                  <% } %>
-                </ul>
               </div>
             </div>
           </div>
           <div class="modal-footer bg-light">
-            <% if (order.returnOrder) { %>
-              <select class="form-select form-select-sm return-action-select" data-id="<%= order._id %>" data-reason="<%= order.returnReason || 'N/A' %>" data-current-return-status="<%= order.returnOrder %>">
-                <option value="Pending" <%= order.returnOrder === 'Pending' ? 'selected' : '' %>>Pending</option>
-                <option value="Accepted" <%= order.returnOrder === 'Accepted' ? 'selected' : '' %>>Accepted</option>
-                <option value="Rejected" <%= order.returnOrder === 'Rejected' ? 'selected' : '' %>>Rejected</option>
-              </select>
-            <% } %>
             <button type="button" class="btn btn-outline-dark btn-sm" data-bs-dismiss="modal"><i class="bi bi-x-circle me-1"></i>Close</button>
           </div>
         </div>
@@ -319,9 +279,9 @@
       icon, title, text, timer: isToast ? 1500 : undefined, showConfirmButton: !isToast, toast: isToast, position: isToast ? 'top-end' : 'center'
     });
 
-    const updateBadge = (element, status, isReturn = false) => {
+    const updateBadge = (element, status) => {
       if (element) {
-        element.className = `badge badge-status ${isReturn ? 'return-' : ''}${status.toLowerCase()}`;
+        element.className = `badge badge-status ${status.toLowerCase()}`;
         element.textContent = status;
       }
     };
@@ -431,95 +391,6 @@
             console.error(`Error setting item status to ${itemStatus}:`, error);
             await showAlert('error', 'Error', `An error occurred while setting item status to ${itemStatus}.`);
             this.value = currentStatus;
-          }
-        });
-      });
-
-      // Item Return Status Update
-      document.querySelectorAll('.item-return-status').forEach(select => {
-        select.addEventListener('change', async function() {
-          const { id, variantId, reason, currentReturnStatus } = this.dataset;
-          const returnStatus = this.value;
-          if (!returnStatus) return;
-          const actionText = returnStatus.toLowerCase();
-          const result = await Swal.fire({
-            title: `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} Item Return Request`,
-            text: `Are you sure you want to set the return status to "${returnStatus}" for item ${variantId} in order ${id}? Reason: ${reason || 'N/A'}`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: returnStatus === 'Accepted' ? '#28a745' : returnStatus === 'Rejected' ? '#dc3545' : '#ffc107',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: `Yes, set to ${returnStatus}`,
-            cancelButtonText: 'No, cancel'
-          });
-          if (!result.isConfirmed) {
-            this.value = currentReturnStatus;
-            return;
-          }
-          try {
-            const { data } = await axios.post('/admin/orders/update-item-return-status', { orderId: id, variantId, returnStatus, returnReason: reason });
-            if (data.success) {
-              await showAlert('success', `Item Return ${returnStatus}`, `The item return status has been set to ${returnStatus}.`);
-              this.dataset.currentReturnStatus = returnStatus;
-              updateBadge(this.closest('tr')?.querySelector('.badge-status'), returnStatus, true);
-              this.closest('tr').querySelector('.item-status').disabled = true;
-              if (returnStatus !== 'Pending') this.disabled = true;
-              const modal = this.closest('.modal-content');
-              const allItemsReturned = Array.from(modal.querySelectorAll('.item-return-status')).every(sel => sel.value !== 'Pending');
-              if (allItemsReturned) {
-                const orderReturnSelect = modal.querySelector('.return-action-select');
-                if (orderReturnSelect) {
-                  orderReturnSelect.value = returnStatus;
-                  orderReturnSelect.dataset.currentReturnStatus = returnStatus;
-                  updateBadge(modal.querySelector('.badge-status.return-status'), returnStatus, true);
-                  modal.querySelector('.order-status').disabled = true;
-                }
-              }
-            } else throw new Error(`Failed to set item return status to ${returnStatus}.`);
-          } catch (error) {
-            console.error(`Error setting item return status to ${returnStatus}:`, error);
-            await showAlert('error', 'Error', `An error occurred while setting item return status to ${returnStatus}.`);
-            this.value = currentReturnStatus;
-          }
-        });
-      });
-
-      // Order Return Status Update
-      document.querySelectorAll('.return-action-select').forEach(select => {
-        select.addEventListener('change', async function() {
-          const { id, reason, currentReturnStatus } = this.dataset;
-          const returnStatus = this.value;
-          if (!returnStatus) return;
-          const actionText = returnStatus.toLowerCase();
-          const result = await Swal.fire({
-            title: `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} Order Return Request`,
-            text: `Are you sure you want to set the return status to "${returnStatus}" for order ${id}? Reason: ${reason || 'N/A'}`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: returnStatus === 'Accepted' ? '#28a745' : returnStatus === 'Rejected' ? '#dc3545' : '#ffc107',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: `Yes, set to ${returnStatus}`,
-            cancelButtonText: 'No, cancel'
-          });
-          if (!result.isConfirmed) {
-            this.value = currentReturnStatus;
-            return;
-          }
-          try {
-            const { data } = await axios.post('/admin/orders/update-return-status', { orderId: id, returnStatus, returnReason: reason });
-            if (data.success) {
-              await showAlert('success', `Order Return ${returnStatus}`, `The order return status has been set to ${returnStatus}.`);
-              this.dataset.currentReturnStatus = returnStatus;
-              updateBadge(this.closest('.modal-content')?.querySelector('.badge-status.return-status'), returnStatus, true);
-              if (returnStatus !== 'Pending') {
-                this.disabled = true;
-                this.closest('.modal-content').querySelectorAll('.item-status, .order-status').forEach(sel => sel.disabled = true);
-              }
-            } else throw new Error(`Failed to set order return status to ${returnStatus}.`);
-          } catch (error) {
-            console.error(`Error setting order return status to ${returnStatus}:`, error);
-            await showAlert('error', 'Error', `An error occurred while setting order return status to ${returnStatus}.`);
-            this.value = currentReturnStatus;
           }
         });
       });

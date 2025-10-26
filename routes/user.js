@@ -98,6 +98,8 @@ router.post('/account/orders/cancel-all',userConfirmed,userProfileController.can
 router.post('/account/orders/cancel-item',userConfirmed,userProfileController.cancelItem)
 //return
 router.post('/account/orders/return', userConfirmed,userProfileController.returnOrder)
+// return item
+router.post('/account/orders/return-item', userConfirmed,userProfileController.returnItem)  
 //payment razorpay
 router.post('/create-order',userConfirmed,paymentController. razorpaySetup)
 ///order verifyPayment

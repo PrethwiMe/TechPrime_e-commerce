@@ -121,7 +121,7 @@ exports.controleUser =async (req,res) => {
 exports.orderPage = async (req, res) => {
   try {
     const data = await adminModel.viewOrders(); 
-    console.log("all orders in admin:::",JSON.stringify(data,null,2));
+    console.log("dataaaa",JSON.stringify(data,null,2));
     const filter = req.query.filter || 'Order status';
     res.render('admin-pages/allOrders', {
       orders: data.ordersWithDetails, 
@@ -180,7 +180,6 @@ exports.updateItems = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
-
 //viewOffer
 exports.viewOffer = async (req, res) => {
   try {
@@ -345,4 +344,22 @@ if (response && response.modifiedCount > 0) {
     console.error("Error editing coupon:", error);
     res.status(500).json({ success: false, message: "Server error while editing coupon" });
   }
+}
+
+exports.returnOrdersPage = async (req, res) => {
+  try {
+
+    const data = await adminModel.viewOrders();
+    console.log("return page of admin",JSON.stringify(data,null,2));
+
+    res.render('admin-pages/returnPage.ejs', {
+      ordersWithDetails: data.ordersWithDetails,
+      search: req.query.search || ''
+    });
+
+  }
+  catch (error) {
+    console.error('Error rendering return orders page:', error);
+    res.status(500).send('Internal Server Error');
+  } 
 }

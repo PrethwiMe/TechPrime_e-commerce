@@ -21,12 +21,7 @@ const { ObjectId } = require("mongodb");
 const adminModal = require('../model/adminModel');
 const dbVariables = require('../config/databse')
 
-
-
-
-
 exports.viewProfile = async (req, res) => {
-
   const userId = req.session.user
   const user = await userModel.fetchUser(userId.email);
 
@@ -386,14 +381,12 @@ exports.addToOrder = async (req, res) => {
     res.status(500).json({ status: "error", message: "Internal Server Error" });
   }
 };
-
-
-
 // view order user
 exports.viewOrder = async (req, res) => {
   try {
     const userId = req.session.user.userId;
     let data = await userProfileModel.showOrder(userId);
+    console.log("order data:", JSON.stringify(data, null, 2));
     user = req.session.user
     //for image
     if (req.session.user) {
@@ -654,6 +647,7 @@ exports.cancelAllOrder = async (req, res) => {
 exports.returnOrder = async (req, res) => {
   console.log(req.body);
   let data = await userProfileModel.returnData(req.body)
+  // update change all products to pending state
 
   if (data) return res.status(200).json({ success: true, message: "return requsted waiting for approvel" })
   else
@@ -742,3 +736,13 @@ exports.couponLogic = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error applying coupon" });
   }
 };
+exports.returnItem = async (req, res) => {
+  console.log(req.body)
+  const orderData = req.body;
+  const response = await userProfileModel.returnEachItems(orderData)  
+  if (response) {
+    return res.status(200).json({ success: true, message: "Return request submitted successfully." })   
+  } else {
+    return res.status(400).json({ success: false, message: "Failed to submit return request." })
+  }
+}

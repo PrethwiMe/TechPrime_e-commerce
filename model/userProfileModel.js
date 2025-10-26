@@ -434,3 +434,29 @@ exports.updateRetryPaymentOrder = async (razorpayOrderId, newRazorpayOrderId, ne
     throw err;
   }
 };
+
+exports.returnEachItems = async (data) => {
+  console.log("Model received:", data);
+  const { orderId, variantId, returnStatus, reason } = data;
+  try {
+    const db = await getDB();
+
+    const updateData = await db.collection(dbVariables.orderCollection).updateOne(
+      { orderId: orderId },
+      {
+        $set: {
+          "items.$[elem].returnReason": reason,
+          "items.$[elem].itemReturn": returnStatus
+        }
+      },
+      {
+        arrayFilters: [{ "elem.variantId": variantId }]
+      }
+    );
+
+    return updateData;
+  } catch (error) {
+    console.error("Error in returnEachItems:", error);
+    return { success: false, message: "Something went wrong" };
+  }
+};
