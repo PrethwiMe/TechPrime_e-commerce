@@ -7,27 +7,33 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/stylesheets/sidebar.css">
+  <!-- Add SweetAlert2 and Axios CDNs -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <style>
+    /* Existing styles unchanged */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #f9f9fb; color: #333; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; min-height: 100vh; }
     .main-wrapper { display: flex; min-height: 100vh; }
     .content-area { flex: 1; display: flex; flex-direction: column; }
     .page-content { flex: 1; background: #f9f9fb; padding: 2rem; }
     .page-title { font-size: 1.8rem; font-weight: 600; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem; }
-    .return-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; margin-bottom: 1.5rem; transition: all 0.2s; overflow: hidden; padding: 1rem; /* Added padding to cards */ }
+    .return-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; margin-bottom: 1.5rem; transition: all 0.2s; overflow: hidden; padding: 1rem; }
     .return-card:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.08); transform: translateY(-2px); }
     .card-header { background: #f8f9fa; border-bottom: 1px solid #e0e0e0; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
     .header-left { display: flex; align-items: center; gap: 1rem; }
     .order-id { font-weight: 600; font-size: 1.1rem; }
     .status-badge { padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 500; }
     .status-pending { background: #ffc107; color: #000; }
+    .status-approved { background: #28a745; color: #fff; }
     .status-rejected { background: #dc3545; color: #fff; }
     .header-right { color: #777; font-size: 0.9rem; }
-    .card-body { padding: 1rem; /* Reduced padding to decrease overall card height */ }
-    .return-content { display: grid; grid-template-columns: auto 1fr auto; gap: 1rem; /* Reduced gap to decrease height */ align-items: start; /* Changed to start to avoid stretching */ }
-    .product-image { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; /* Slightly reduced size to decrease height */ }
-    .product-details { display: flex; flex-direction: column; gap: 0.75rem; /* Reduced gap */ }
-    .detail-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; /* Reduced gap */ }
+    .card-body { padding: 1rem; }
+    .return-content { display: grid; grid-template-columns: auto 1fr auto; gap: 1rem; align-items: start; }
+    .product-image { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; }
+    .product-details { display: flex; flex-direction: column; gap: 0.75rem; }
+    .detail-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
     .detail-item { display: flex; flex-direction: column; }
     .detail-label { font-size: 0.85rem; color: #777; margin-bottom: 0.3rem; }
     .detail-value { font-weight: 500; color: #333; font-size: 0.95rem; }
@@ -36,22 +42,24 @@
     .btn { padding: 0.6rem 1.2rem; border: none; border-radius: 6px; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; color: white; }
     .btn-view { background: #007bff; }
     .btn-view:hover { background: #0056b3; transform: translateY(-1px); }
+    .btn-approve { background: #28a745; }
+    .btn-approve:hover { background: #218838; transform: translateY(-1px); }
     .btn-reject { background: #dc3545; }
     .btn-reject:hover { background: #bb2d3b; transform: translateY(-1px); }
     .btn-secondary { background: #6c757d; }
     .btn-secondary:hover { background: #5a6268; }
     .empty-state { text-align: center; padding: 4rem 2rem; color: #999; }
     .empty-state i { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
-    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); overflow: hidden; /* Prevent body scroll */ }
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); overflow: hidden; }
     .modal.show { display: flex; align-items: center; justify-content: center; }
-    .modal-dialog { background: white; border-radius: 10px; width: 95%; /* Increased width */ max-width: 1200px; /* Bigger max width */ max-height: 95vh; /* Increased height allowance */ overflow: hidden; /* Hide scrollbars, handle internally */ display: flex; flex-direction: column; }
-    .modal-header { padding: 1.5rem; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; /* Prevent header shrink */ }
+    .modal-dialog { background: white; border-radius: 10px; width: 95%; max-width: 1200px; max-height: 95vh; overflow: hidden; display: flex; flex-direction: column; }
+    .modal-header { padding: 1.5rem; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
     .modal-title { font-size: 1.3rem; font-weight: 600; }
     .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
     .close-btn:hover { background: #f0f0f0; color: #333; }
-    .modal-body { padding: 2rem; flex: 1; overflow-y: auto; /* Enable scroll only in body */ -ms-overflow-style: none; /* Hide scrollbar in IE/Edge */ scrollbar-width: none; /* Hide scrollbar in Firefox */ }
-    .modal-body::-webkit-scrollbar { display: none; /* Hide scrollbar in Chrome/Safari */ }
-    .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid #e0e0e0; display: flex; justify-content: flex-end; gap: 0.5rem; flex-shrink: 0; /* Prevent footer shrink */ }
+    .modal-body { padding: 2rem; flex: 1; overflow-y: auto; -ms-overflow-style: none; scrollbar-width: none; }
+    .modal-body::-webkit-scrollbar { display: none; }
+    .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid #e0e0e0; display: flex; justify-content: flex-end; gap: 0.5rem; flex-shrink: 0; }
     .modal-product-image { max-width: 250px; border-radius: 10px; border: 1px solid #ddd; margin: 0 auto 1.5rem; display: block; }
     .modal-details { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; }
     .modal-detail-full { grid-column: 1 / -1; }
@@ -83,11 +91,12 @@
           <% ordersWithDetails.forEach(order => { %>
             <% order.items.forEach((item, itemIndex) => { 
               if (item.itemReturn || order.returnOrder) { 
-                const p = item.productName || "N/A", c = item.productCompany || "", r = item.returnReason || order.returnReason || "No reason", s = item.itemReturn || order.returnOrder || "Pending", img = item.firstImage || "/uploads/default-product.jpg";
+                const p = item.productName || "N/A", c = item.productCompany || "", r = item.returnReason || order.returnReason || "No reason", s = item.itemReturn || order.returnOrder || "Pending", img = item.firstImage || "/Uploads/default-product.jpg";
                 const oid = order.orderId || "Unknown", cust = order.buyer?.fullName || "Anonymous", email = order.buyer?.email || "", phone = order.buyer?.phone || "";
                 const date = new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }), iid = item._id || itemIndex;
                 const op = item.originalPrice || 0, dp = item.discountedPrice || 0, disc = item.itemDiscount || 0, ref = dp;
                 const v = item.variantDetails || {}, proc = v.processor || 'N/A', ram = v.ram || 'N/A', stor = v.storage || 'N/A', col = v.color || 'N/A';
+                const pid = item.productId || "N/A", vid = item.variantId || "N/A";
             %>
               <div class="return-card">
                 <div class="card-header">
@@ -140,14 +149,14 @@
                       </div>
                     </div>
                     <div class="action-buttons">
-                      <button class="btn btn-view btn-primary" onclick='viewDetails(<%= JSON.stringify({oid,p,c,r,s,cust,email,phone,date,op,dp,ref,disc,img,proc,ram,stor,col}) %>)'>
+                      <button class="btn btn-view btn-primary" onclick='viewDetails(<%= JSON.stringify({oid,p,c,r,s,cust,email,phone,date,op,dp,ref,disc,img,proc,ram,stor,col,pid,vid}) %>)'>
                         <i class="bi bi-eye"></i> View
                       </button>
                       <% if (s.toLowerCase() === 'pending') { %>
-                        <button class="btn btn-approve btn-success" onclick="confirmAction('<%= oid %>','<%= iid %>','approve',<%= ref %>)">
+                        <button class="btn btn-approve btn-success" onclick="confirmAction('<%= oid %>','<%= iid %>','approve',<%= ref %>,'<%= pid %>','<%= vid %>')">
                           <i class="bi bi-check-circle"></i> Approve
                         </button>
-                        <button class="btn btn-reject btn-danger" onclick="confirmAction('<%= oid %>','<%= iid %>','reject',<%= ref %>)">
+                        <button class="btn btn-reject btn-danger" onclick="confirmAction('<%= oid %>','<%= iid %>','reject',<%= ref %>,'<%= pid %>','<%= vid %>')">
                           <i class="bi bi-x-circle"></i> Reject
                         </button>
                       <% } %>
@@ -188,6 +197,8 @@
           <div class="detail-item"><span class="detail-label">Phone</span><span class="detail-value">${d.phone}</span></div>
           <div class="detail-item"><span class="detail-label">Status</span><span class="status-badge status-${d.s.toLowerCase()}">${d.s.toUpperCase()}</span></div>
           <div class="detail-item modal-detail-full"><span class="detail-label">Product</span><span class="detail-value">${d.p}</span><span class="detail-value" style="color:#666;font-size:0.9rem;margin-top:0.2rem;">${d.c}</span></div>
+          <div class="detail-item"><span class="detail-label">Product ID</span><span class="detail-value">${d.pid}</span></div>
+          <div class="detail-item"><span class="detail-label">Variant ID</span><span class="detail-value">${d.vid}</span></div>
           <div class="detail-item modal-detail-full"><span class="detail-label">Specifications</span><span class="detail-value">${d.proc} | ${d.ram}GB RAM | ${d.stor} | ${d.col}</span></div>
           <div class="detail-item"><span class="detail-label">Original Price</span><span class="detail-value">₹${d.op.toLocaleString('en-IN')}</span></div>
           <div class="detail-item"><span class="detail-label">Purchased At</span><span class="detail-value">₹${d.dp.toLocaleString('en-IN')}</span></div>
@@ -197,37 +208,89 @@
         </div>
       `;
       document.getElementById('detailsModal').classList.add('show');
-      document.body.style.overflow = 'hidden'; // Prevent body scroll when modal open
+      document.body.style.overflow = 'hidden';
     }
-    function confirmAction(oid, iid, act, ref) {
-      const title = act === 'approve' ? 'Approve Return' : 'Reject Return';
-      const msg = act === 'approve' ? `Approve this return?<br><br><strong>Refund: ₹${ref.toLocaleString('en-IN')}</strong><br><br>Refund will be processed.` : 'Reject this return? Customer will be notified.';
-      document.getElementById('confirmTitle').textContent = title;
-      document.getElementById('confirmBody').innerHTML = msg;
-      const btn = document.getElementById('confirmBtn');
-      btn.className = act === 'approve' ? 'btn btn-approve' : 'btn btn-reject';
-      btn.innerHTML = act === 'approve' ? '<i class="bi bi-check-circle"></i> Approve' : '<i class="bi bi-x-circle"></i> Reject';
-      btn.onclick = () => {
-        fetch(`/admin/return/${act}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({orderId:oid,itemId:iid,refundAmount:ref})})
-        .then(r => r.json()).then(d => { if(d.success) { alert(`Return ${act}ed!`); location.reload(); } else alert('Error: ' + (d.message || 'Failed')); })
-        .catch(e => { console.error(e); alert('Request failed'); });
-        closeModal('confirmModal');
-      };
-      document.getElementById('confirmModal').classList.add('show');
-      document.body.style.overflow = 'hidden'; // Prevent body scroll when modal open
+
+    function confirmAction(oid, iid, action, ref, pid, vid) {
+      const isApprove = action === 'approve';
+      const title = isApprove ? 'Approve Return' : 'Reject Return';
+      const status = isApprove ? 'Approved' : 'Rejected';
+      const message = isApprove 
+        ? `Are you sure you want to approve this return?<br><br><strong>Refund: ₹${ref.toLocaleString('en-IN')}</strong><br><br>The refund will be processed.` 
+        : 'Are you sure you want to reject this return? The customer will be notified.';
+      
+      Swal.fire({
+        title: title,
+        html: message,
+        icon: isApprove ? 'question' : 'warning',
+        showCancelButton: true,
+        confirmButtonColor: isApprove ? '#28a745' : '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: isApprove ? '<i class="bi bi-check-circle"></i> Approve' : '<i class="bi bi-x-circle"></i> Reject',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true,
+        focusCancel: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          axios.post('/admin/return-product', {
+            orderId: oid,
+            itemId: iid,
+            productId: pid,
+            variantId: vid,
+            action: action,
+            refundAmount: ref,
+            status: status
+          })
+          .then(response => {
+            if (response.data.success) {
+              Swal.fire({
+                title: `Return ${status}!`,
+                text: `The return request has been ${status.toLowerCase()} successfully.`,
+                icon: 'success',
+                confirmButtonColor: '#007bff'
+              }).then(() => {
+                location.reload();
+              });
+            } else {
+              Swal.fire({
+                title: 'Error',
+                text: response.data.message || `Failed to ${action} the return.`,
+                icon: 'error',
+                confirmButtonColor: '#007bff'
+              });
+            }
+          })
+          .catch(error => {
+            console.error('Request failed:', error);
+            Swal.fire({
+              title: 'Request Failed',
+              text: 'An error occurred while processing the request.',
+              icon: 'error',
+              confirmButtonColor: '#007bff'
+            });
+          });
+        }
+      });
     }
+
     function closeModal(id) { 
       document.getElementById(id).classList.remove('show'); 
-      document.body.style.overflow = ''; // Restore body scroll
+      document.body.style.overflow = ''; 
     }
+
     window.onclick = e => { 
       document.querySelectorAll('.modal').forEach(m => { 
-        if(e.target === m) { 
+        if (e.target === m) { 
           m.classList.remove('show');
-          document.body.style.overflow = ''; // Restore body scroll
+          document.body.style.overflow = ''; 
         } 
       }); 
     }
+  </script>
+
+  <script>
+    // Debug: View all return orders data in console
+    console.log("🧾 Full Return Orders Data:", <%- JSON.stringify(ordersWithDetails, null, 2) %>);
   </script>
 </body>
 </html>

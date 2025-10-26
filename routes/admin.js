@@ -52,6 +52,8 @@ router.post('/orders/update-return-status',sessionHandle.adminConfirmed,adminCon
 router.post("/orders/update-item-status",sessionHandle.adminConfirmed,adminController.updateItems)
 //return orders page
 router.get('/returnPage',sessionHandle.adminConfirmed,adminController.returnOrdersPage)
+//approve return product
+router.post('/return-product',sessionHandle.adminConfirmed,adminController.handleReturnProduct)
 //view offerpage
 router.get('/offers',sessionHandle.adminConfirmed,adminController.viewOffer)
 ///offers/add

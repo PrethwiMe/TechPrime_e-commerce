@@ -356,3 +356,14 @@ exports.updateItemsStatus = async (orderId, status) => {
   return result;
 
 }
+exports.processReturnProduct = async (orderId, productId, variantId, status) => {
+  const db = await getDB(); 
+  const result = await db.collection(dbVariables.orderCollection).updateOne(
+  { orderId: orderId }, 
+  { $set: { "items.$[elem].itemReturn": status } },
+  { arrayFilters: [{ "elem.productId": productId, "elem.variantId": variantId }] }
+);
+
+  return result;
+
+}

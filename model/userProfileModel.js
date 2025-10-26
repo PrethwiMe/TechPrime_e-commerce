@@ -437,16 +437,16 @@ exports.updateRetryPaymentOrder = async (razorpayOrderId, newRazorpayOrderId, ne
 
 exports.returnEachItems = async (data) => {
   console.log("Model received:", data);
-  const { orderId, variantId, returnStatus, reason } = data;
+  const { orderId, variantId, itemReturn, reason } = data;
   try {
     const db = await getDB();
-
+console.log("dataa",data);
     const updateData = await db.collection(dbVariables.orderCollection).updateOne(
       { orderId: orderId },
       {
         $set: {
           "items.$[elem].returnReason": reason,
-          "items.$[elem].itemReturn": returnStatus
+          "items.$[elem].itemReturn": itemReturn
         }
       },
       {

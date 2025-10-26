@@ -170,7 +170,6 @@ exports.orderAccept = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
-
 exports.updateItems = async (req, res) => {
   try {
     const result = await adminModel.updateItemStatus(req.body);
@@ -180,6 +179,24 @@ exports.updateItems = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
+// approve return product
+exports.handleReturnProduct = async (req, res) => {
+  try {  
+    const { orderId, productId, variantId, status } = req.body;
+    const result = await adminModel.processReturnProduct(orderId, productId, variantId, status);
+    if (result) {
+      return res.status(200).json({ success: true, message: "Return processed successfully" }); 
+    } else {
+      return res.status(400).json({ success: false, message: "Failed to process return" });
+    } 
+
+
+console.log("request body in return product",req.body);    
+   }catch (err) {
+    console.error(" handleReturnProduct error:", err);
+    res.status(500).json({ success: false, message: "Server Error" });
+  } 
+}
 //viewOffer
 exports.viewOffer = async (req, res) => {
   try {
