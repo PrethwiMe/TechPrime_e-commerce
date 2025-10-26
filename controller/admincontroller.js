@@ -86,7 +86,8 @@ exports.displayUsers = async (req, res) => {
       ? {
           $or: [
             { firstName: { $regex: new RegExp(search, 'i') } },
-            { phone: { $regex: new RegExp(search, 'i') } }
+            { email: { $regex: new RegExp(search, 'i') } },
+            { phone: { $regex: new RegExp(search, 'i') } },
           ]
         }
       : {};
@@ -95,7 +96,7 @@ exports.displayUsers = async (req, res) => {
     const { skip } = paginate({ totalDocs: 0, page, limit });
 
     const { data, totalDocs } = await adminModel.getPaginatedUsers(filter, sort, skip, limit);
-
+console.log("dataa",data);
     const { totalPages } = paginate({ totalDocs, page, limit });
     res.render('admin-pages/user-list', {
       users: data,
