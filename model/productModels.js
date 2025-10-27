@@ -264,3 +264,14 @@ exports.viewAllProducts = async () => {
   const products = await db.collection(dbVariables.productCollection).aggregate(pipeline).toArray();
     return { totalDocs, products };
 }
+//decrease stock after order
+exports.updateStockAfterOrder = async (variantId, quantity) => {
+  const db = getDB();
+  return await db.collection(dbVariables.variantCollection).updateOne(
+    { _id: new ObjectId(variantId) },
+    { $inc: { stock: -quantity } }
+  );
+
+  
+
+}

@@ -106,11 +106,10 @@ router.post('/create-order',userConfirmed,paymentController. razorpaySetup)
 router.post('/order/verifyPayment',userConfirmed,paymentController.verifyPayment)
 //coupon adding
 router.post("/checkout/apply-coupon",userConfirmed,userProfileController.couponLogic)
-//payment agin
-
+//payment again
 router.post('/account/orders/repeat-payment',userConfirmed,paymentController.repeatPayment)
+//wallet page
+router.get('/account/wallet',userConfirmed,userProfileController.viewWallet)    
 
 module.exports = router;
   
-
-

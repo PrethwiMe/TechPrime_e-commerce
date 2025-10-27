@@ -12,5 +12,6 @@ module.exports={
      addressCollection:"userAddress",
      orderCollection:"order",
      offerCollection:"offers",
-     couponCollection:"coupon"
+     couponCollection:"coupon",
+     walletCollection:"wallet"
 }

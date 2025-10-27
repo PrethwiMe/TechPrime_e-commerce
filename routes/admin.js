@@ -46,7 +46,7 @@ router.post('/categories/edit-req', sessionHandle.adminConfirmed, productControl
 router.get('/orders',sessionHandle.adminConfirmed,adminController.orderPage)
 //edit order
 /router.post('/order/updateOrderStatus',sessionHandle.adminConfirmed,adminController.editOrderStatus)
-//accept return 
+//accept return all
 router.post('/orders/update-return-status',sessionHandle.adminConfirmed,adminController.orderAccept)
 //update each product
 router.post("/orders/update-item-status",sessionHandle.adminConfirmed,adminController.updateItems)

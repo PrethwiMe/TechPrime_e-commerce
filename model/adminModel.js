@@ -1,7 +1,9 @@
 // mongo data 
+const e = require('connect-flash');
 const dbVariables = require('../config/databse')
 const { getDB } = require('../config/mongodb')
 const { ObjectId } = require('mongodb');
+const { types } = require('joi');
 
 
 //admin login data
@@ -367,3 +369,23 @@ exports.processReturnProduct = async (orderId, productId, variantId, status) => 
   return result;
 
 }
+exports.refundToUserWallet = async (orderId, productId, variantId) => {
+  const db = await getDB(); 
+
+  let order = await db.collection(dbVariables.orderCollection).findOne({ orderId: orderId },{projection: { orderId:1,userId: 1, items:{$elemMatch:{  itemReturn: 'Approved'}}} } );
+  if (!order) {
+    throw new Error('Order not found');
+    }
+    console.log("order of wallet is ",order);
+    order ={
+      ...order,
+      refunded:true,
+      refundDate: new Date(),
+      type: 'credit'
+    }
+    const refund = await db.collection(dbVariables.walletCollection).insertOne(order)
+    console.log("refund update,",refund);
+    return refund;
+
+
+  }

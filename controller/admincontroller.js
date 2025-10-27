@@ -185,6 +185,9 @@ exports.handleReturnProduct = async (req, res) => {
   try {  
     const { orderId, productId, variantId, status } = req.body;
     const result = await adminModel.processReturnProduct(orderId, productId, variantId, status);
+    if (status === 'Approved') {
+      await adminModel.refundToUserWallet(orderId, productId, variantId);
+    }
     if (result) {
       return res.status(200).json({ success: true, message: "Return processed successfully" }); 
     } else {
@@ -368,7 +371,6 @@ exports.returnOrdersPage = async (req, res) => {
   try {
 
     const data = await adminModel.viewOrders();
-    console.log("return page of admin",JSON.stringify(data,null,2));
 
     res.render('admin-pages/returnPage.ejs', {
       ordersWithDetails: data.ordersWithDetails,

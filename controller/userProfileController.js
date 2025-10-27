@@ -371,6 +371,14 @@ exports.addToOrder = async (req, res) => {
     }
 
     await userProfileModel.deleteCart(userId);
+
+    // Update product stock
+
+    for (const item of orderItems) {
+      await productModel.updateStockAfterOrder(item.variantId, item.quantity);
+    }
+
+    
     res.status(200).json({
       status: "success",
       message: "Order placed successfully",
@@ -386,7 +394,6 @@ exports.viewOrder = async (req, res) => {
   try {
     const userId = req.session.user.userId;
     let data = await userProfileModel.showOrder(userId);
-    console.log("order data:", JSON.stringify(data, null, 2));
     user = req.session.user
     //for image
     if (req.session.user) {
@@ -746,3 +753,17 @@ exports.returnItem = async (req, res) => {
     return res.status(400).json({ success: false, message: "Failed to submit return request." })
   }
 }
+//view wallet
+exports.viewWallet = async (req, res) => {
+  const userId = req.session.user.userId;
+  try {
+    //image
+    console.log(userId);
+      let data = await userModel.userCheck({_id: new ObjectId(userId)} )
+
+    const walletData = await userProfileModel.getWalletData(userId);
+    res.render('user-pages/wallet.ejs', { wallet: walletData || {}, image: data || null, user: data || null, });
+  } catch (error) {
+    console.error("Error in viewWallet:", error);
+    res.status(500).send("Internal Server Error");
+  }}

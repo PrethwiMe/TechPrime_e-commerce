@@ -8,6 +8,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
   <style>
+    /* Existing styles remain unchanged */
     body {
       background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
       font-family: 'Inter', sans-serif;
@@ -148,7 +149,7 @@
                       <% } %>
                     <% }) %>
                   </td>
-                  <td>₹ <%= parseFloat(order.total).toLocaleString() %></td>
+                  <td class="order-total">₹ <%= parseFloat(order.total).toLocaleString() %></td>
                   <td>
                     <select class="form-select form-select-sm order-status" data-id="<%= order._id %>" data-current-status="<%= order.status %>" <%= order.status === 'Cancelled' || order.status === 'Delivered' ? 'disabled' : '' %>>
                       <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
@@ -238,7 +239,7 @@
                     </thead>
                     <tbody>
                       <% order.items.forEach(item => { %>
-                        <tr>
+                        <tr data-variant-id="<%= item.variantId %>">
                           <td>
                             <img src="<%= item.firstImage %>" class="rounded me-2 border" style="width:32px;height:32px;object-fit:cover;" alt="Product Image">
                             <%= item.productName %>
@@ -274,7 +275,11 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.5/dist/socket.io.min.js"></script>
   <script>
+    // Initialize Socket.IO
+    const socket = io();
+
     const showAlert = (icon, title, text, isToast = true) => Swal.fire({
       icon, title, text, timer: isToast ? 1500 : undefined, showConfirmButton: !isToast, toast: isToast, position: isToast ? 'top-end' : 'center'
     });
@@ -330,6 +335,8 @@
                   }
                 });
               }
+              // Emit WebSocket event to notify other clients
+              socket.emit('orderStatusUpdate', { orderId: id, status });
             } else throw new Error('Failed to update order status!');
           } catch (err) {
             console.error('Error updating order status:', err);
@@ -368,6 +375,10 @@
               if (data.updatedTotal) {
                 const modal = this.closest('.modal-content');
                 modal.querySelector('.order-total').textContent = parseFloat(data.updatedTotal).toLocaleString();
+                const tableRow = document.querySelector(`tr[data-order-id="${modal.querySelector('.modal-title').textContent.split('#')[1]}"]`);
+                if (tableRow) {
+                  tableRow.querySelector('.order-total').textContent = `₹ ${parseFloat(data.updatedTotal).toLocaleString()}`;
+                }
               }
               if (itemStatus === 'Cancelled' || itemStatus === 'Delivered') {
                 this.disabled = true;
@@ -377,6 +388,7 @@
               const allSameStatus = allItems.every(sel => sel.dataset.currentStatus === itemStatus);
               if (allSameStatus) {
                 const orderSelect = this.closest('.modal-content').querySelector('.order-status');
+                const mainTableSelect = document.querySelector(`tr[data-order-id="${modal.querySelector('.modal-title').textContent.split('#')[1]}"] .order-status`);
                 if (orderSelect && !orderSelect.disabled) {
                   orderSelect.value = itemStatus;
                   orderSelect.dataset.currentStatus = itemStatus;
@@ -385,7 +397,16 @@
                     orderSelect.disabled = true;
                   }
                 }
+                if (mainTableSelect && !mainTableSelect.disabled) {
+                  mainTableSelect.value = itemStatus;
+                  mainTableSelect.dataset.currentStatus = itemStatus;
+                  if (itemStatus === 'Cancelled' || itemStatus === 'Delivered') {
+                    mainTableSelect.disabled = true;
+                  }
+                }
               }
+              // Emit WebSocket event to notify other clients
+              socket.emit('itemStatusUpdate', { orderId: id, variantId, itemStatus, updatedTotal: data.updatedTotal });
             } else throw new Error(`Failed to set item status to ${itemStatus}.`);
           } catch (error) {
             console.error(`Error setting item status to ${itemStatus}:`, error);
@@ -393,6 +414,89 @@
             this.value = currentStatus;
           }
         });
+      });
+
+      // Handle Real-Time Order Status Updates
+      socket.on('orderStatusUpdate', ({ orderId, status }) => {
+        const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+        if (row) {
+          const select = row.querySelector('.order-status');
+          if (select && select.dataset.currentStatus !== status) {
+            select.value = status;
+            select.dataset.currentStatus = status;
+            if (status === 'Cancelled' || status === 'Delivered') {
+              select.disabled = true;
+              row.querySelectorAll('.item-status').forEach(sel => {
+                if (sel.dataset.currentStatus !== 'Cancelled' && sel.dataset.currentStatus !== 'Delivered') {
+                  sel.value = status;
+                  sel.dataset.currentStatus = status;
+                  sel.disabled = true;
+                }
+              });
+            }
+            const modal = document.querySelector(`#editOrderModal-${select.dataset.id}`);
+            if (modal) {
+              updateBadge(modal.querySelector('.badge-status'), status);
+              const modalSelect = modal.querySelector('.order-status');
+              if (modalSelect) {
+                modalSelect.value = status;
+                modalSelect.dataset.currentStatus = status;
+                if (status === 'Cancelled' || status === 'Delivered') {
+                  modalSelect.disabled = true;
+                }
+              }
+            }
+            showAlert('info', 'Order Updated', `Order #${orderId} status changed to ${status}`, true);
+          }
+        }
+      });
+
+      // Handle Real-Time Item Status Updates
+      socket.on('itemStatusUpdate', ({ orderId, variantId, itemStatus, updatedTotal }) => {
+        const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+        const modal = document.querySelector(`#editOrderModal-${row?.querySelector('.order-status').dataset.id}`);
+        if (modal) {
+          const itemRow = modal.querySelector(`tr[data-variant-id="${variantId}"]`);
+          if (itemRow) {
+            const select = itemRow.querySelector('.item-status');
+            if (select && select.dataset.currentStatus !== itemStatus) {
+              select.value = itemStatus;
+              select.dataset.currentStatus = itemStatus;
+              if (itemStatus === 'Cancelled' || itemStatus === 'Delivered') {
+                select.disabled = true;
+              }
+              if (updatedTotal) {
+                modal.querySelector('.order-total').textContent = parseFloat(updatedTotal).toLocaleString();
+                if (row) {
+                  row.querySelector('.order-total').textContent = `₹ ${parseFloat(updatedTotal).toLocaleString()}`;
+                }
+              }
+              // Update order status if all items have the same status
+              const allItems = Array.from(itemRow.closest('tbody').querySelectorAll('.item-status'));
+              const allSameStatus = allItems.every(sel => sel.dataset.currentStatus === itemStatus);
+              if (allSameStatus) {
+                const orderSelect = modal.querySelector('.order-status');
+                const mainTableSelect = row?.querySelector('.order-status');
+                if (orderSelect && !orderSelect.disabled) {
+                  orderSelect.value = itemStatus;
+                  orderSelect.dataset.currentStatus = itemStatus;
+                  updateBadge(modal.querySelector('.badge-status'), itemStatus);
+                  if (itemStatus === 'Cancelled' || itemStatus === 'Delivered') {
+                    orderSelect.disabled = true;
+                  }
+                }
+                if (mainTableSelect && !mainTableSelect.disabled) {
+                  mainTableSelect.value = itemStatus;
+                  mainTableSelect.dataset.currentStatus = itemStatus;
+                  if (itemStatus === 'Cancelled' || itemStatus === 'Delivered') {
+                    mainTableSelect.disabled = true;
+                  }
+                }
+              }
+              showAlert('info', 'Item Updated', `Item ${variantId} in order #${orderId} status changed to ${itemStatus}`, true);
+            }
+          }
+        }
       });
     });
   </script>

@@ -434,7 +434,6 @@ exports.updateRetryPaymentOrder = async (razorpayOrderId, newRazorpayOrderId, ne
     throw err;
   }
 };
-
 exports.returnEachItems = async (data) => {
   console.log("Model received:", data);
   const { orderId, variantId, itemReturn, reason } = data;
@@ -459,4 +458,14 @@ console.log("dataa",data);
     console.error("Error in returnEachItems:", error);
     return { success: false, message: "Something went wrong" };
   }
+};
+exports.getWalletData = async (userId) => {
+ try {
+  const db = await getDB();
+  const walletData = await db.collection(dbVariables.walletCollection).find({ userId: userId }).sort({refundDate:-1}).toArray();
+  return walletData;
+ } catch (error) {
+  console.error("Error in getWalletData:", error);
+  return null;  
+ }
 };
