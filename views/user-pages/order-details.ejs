@@ -138,10 +138,37 @@
         margin-bottom: 0;
       }
       .order-summary {
-        background: #f8f9fa;
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border: 1px solid #e9ecef;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        position: relative;
+        overflow: hidden;
+      }
+      .order-summary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #0d6efd, #198754, #ffc107);
+      }
+      .order-summary .detail-label {
+        color: #6c757d;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .order-summary .badge {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: none;
+      }
+      .order-summary .detail-value {
+        font-weight: 500;
+        color: #212529;
       }
     </style>
   </head>
@@ -257,7 +284,7 @@
                             Return: <%= item.itemReturn %>
                           </span>
                         <% } else { %>
-                          <button class="btn btn-outline-warning btn-sm return-item-btn" data-return-item="<%= order.orderId %>_<%= item.variantId %>">
+                          <button class="btn btn-outline-warning btn-sm return-item-btn" data-return-item="<%= order.orderId %>_<%= item.variantId %>_<%= item.productId || '' %>">
                             <i class="bi bi-arrow-return-left me-1"></i> Return
                           </button>
                         <% } %>
@@ -471,17 +498,18 @@
 
         document.querySelectorAll('.return-item-btn').forEach(btn => {
           btn.addEventListener('click', () => {
-            const [orderId, variantId] = btn.dataset.returnItem.split('_');
+            const [orderId, variantId, productId] = btn.dataset.returnItem.split('_');
             handleAction('/account/orders/return-item', {
               text: `Request return for item in order ${orderId}?`,
               input: {
                 input: 'textarea',
                 inputLabel: 'Reason for Return',
+                inputLabel: '⚠️Delivery Charge will not refunded',
                 inputPlaceholder: 'Enter reason for return...',
                 inputAttributes: { 'aria-label': 'Return reason' },
                 inputValidator: value => !value ? 'Provide a reason!' : value.trim().split(/\s+/).length > 50 ? `Reason must not exceed 50 words.` : null
               },
-              payload: { orderId, variantId, itemReturn: 'Pending' },
+              payload: { orderId, variantId, productId, itemReturn: 'Pending' },
               confirmColor: '#ffc107',
               confirmText: 'Submit Return'
             }, {

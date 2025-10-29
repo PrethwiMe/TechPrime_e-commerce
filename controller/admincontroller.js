@@ -369,12 +369,12 @@ if (response && response.modifiedCount > 0) {
 exports.returnOrdersPage = async (req, res) => {
   try {
 
-    const data = await adminModel.viewOrders();
+    const data = await adminModel.viewReturnPage();
 
-    
+    console.log("data of approve page",data)
 
     res.render('admin-pages/returnPage.ejs', {
-      ordersWithDetails: data.ordersWithDetails,
+      ordersWithDetails: data,
       search: req.query.search || ''
     });
 

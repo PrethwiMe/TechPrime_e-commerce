@@ -418,7 +418,6 @@ exports.eachOrderData = async (req,res) => {
 
   let response = await productModel.eachOrderData(orderId)
 
-  console.log("response",JSON.stringify(response.items[0].productDetails,null,2))
    const id = req.session.user.userId
       const query = {
         _id: new ObjectId(id)
@@ -756,7 +755,6 @@ exports.couponLogic = async (req, res) => {
   }
 };
 exports.returnItem = async (req, res) => {
-  console.log(req.body)
   const orderData = req.body;
   const response = await userProfileModel.returnEachItems(orderData)  
   if (response) {

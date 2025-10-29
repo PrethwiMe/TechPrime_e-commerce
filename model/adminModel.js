@@ -391,3 +391,29 @@ exports.refundToUserWallet = async (orderId, productId, variantId) => {
 
 
   }
+exports.viewReturnPage = async () => {
+  try {
+
+    const db = await getDB();
+
+    const pipeline = [
+       {
+        $addFields: {
+          'items.productObjId': { $toObjectId: '$items.productId' }
+        }
+      },
+      {
+        $lookup:{
+          from:dbVariables.productCollection,
+          localField:'items.productObjId',
+          foreignField: '_id',
+            as:"productsData"
+        }
+      }
+    ]
+    const returnProudcts = await db.collection(dbVariables.returnCollection).aggregate(pipeline).toArray()
+    return returnProudcts
+  } catch (error) {
+    console.error(error)
+  }
+}

@@ -440,7 +440,7 @@ exports.updateRetryPaymentOrder = async (razorpayOrderId, newRazorpayOrderId, ne
   }
 };
 exports.returnEachItems = async (data) => {
-  const { orderId, variantId, itemReturn, reason } = data;
+  const { orderId,productId, variantId, itemReturn, reason } = data;
   try {
     const db = await getDB();
 
@@ -462,31 +462,23 @@ exports.returnEachItems = async (data) => {
 
     if (!result) return { success: false, message: "Order or item not found" };
 
-    const couponCode = result.couponCode || null;
-    const couponData = couponCode ? await db.collection(dbVariables.couponCollection).findOne({ code: couponCode }) : null;
-
-    console.log("coupon code",couponData.discount)
+    let couponCode = result.couponCode || null;
 
     const item = result.items[0];
     const itemValue = item.discountedPrice * item.quantity;
 
-    console.log("tax",result)
 
       const tax = itemValue > 150000 ? itemValue * 0.09 :
                 itemValue > 100000 ? itemValue * 0.07 :
                 itemValue > 50000  ? itemValue * 0.05 : 0;
 
-      let deliveryCharge = 0      
-    if (itemValue<100000) {
-      deliveryCharge = 100
-    }
-
-    const refundAmount = +(itemValue + tax + deliveryCharge).toFixed(2);
     
+    const refundAmount = +(itemValue + tax ).toFixed(2);
+    console.log("type",typeof(refundAmount));
     const returnData = {
       orderId,
       userId: result.userId,
-      variantId,
+ 
       reason,
       returnStatus: itemReturn,
       couponCode,
@@ -496,7 +488,8 @@ exports.returnEachItems = async (data) => {
     };
 
     const returnCollection = db.collection(dbVariables.returnCollection);
-    await returnCollection.insertOne(returnData);
+    let response = await returnCollection.insertOne(returnData);
+    console.log("response of returndb",response)
 
     return { success: true, refundAmount };
   } catch (error) {
