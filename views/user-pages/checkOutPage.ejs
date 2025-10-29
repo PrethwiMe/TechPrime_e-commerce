@@ -304,63 +304,35 @@
         });
 
         if (response.data.success) {
-          // Update cart items with discounted prices
-          cartItems = response.data.updatedItems.map(item => ({
-            ...item,
-            price: item.discountedPrice || item.originalPrice,
-            appliedOffer: (item.discountedPrice < item.originalPrice),
-            discountedPrice: item.discountedPrice || item.originalPrice
-          }));
-
-          const cartList = document.getElementById("cartItems");
-          cartList.innerHTML = '';
-
-          cartItems.forEach(item => {
-            const li = document.createElement("li");
-            li.className = "list-group-item d-flex justify-content-between align-items-start";
-            li.dataset.itemId = item.productId;
-            li.innerHTML = `
-              <div class="d-flex">
-                <img src="${item.product?.images?.[0] || '/images/default-product.png'}" 
-                     class="img-thumbnail me-3" style="width:100px; height:100px; object-fit:cover;">
-                <div>
-                  <strong>${item.product?.name || 'Unknown Product'}</strong><br>
-                  <small>${item.variant?.processor}, ${item.variant?.ram}, ${item.variant?.storage}</small><br>
-                  <small>Color: ${item.variant?.color}</small>
-                </div>
-              </div>
-              <div class="text-end">
-                ${item.appliedOffer ? `
-                  <span class="text-strike">₹${item.originalPrice.toFixed(2)}</span><br>
-                  <span class="text-success">₹${item.discountedPrice.toFixed(2)}</span><br>
-                ` : `
-                  <span>₹${item.originalPrice.toFixed(2)}</span><br>
-                `}
-                <small>Qty: ${item.quantity}</small><br>
-                <strong>₹${(item.discountedPrice * item.quantity).toFixed(2)}</strong>
-              </div>
-            `;
-            cartList.appendChild(li);
-          });
+          // Do NOT update cart items display (keep original prices; coupon is total discount)
+          cartItems = response.data.updatedItems;
 
           // Update order summary
-          document.getElementById("subtotal").textContent = `₹${orderValues.subtotal.toFixed(2)}`;
-          let discountRow = document.getElementById("discountRow");
-          if (!discountRow) {
-            const taxElement = document.getElementById("tax").parentNode;
-            const newDiscountRow = document.createElement("p");
-            newDiscountRow.className = "d-flex justify-content-between text-success";
-            newDiscountRow.id = "discountRow";
-            newDiscountRow.innerHTML = `
-              <span>Discount:</span> 
-              <span id="discountAmount">-₹${response.data.discount.toFixed(2)}</span>
-            `;
-            taxElement.parentNode.insertBefore(newDiscountRow, taxElement);
-          } else {
-            document.getElementById("discountAmount").textContent = `-₹${response.data.discount.toFixed(2)}`;
+          // Update or add discount row
+          if (response.data.discount > 0) {
+            let discountRow = document.getElementById("discountRow");
+            if (!discountRow) {
+              const taxP = document.getElementById("tax").closest("p");
+              const newDiscountRow = document.createElement("p");
+              newDiscountRow.className = "d-flex justify-content-between text-success";
+              newDiscountRow.id = "discountRow";
+              newDiscountRow.innerHTML = `
+                <span>Discount:</span> 
+                <span id="discountAmount">-₹${response.data.discount.toFixed(2)}</span>
+              `;
+              taxP.parentNode.insertBefore(newDiscountRow, taxP);
+            } else {
+              document.getElementById("discountAmount").textContent = `-₹${response.data.discount.toFixed(2)}`;
+            }
           }
-          document.getElementById("tax").textContent = `₹${orderValues.tax.toFixed(2)}`;
-          document.getElementById("deliveryCharge").textContent = `₹${orderValues.deliveryCharge.toFixed(2)}`;
+
+          // Update tax (recalculated after discount)
+          document.getElementById("tax").textContent = `₹${response.data.tax.toFixed(2)}`;
+
+          // Update delivery charge (recalculated after discount)
+          document.getElementById("deliveryCharge").textContent = `₹${response.data.deliveryCharge.toFixed(2)}`;
+
+          // Update total
           document.getElementById("total").textContent = `₹${response.data.discountedTotal.toFixed(2)}`;
 
           Swal.fire("Success", response.data.message, "success");

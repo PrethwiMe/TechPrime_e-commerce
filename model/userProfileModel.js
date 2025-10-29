@@ -468,9 +468,7 @@ exports.returnEachItems = async (data) => {
     const itemValue = item.discountedPrice * item.quantity;
 
 
-      const tax = itemValue > 150000 ? itemValue * 0.09 :
-                itemValue > 100000 ? itemValue * 0.07 :
-                itemValue > 50000  ? itemValue * 0.05 : 0;
+      const tax = itemValue * 0.18
 
     
     const refundAmount = +(itemValue + tax ).toFixed(2);

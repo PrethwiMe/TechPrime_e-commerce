@@ -399,7 +399,8 @@ exports.viewReturnPage = async () => {
     const pipeline = [
        {
         $addFields: {
-          'items.productObjId': { $toObjectId: '$items.productId' }
+          'items.productObjId': { $toObjectId: '$items.productId' },
+          userObjId: { $toObjectId: '$userId' }
         }
       },
       {
@@ -409,6 +410,17 @@ exports.viewReturnPage = async () => {
           foreignField: '_id',
             as:"productsData"
         }
+      },
+        {
+        $lookup: {
+          from: dbVariables.userCollection,
+          localField: 'userObjId',
+          foreignField: '_id',
+          as: 'userData'
+        }
+      },
+      {
+        $sort: { _id: -1 }
       }
     ]
     const returnProudcts = await db.collection(dbVariables.returnCollection).aggregate(pipeline).toArray()

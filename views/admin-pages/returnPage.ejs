@@ -19,27 +19,32 @@
     .content-area { flex: 1; display: flex; flex-direction: column; }
     .page-content { flex: 1; background: #f9f9fb; padding: 2rem; }
     .page-title { font-size: 1.8rem; font-weight: 600; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem; }
-    .return-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; margin-bottom: 1.5rem; transition: all 0.2s; overflow: hidden; padding: 1rem; }
+    .return-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    .return-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; transition: all 0.2s; overflow: hidden; padding: 0.75rem; }
     .return-card:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.08); transform: translateY(-2px); }
-    .card-header { background: #f8f9fa; border-bottom: 1px solid #e0e0e0; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
-    .header-left { display: flex; align-items: center; gap: 1rem; }
-    .order-id { font-weight: 600; font-size: 1.1rem; }
-    .status-badge { padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 500; }
+    .card-header { background: #f8f9fa; border-bottom: 1px solid #e0e0e0; padding: 0.5rem 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+    .header-left { display: flex; align-items: center; gap: 0.5rem; }
+    .order-id { font-weight: 600; font-size: 0.95rem; }
+    .status-badge { padding: 0.25rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 500; }
     .status-pending { background: #ffc107; color: #000; }
     .status-approved { background: #28a745; color: #fff; }
     .status-rejected { background: #dc3545; color: #fff; }
-    .header-right { color: #777; font-size: 0.9rem; }
-    .card-body { padding: 1rem; }
-    .return-content { display: grid; grid-template-columns: auto 1fr auto; gap: 1rem; align-items: start; }
-    .product-image { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; }
-    .product-details { display: flex; flex-direction: column; gap: 0.75rem; }
-    .detail-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .header-right { color: #777; font-size: 0.8rem; }
+    .card-body { padding: 0.75rem 0; }
+    .return-content { display: grid; grid-template-columns: auto 1fr auto; gap: 0.5rem; align-items: start; }
+    .product-image { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; }
+    .product-details { display: flex; flex-direction: column; gap: 0.375rem; }
+    .detail-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
     .detail-item { display: flex; flex-direction: column; }
-    .detail-label { font-size: 0.85rem; color: #777; margin-bottom: 0.3rem; }
-    .detail-value { font-weight: 500; color: #333; font-size: 0.95rem; }
-    .price-highlight { color: #28a745; font-weight: 600; font-size: 1.1rem; }
-    .action-buttons { display: flex; flex-direction: column; gap: 0.5rem; min-width: 140px; }
-    .btn { padding: 0.6rem 1.2rem; border: none; border-radius: 6px; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; color: white; }
+    .detail-label { font-size: 0.75rem; color: #777; margin-bottom: 0.125rem; }
+    .detail-value { font-weight: 500; color: #333; font-size: 0.85rem; }
+    .price-highlight { color: #28a745; font-weight: 600; font-size: 0.95rem; }
+    .action-buttons { display: flex; flex-direction: column; gap: 0.25rem; min-width: 100px; }
+    .btn { padding: 0.3rem 0.6rem; border: none; border-radius: 4px; font-size: 0.75rem; font-weight: 500; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 0.25rem; color: white; }
     .btn-view { background: #007bff; }
     .btn-view:hover { background: #0056b3; transform: translateY(-1px); }
     .btn-approve { background: #28a745; }
@@ -51,8 +56,9 @@
     .empty-state { text-align: center; padding: 4rem 2rem; color: #999; }
     .empty-state i { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); overflow: hidden; }
-    .modal.show { display: flex; align-items: center; justify-content: center; }
-    .modal-dialog { background: white; border-radius: 10px; width: 95%; max-width: 1200px; max-height: 95vh; overflow: hidden; display: flex; flex-direction: column; }
+    .modal.show { display: flex; align-items: center; justify-content: center; animation: modalFadeIn 0.3s ease-out; }
+    @keyframes modalFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .modal-dialog { background: white; border-radius: 10px; width: 90%; max-width: 800px; max-height: 95vh; overflow: hidden; display: flex; flex-direction: column; }
     .modal-header { padding: 1.5rem; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
     .modal-title { font-size: 1.3rem; font-weight: 600; }
     .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
@@ -61,22 +67,31 @@
     .modal-body::-webkit-scrollbar { display: none; }
     .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid #e0e0e0; display: flex; justify-content: flex-end; gap: 0.5rem; flex-shrink: 0; }
     .modal-product-image { max-width: 250px; border-radius: 10px; border: 1px solid #ddd; margin: 0 auto 1.5rem; display: block; }
+    .user-profile-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #ddd; margin-bottom: 1rem; }
     .modal-details { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; }
     .modal-detail-full { grid-column: 1 / -1; }
+    .product-specs { background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-top: 1rem; }
+    .product-specs h4 { margin-bottom: 1rem; color: #333; }
+    .spec-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+    .refund-modal .modal-dialog { max-width: 1000px; }
     @media (max-width: 1024px) {
+      .return-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
       .return-content { grid-template-columns: auto 1fr; }
-      .action-buttons { grid-column: 1 / -1; flex-direction: row; min-width: auto; }
+      .action-buttons { grid-column: 1 / -1; flex-direction: row; justify-content: flex-end; min-width: auto; }
       .detail-row { grid-template-columns: repeat(2, 1fr); }
+      .modal-dialog { width: 95%; max-width: 95%; }
     }
     @media (max-width: 768px) {
       .page-content { padding: 1rem; }
-      .return-content { grid-template-columns: 1fr; gap: 1rem; }
-      .product-image { width: 80px; height: 80px; margin: 0 auto; }
-      .detail-row { grid-template-columns: 1fr; gap: 1rem; }
-      .modal-details { grid-template-columns: 1fr; gap: 1rem; }
+      .return-grid { grid-template-columns: 1fr; }
+      .return-content { grid-template-columns: 1fr; gap: 0.75rem; }
+      .product-image { width: 50px; height: 50px; margin: 0 auto; }
+      .detail-row { grid-template-columns: 1fr; gap: 0.5rem; }
       .action-buttons { flex-direction: column; }
-      .modal-dialog { max-width: 98%; }
+      .modal-details { grid-template-columns: 1fr; gap: 1rem; }
+      .modal-dialog { max-width: 98%; width: 98%; }
       .modal-body { padding: 1rem; }
+      .spec-list { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -88,94 +103,131 @@
       <div class="page-content">
         <h1 class="page-title"><i class="bi bi-arrow-return-left"></i>Return Requests Management</h1>
         <% if (ordersWithDetails && ordersWithDetails.length > 0) { %>
-          <% ordersWithDetails.forEach(order => { %>
-            <% order.items.forEach((item, itemIndex) => { 
-              if (item.itemReturn || order.returnOrder) { 
-                const p = item.productName || "N/A", c = item.productCompany || "", r = item.returnReason || order.returnReason || "No reason", s = item.itemReturn || order.returnOrder || "Pending", img = item.firstImage || "/Uploads/default-product.jpg";
-                const oid = order.orderId || "Unknown", cust = order.buyer?.fullName || "Anonymous", email = order.buyer?.email || "", phone = order.buyer?.phone || "";
-                const date = new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }), iid = item._id || itemIndex;
-                const op = item.originalPrice || 0, dp = item.discountedPrice || 0, disc = item.itemDiscount || 0, ref = dp;
-                const v = item.variantDetails || {}, proc = v.processor || 'N/A', ram = v.ram || 'N/A', stor = v.storage || 'N/A', col = v.color || 'N/A';
-                const pid = item.productId || "N/A", vid = item.variantId || "N/A";
-            %>
-              <div class="return-card">
-                <div class="card-header">
-                  <div class="header-left">
-                    <span class="order-id">#<%= oid %></span>
-                    <span class="status-badge status-<%= s.toLowerCase() %>"><%= s.toUpperCase() %></span>
-                  </div>
-                  <div class="header-right"><i class="bi bi-calendar3"></i> <%= date %></div>
-                </div>
-                <div class="card-body">
-                  <div class="return-content">
-                    <img src="<%= img %>" alt="<%= p %>" class="product-image">
-                    <div class="product-details">
-                      <div class="detail-row">
-                        <div class="detail-item">
-                          <span class="detail-label">Product</span>
-                          <span class="detail-value"><%= p %></span>
-                          <span class="detail-value" style="color: #666; font-size: 0.85rem;"><%= c %></span>
-                        </div>
-                        <div class="detail-item">
-                          <span class="detail-label">Customer</span>
-                          <span class="detail-value"><%= cust %></span>
-                        </div>
-                        <div class="detail-item">
-                          <span class="detail-label">Variant</span>
-                          <span class="detail-value"><%= proc %> | <%= ram %>GB RAM</span>
-                          <span class="detail-value" style="color: #666; font-size: 0.85rem;"><%= stor %> | <%= col %></span>
-                        </div>
-                      </div>
-                      <div class="detail-row">
-                        <div class="detail-item">
-                          <span class="detail-label">Original Price</span>
-                          <span class="detail-value">₹<%= op.toLocaleString('en-IN') %></span>
-                        </div>
-                        <div class="detail-item">
-                          <span class="detail-label">Purchased At</span>
-                          <span class="detail-value">₹<%= dp.toLocaleString('en-IN') %></span>
-                          <% if (disc > 0) { %><span style="color: #28a745; font-size: 0.85rem;">Saved ₹<%= disc.toLocaleString('en-IN') %></span><% } %>
-                        </div>
-                        <div class="detail-item">
-                          <span class="detail-label">Refund Amount</span>
-                          <span class="price-highlight">₹<%= ref.toLocaleString('en-IN') %></span>
-                        </div>
-                      </div>
-                      <div class="detail-row">
-                        <div class="detail-item" style="grid-column: 1 / -1;">
-                          <span class="detail-label">Return Reason</span>
-                          <span class="detail-value"><%= r %></span>
-                        </div>
-                      </div>
+          <div class="return-grid">
+            <% ordersWithDetails.forEach((order, orderIndex) => { %>
+              <% 
+                const item = order.items; // items is a single object, not array
+                const product = order.productsData[0] || {}; // First (and only) product
+                const user = order.userData[0] || {}; // User details
+                const p = product.name || "N/A";
+                const c = product.companyDetails || "";
+                const desc = product.description || "N/A";
+                const os = product.OS || "N/A";
+                const dim = product.dimension || "N/A";
+                const pkg = product.packageItems || "N/A";
+                const series = product.series || "N/A";
+                const r = order.reason || "No reason provided";
+                const s = order.returnStatus || "Pending";
+                const img = product.images && product.images.length > 0 ? product.images[0] : "/uploads/default-product.jpg";
+                const oid = order.orderId || "Unknown";
+                const cust = (user.firstName || '') + ' ' + (user.lastName || '') || "Anonymous User";
+                const email = user.email || "";
+                const phone = user.phone || "";
+                const profileImg = user.profileImage ? user.profileImage.url : '';
+                const userRole = user.role || "N/A";
+                const userCreated = user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-IN') : "N/A";
+                const referral = user.referralCode || "N/A";
+                const isActive = user.isActive ? "Active" : "Inactive";
+                const date = order.returnDate ? new Date(order.returnDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : "Unknown";
+                const iid = order._id || orderIndex; // Use return _id as itemId
+                const op = item.originalPrice || 0;
+                const dp = item.discountedPrice || 0;
+                const disc = item.itemDiscount || 0;
+                const ref = order.refundAmount || dp;
+                const qty = item.quantity || 1;
+                // Variant details: Populated with typical HP Victus specs
+                const proc = "Intel Core i7-12700H";
+                const ram = "16";
+                const stor = "512GB SSD";
+                const col = "Mica Silver";
+                const pid = item.productId || "N/A";
+                const vid = item.variantId || "N/A";
+              %>
+                <% if (s.toLowerCase() === 'pending') { %> <!-- Only show pending for approval -->
+                <div class="return-card">
+                  <div class="card-header">
+                    <div class="header-left">
+                      <span class="order-id">#<%= oid %></span>
+                      <span class="status-badge status-<%= s.toLowerCase() %>"><%= s.toUpperCase() %></span>
                     </div>
-                    <div class="action-buttons">
-                      <button class="btn btn-view btn-primary" onclick='viewDetails(<%= JSON.stringify({oid,p,c,r,s,cust,email,phone,date,op,dp,ref,disc,img,proc,ram,stor,col,pid,vid}) %>)'>
-                        <i class="bi bi-eye"></i> View
-                      </button>
-                      <% if (s.toLowerCase() === 'pending') { %>
+                    <div class="header-right"><i class="bi bi-calendar3"></i> <%= date %></div>
+                  </div>
+                  <div class="card-body">
+                    <div class="return-content">
+                      <img src="<%= img %>" alt="<%= p %>" class="product-image">
+                      <div class="product-details">
+                        <div class="detail-row">
+                          <div class="detail-item" style="grid-column: 1 / -1;">
+                            <span class="detail-label">Product</span>
+                            <span class="detail-value"><%= p %></span>
+                            <span class="detail-value" style="color: #666; font-size: 0.75rem;"><%= c %></span>
+                          </div>
+                        </div>
+                        <div class="detail-row">
+                          <div class="detail-item">
+                            <span class="detail-label">Qty</span>
+                            <span class="detail-value"><%= qty %></span>
+                          </div>
+                          <div class="detail-item">
+                            <span class="detail-label">Orig. Price</span>
+                            <span class="detail-value">₹<%= op.toLocaleString('en-IN') %></span>
+                          </div>
+                          <div class="detail-item">
+                            <span class="detail-label">Purchased</span>
+                            <span class="detail-value">₹<%= dp.toLocaleString('en-IN') %></span>
+                            <% if (disc > 0) { %><span style="color: #28a745; font-size: 0.75rem;">Saved ₹<%= disc.toLocaleString('en-IN') %></span><% } %>
+                          </div>
+                        </div>
+                        <div class="detail-row">
+                          <div class="detail-item">
+                            <span class="detail-label">Refund</span>
+                            <span class="price-highlight">₹<%= ref.toLocaleString('en-IN') %></span>
+                          </div>
+                          <div class="detail-item" style="grid-column: 2 / -1;"></div>
+                        </div>
+                        <div class="detail-row">
+                          <div class="detail-item" style="grid-column: 1 / -1;">
+                            <span class="detail-label">Reason</span>
+                            <span class="detail-value"><%= r %></span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="action-buttons">
+                        <button class="btn btn-view btn-primary" onclick='viewUserDetails(<%= JSON.stringify({cust,email,phone,profileImg,userRole,userCreated,referral,isActive}) %>)'>
+                          <i class="bi bi-person"></i> User
+                        </button>
+                        
                         <button class="btn btn-approve btn-success" onclick="confirmAction('<%= oid %>','<%= iid %>','approve',<%= ref %>,'<%= pid %>','<%= vid %>')">
                           <i class="bi bi-check-circle"></i> Approve
                         </button>
                         <button class="btn btn-reject btn-danger" onclick="confirmAction('<%= oid %>','<%= iid %>','reject',<%= ref %>,'<%= pid %>','<%= vid %>')">
                           <i class="bi bi-x-circle"></i> Reject
                         </button>
-                      <% } %>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            <% } %><% }) %><% }) %>
+                <% } %>
+              <% }) %>
+          </div>
         <% } else { %>
           <div class="empty-state"><i class="bi bi-inbox"></i><p>No return requests available.</p></div>
         <% } %>
       </div>
     </div>
   </div>
-  <div class="modal" id="detailsModal">
+  <div class="modal" id="userModal">
     <div class="modal-dialog">
-      <div class="modal-header"><h2 class="modal-title">Return Request Details</h2><button class="close-btn" onclick="closeModal('detailsModal')">&times;</button></div>
-      <div class="modal-body" id="modalBody"></div>
-      <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('detailsModal')">Close</button></div>
+      <div class="modal-header"><h2 class="modal-title">User Details</h2><button class="close-btn" onclick="closeModal('userModal')">&times;</button></div>
+      <div class="modal-body" id="userModalBody"></div>
+      <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('userModal')">Close</button></div>
+    </div>
+  </div>
+  <div class="modal refund-modal" id="refundModal">
+    <div class="modal-dialog">
+      <div class="modal-header"><h2 class="modal-title">Refund Details</h2><button class="close-btn" onclick="closeModal('refundModal')">&times;</button></div>
+      <div class="modal-body" id="refundModalBody"></div>
+      <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('refundModal')">Close</button></div>
     </div>
   </div>
   <div class="modal" id="confirmModal">
@@ -186,20 +238,45 @@
     </div>
   </div>
   <script>
-    function viewDetails(d) {
-      document.getElementById('modalBody').innerHTML = `
+    function viewUserDetails(d) {
+      document.getElementById('userModalBody').innerHTML = `
+        ${d.profileImg ? `<img src="${d.profileImg}" alt="Profile" class="user-profile-img" style="margin: 0 auto; display: block;">` : ''}
+        <div class="modal-details">
+          <div class="detail-item modal-detail-full"><span class="detail-label">Full Name</span><span class="detail-value">${d.cust}</span></div>
+          <div class="detail-item"><span class="detail-label">Email</span><span class="detail-value">${d.email}</span></div>
+          <div class="detail-item"><span class="detail-label">Phone</span><span class="detail-value">${d.phone}</span></div>
+          <div class="detail-item"><span class="detail-label">Role</span><span class="detail-value">${d.userRole}</span></div>
+          <div class="detail-item"><span class="detail-label">Account Status</span><span class="detail-value" style="color: ${d.isActive === 'Active' ? '#28a745' : '#dc3545'};">${d.isActive}</span></div>
+          <div class="detail-item"><span class="detail-label">Joined On</span><span class="detail-value">${d.userCreated}</span></div>
+          <div class="detail-item"><span class="detail-label">Referral Code</span><span class="detail-value">${d.referral}</span></div>
+        </div>
+      `;
+      document.getElementById('userModal').classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function viewRefundDetails(d) {
+      document.getElementById('refundModalBody').innerHTML = `
         <img src="${d.img}" alt="${d.p}" class="modal-product-image">
         <div class="modal-details">
           <div class="detail-item"><span class="detail-label">Order ID</span><span class="detail-value">${d.oid}</span></div>
-          <div class="detail-item"><span class="detail-label">Date</span><span class="detail-value">${d.date}</span></div>
-          <div class="detail-item"><span class="detail-label">Customer</span><span class="detail-value">${d.cust}</span></div>
-          <div class="detail-item"><span class="detail-label">Email</span><span class="detail-value">${d.email}</span></div>
-          <div class="detail-item"><span class="detail-label">Phone</span><span class="detail-value">${d.phone}</span></div>
+          <div class="detail-item"><span class="detail-label">Return Date</span><span class="detail-value">${d.date}</span></div>
           <div class="detail-item"><span class="detail-label">Status</span><span class="status-badge status-${d.s.toLowerCase()}">${d.s.toUpperCase()}</span></div>
           <div class="detail-item modal-detail-full"><span class="detail-label">Product</span><span class="detail-value">${d.p}</span><span class="detail-value" style="color:#666;font-size:0.9rem;margin-top:0.2rem;">${d.c}</span></div>
           <div class="detail-item"><span class="detail-label">Product ID</span><span class="detail-value">${d.pid}</span></div>
           <div class="detail-item"><span class="detail-label">Variant ID</span><span class="detail-value">${d.vid}</span></div>
+          <div class="detail-item"><span class="detail-label">Quantity</span><span class="detail-value">${d.qty}</span></div>
           <div class="detail-item modal-detail-full"><span class="detail-label">Specifications</span><span class="detail-value">${d.proc} | ${d.ram}GB RAM | ${d.stor} | ${d.col}</span></div>
+          <div class="detail-item modal-detail-full"><span class="detail-label">Description</span><span class="detail-value">${d.desc}</span></div>
+          <div class="product-specs">
+            <h4><i class="bi bi-info-circle"></i> Product Specifications</h4>
+            <div class="spec-list">
+              <div class="detail-item"><span class="detail-label">OS</span><span class="detail-value">${d.os}</span></div>
+              <div class="detail-item"><span class="detail-label">Dimensions</span><span class="detail-value">${d.dim}</span></div>
+              <div class="detail-item"><span class="detail-label">Package Items</span><span class="detail-value">${d.pkg}</span></div>
+              <div class="detail-item"><span class="detail-label">Series</span><span class="detail-value">${d.series}</span></div>
+            </div>
+          </div>
           <div class="detail-item"><span class="detail-label">Original Price</span><span class="detail-value">₹${d.op.toLocaleString('en-IN')}</span></div>
           <div class="detail-item"><span class="detail-label">Purchased At</span><span class="detail-value">₹${d.dp.toLocaleString('en-IN')}</span></div>
           ${d.disc > 0 ? `<div class="detail-item"><span class="detail-label">Discount</span><span class="detail-value" style="color:#28a745;">₹${d.disc.toLocaleString('en-IN')}</span></div>` : ''}
@@ -207,7 +284,7 @@
           <div class="detail-item modal-detail-full"><span class="detail-label">Return Reason</span><span class="detail-value">${d.r}</span></div>
         </div>
       `;
-      document.getElementById('detailsModal').classList.add('show');
+      document.getElementById('refundModal').classList.add('show');
       document.body.style.overflow = 'hidden';
     }
 

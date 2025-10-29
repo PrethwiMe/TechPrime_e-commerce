@@ -371,7 +371,7 @@ exports.returnOrdersPage = async (req, res) => {
 
     const data = await adminModel.viewReturnPage();
 
-    console.log("data of approve page",data)
+    console.log("data of approve page",JSON.stringify(data,null,2))
 
     res.render('admin-pages/returnPage.ejs', {
       ordersWithDetails: data,

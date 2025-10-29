@@ -263,13 +263,12 @@ exports.checkoutView = async (req, res) => {
     const netSubtotal = subtotal - totalDiscount;
 
     let tax = 0;
-    if (netSubtotal > 150000) {
-      tax = netSubtotal * 0.09;
-    } else if (netSubtotal > 100000) {
-      tax = netSubtotal * 0.07;
-    } else if (netSubtotal > 50000) {
-      tax = netSubtotal * 0.05;
-    }
+if (netSubtotal > 0) {
+  tax = netSubtotal * 0.18;
+  console.log("taxxxx",tax)
+}
+
+console.log("taxzz",tax)
 
     let deliveryCharge = netSubtotal > 100000 ? 0 : 100;
 
@@ -340,9 +339,9 @@ exports.addToOrder = async (req, res) => {
       };
     });
 
-    const tax = subtotal > 150000 ? subtotal * 0.09 :
-                subtotal > 100000 ? subtotal * 0.07 :
-                subtotal > 50000  ? subtotal * 0.05 : 0;
+ const tax = subtotal * 0.18;
+
+    console.log("tax",tax)
 
     const deliveryCharge = subtotal > 100000 ? 0 : 100;
     const total = subtotal + tax + deliveryCharge;
@@ -688,12 +687,10 @@ exports.cancelItem = async (req, res) => {
 }
 exports.couponLogic = async (req, res) => {
   try {
-   
     const { code, subtotal, items } = req.body;
     const subTotalNum = Number(subtotal) || 0;
 
     const coupon = await userProfileModel.checkCoupon(code);
-
     if (!coupon || !coupon.isActive) {
       return res.json({ success: false, message: "Invalid or inactive coupon" });
     }
@@ -723,37 +720,43 @@ exports.couponLogic = async (req, res) => {
     const newSubtotal = subTotalNum - discountAmount;
 
     let tax = 0;
-    if (newSubtotal > 150000) tax = newSubtotal * 0.09;
-    else if (newSubtotal > 100000) tax = newSubtotal * 0.07;
-    else if (newSubtotal > 50000) tax = newSubtotal * 0.05;
+    if (newSubtotal ) tax = newSubtotal * 0.18;
+ 
+    else tax = 0;
 
     const deliveryCharge = newSubtotal > 100000 ? 0 : 100;
 
     const total = newSubtotal + tax + deliveryCharge;
 
-    let updatedItems = items.map((item) => {
+    const updatedItems = items.map((item) => {
+      const discountedPrice =
+        coupon.discountType === "percentage"
+          ? item.price - (item.price * coupon.discount) / 100
+          : item.price - coupon.discount / items.length; // distribute flat discount
       return {
         ...item,
         appliedOffer: true,
-        discountedPrice:
-          coupon.discountType === "percentage"
-            ? item.price - (item.price * coupon.discount) / 100
-            : item.price,
+        discountedPrice: Math.max(0, Math.floor(discountedPrice)), // no negative values
       };
     });
-
+console.log("taxxxxxxxxxxxxxxxxxxxxxxx",tax)
+    // 8️⃣ Return response with tax and all calculated values
     return res.json({
       success: true,
       message: "Coupon applied successfully",
-      discount: discountAmount,        
-      discountedTotal: total,          
-      updatedItems,                    
+      discount: discountAmount,
+      discountedSubtotal: newSubtotal,
+      tax: Math.floor(tax),
+      deliveryCharge,
+      discountedTotal: Math.floor(total),
+      updatedItems,
     });
   } catch (err) {
     console.error("Error in couponLogic:", err);
     return res.status(500).json({ success: false, message: "Server error applying coupon" });
   }
 };
+
 exports.returnItem = async (req, res) => {
   const orderData = req.body;
   const response = await userProfileModel.returnEachItems(orderData)  
