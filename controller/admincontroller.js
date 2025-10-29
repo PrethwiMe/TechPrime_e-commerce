@@ -122,7 +122,6 @@ exports.controleUser =async (req,res) => {
 exports.orderPage = async (req, res) => {
   try {
     const data = await adminModel.viewOrders(); 
-    console.log("dataaaa",JSON.stringify(data,null,2));
     const filter = req.query.filter || 'Order status';
     res.render('admin-pages/allOrders', {
       orders: data.ordersWithDetails, 
@@ -371,6 +370,8 @@ exports.returnOrdersPage = async (req, res) => {
   try {
 
     const data = await adminModel.viewOrders();
+
+    
 
     res.render('admin-pages/returnPage.ejs', {
       ordersWithDetails: data.ordersWithDetails,

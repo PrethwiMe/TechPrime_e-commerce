@@ -39,7 +39,6 @@ exports.razorpaySetup = async (req, res) => {
         itemDiscount,
         subtotal: discounted,
         appliedOffer: !!item.appliedOffer,
-        itemStatus: "Pending"
       };
     });
 
@@ -116,7 +115,7 @@ exports.verifyPayment = async (req, res) => {
       message: updateOrder.modifiedCount > 0 ? "Payment verified successfully" : "Payment update failed"
     });
   } catch (err) {
-    console.error("❌ verifyPayment error:", err);
+    console.error(" verifyPayment error:", err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };

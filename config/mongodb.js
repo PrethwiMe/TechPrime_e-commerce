@@ -13,13 +13,13 @@ const connectDB = async () => {
     console.log('✅ MongoDB connected');
     return db;
   } catch (err) {
-    console.error('❌ MongoDB connection error:', err.message);
+    console.error(' MongoDB connection error:', err.message);
     process.exit(1);
   }
 };
 
 const getDB = () => {
-  if (!db) throw new Error("❌ Database not connected. Call connectDB() first.");
+  if (!db) throw new Error(" Database not connected. Call connectDB() first.");
   return db;
 };
 

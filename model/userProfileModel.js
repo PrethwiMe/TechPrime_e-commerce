@@ -6,6 +6,7 @@ const { any, date } = require('joi');
 const { v4: uuidv4 } = require('uuid');
 const { pipeline } = require('nodemailer/lib/xoauth2');
 const { json } = require('express');
+const Razorpay = require('razorpay');
 
 
 exports.addAddress = async (data) => {
@@ -304,8 +305,7 @@ return result
 }
 exports.returnData = async (data) => {
   const db = await getDB();
-  const {orderId,reason,returnStatus} = data; 
-  const updateData = await db.collection(dbVariables.orderCollection).updateOne({orderId:orderId},{$set:{returnReason:reason,returnOrder:returnStatus}});
+ 
   return updateData
 }
 exports.newOtp = async (otp,id,emil) =>{
@@ -338,7 +338,7 @@ exports.updateUser = async (data) => {
 
     return result;
   } catch (err) {
-    console.error("❌ Error updating user:", err);
+    console.error(" Error updating user:", err);
     throw err;
   }
 };
@@ -382,12 +382,17 @@ exports.orderUpdate = async (razorpayOrderId, data) => {
       { "retryRazorpayOrderId.retryRazorpayOrderId": razorpayOrderId }
     ]
   });
-  const updateFields = { updatedAt: new Date() };
-  if (data.paymentStatus) updateFields.paymentStatus = data.paymentStatus;
-  if (data.razorpayPaymentId) updateFields.razorpayPaymentId = data.razorpayPaymentId;
-  if (data.razorpaySignature) updateFields.razorpaySignature = data.razorpaySignature;
-  if (data.status) updateFields.status = data.status;
-
+ const updateFields = {
+    updatedAt: new Date(),
+    ...(data.paymentStatus && { paymentStatus: data.paymentStatus }),
+    ...(data.razorpayPaymentId && { razorpayPaymentId: data.razorpayPaymentId }),
+    ...(data.razorpaySignature && { razorpaySignature: data.razorpaySignature }),
+    ...(data.status && { status: data.status }),
+    items: existing.items.map(item => ({
+      ...item,
+      itemStatus: "Pending"
+    }))
+  };
   const result = await db.collection(dbVariables.orderCollection).updateOne(
     {
       $or: [
@@ -435,30 +440,71 @@ exports.updateRetryPaymentOrder = async (razorpayOrderId, newRazorpayOrderId, ne
   }
 };
 exports.returnEachItems = async (data) => {
-  console.log("Model received:", data);
   const { orderId, variantId, itemReturn, reason } = data;
   try {
     const db = await getDB();
-console.log("dataa",data);
-    const updateData = await db.collection(dbVariables.orderCollection).updateOne(
-      { orderId: orderId },
+
+    const result = await db.collection(dbVariables.orderCollection).findOne(
+      { orderId: orderId, "items.variantId": variantId },
       {
-        $set: {
-          "items.$[elem].returnReason": reason,
-          "items.$[elem].itemReturn": itemReturn
+        projection: {
+          items: { $elemMatch: { variantId: variantId } },
+          orderId: 1,
+          userId: 1,
+          couponCode: 1,
+          subtotal: 1,
+          couponDiscount: 1,
+          tax: 1,
+          total: 1
         }
-      },
-      {
-        arrayFilters: [{ "elem.variantId": variantId }]
       }
     );
 
-    return updateData;
+    if (!result) return { success: false, message: "Order or item not found" };
+
+    const couponCode = result.couponCode || null;
+    const couponData = couponCode ? await db.collection(dbVariables.couponCollection).findOne({ code: couponCode }) : null;
+
+    console.log("coupon code",couponData.discount)
+
+    const item = result.items[0];
+    const itemValue = item.discountedPrice * item.quantity;
+
+    console.log("tax",result)
+
+      const tax = itemValue > 150000 ? itemValue * 0.09 :
+                itemValue > 100000 ? itemValue * 0.07 :
+                itemValue > 50000  ? itemValue * 0.05 : 0;
+
+      let deliveryCharge = 0      
+    if (itemValue<100000) {
+      deliveryCharge = 100
+    }
+
+    const refundAmount = +(itemValue + tax + deliveryCharge).toFixed(2);
+    
+    const returnData = {
+      orderId,
+      userId: result.userId,
+      variantId,
+      reason,
+      returnStatus: itemReturn,
+      couponCode,
+      returnDate: new Date(),
+      refundAmount,
+      items: item,
+    };
+
+    const returnCollection = db.collection(dbVariables.returnCollection);
+    await returnCollection.insertOne(returnData);
+
+    return { success: true, refundAmount };
   } catch (error) {
     console.error("Error in returnEachItems:", error);
     return { success: false, message: "Something went wrong" };
   }
 };
+
 exports.getWalletData = async (userId) => {
  try {
   const db = await getDB();
@@ -469,3 +515,4 @@ exports.getWalletData = async (userId) => {
   return null;  
  }
 };
+

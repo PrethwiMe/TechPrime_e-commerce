@@ -275,3 +275,28 @@ exports.updateStockAfterOrder = async (variantId, quantity) => {
   
 
 }
+exports.eachOrderData = async (orderId) => {
+  try {
+    const db = await getDB();
+
+    const order = await db.collection(dbVariables.orderCollection).findOne({ orderId: orderId });
+    if (!order) return null;
+
+    const itemsWithProducts = [];
+
+    for (const item of order.items) {
+      const product = await db.collection(dbVariables.productCollection).findOne({ _id: new ObjectId(item.productId) });
+
+      itemsWithProducts.push({
+        ...item,
+        productDetails: product || null
+      });
+    }
+    order.items = itemsWithProducts;
+
+    return order;
+  } catch (err) {
+    console.error("Error in getOrderWithProducts:", err);
+    return null;
+  }
+};

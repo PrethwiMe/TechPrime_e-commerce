@@ -200,7 +200,7 @@ exports.userImage = async (req, res) => {
       data: updateProfile,
     });
   } catch (error) {
-    console.error("❌ Error in userImage:", error);
+    console.error(" Error in userImage:", error);
     return res.status(500).json({
       success: false,
       message: error.message || "Server error",
@@ -241,7 +241,6 @@ exports.checkoutView = async (req, res) => {
     const userId = req.session.user.userId;
 
     const data = await userProfileModel.checkOutView(userId);
-    console.log("/whishlist/adda:", JSON.stringify(data, null, 2));
     const cartItems = Array.isArray(data.cartItems) ? data.cartItems : [];
 
     
@@ -303,6 +302,7 @@ exports.checkoutView = async (req, res) => {
 exports.addToOrder = async (req, res) => {
   try {
     const { paymentMethod, selectedAddress, couponCode, items } = req.body;
+    
     const userId = req.session.user?.userId;
     if (!userId) return res.status(401).json({ status: "error", message: "Login required" });
 
@@ -358,7 +358,7 @@ exports.addToOrder = async (req, res) => {
       total,
       couponCode: couponCode || "",
       paymentMethod,
-      paymentStatus: "pending",
+      paymentStatus: false,
       status: "Pending",
       selectedAddress,
       createdAt: new Date(),
@@ -412,6 +412,21 @@ exports.viewOrder = async (req, res) => {
     console.error(err);
     res.status(500).send("Server Error");
   }
+}
+exports.eachOrderData = async (req,res) => {
+  const orderId = req.query.orderId
+
+  let response = await productModel.eachOrderData(orderId)
+
+  console.log("response",JSON.stringify(response.items[0].productDetails,null,2))
+   const id = req.session.user.userId
+      const query = {
+        _id: new ObjectId(id)
+      }
+        let imagedata = await userModel.userCheck(query)
+
+
+        res.render('user-pages/order-details.ejs',{image:imagedata,order:response})
 }
 //to download the pdf
 exports.invoice = async (req, res) => {
@@ -699,7 +714,6 @@ exports.couponLogic = async (req, res) => {
       });
     }
 
-    // ✅ Calculate discount
     let discountAmount = 0;
     if (coupon.discountType === "percentage") {
       discountAmount = Math.floor((subTotalNum * coupon.discount) / 100);
@@ -709,7 +723,6 @@ exports.couponLogic = async (req, res) => {
 
     const newSubtotal = subTotalNum - discountAmount;
 
-    // ✅ Tax calculation
     let tax = 0;
     if (newSubtotal > 150000) tax = newSubtotal * 0.09;
     else if (newSubtotal > 100000) tax = newSubtotal * 0.07;
@@ -719,7 +732,6 @@ exports.couponLogic = async (req, res) => {
 
     const total = newSubtotal + tax + deliveryCharge;
 
-    // ✅ Update cart items with discounted price
     let updatedItems = items.map((item) => {
       return {
         ...item,
@@ -734,9 +746,9 @@ exports.couponLogic = async (req, res) => {
     return res.json({
       success: true,
       message: "Coupon applied successfully",
-      discount: discountAmount,        // frontend expects "discount"
-      discountedTotal: total,          // frontend expects "discountedTotal"
-      updatedItems,                    // updated cart items
+      discount: discountAmount,        
+      discountedTotal: total,          
+      updatedItems,                    
     });
   } catch (err) {
     console.error("Error in couponLogic:", err);

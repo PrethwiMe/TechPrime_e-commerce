@@ -406,3 +406,9 @@ exports.deletefromWishlist = async (userId,productId) => {
     console.log(error);
   }
 }
+exports.couponOffer = async (id) => {
+console.log("code is",id)
+  const db = await getDB()
+  const data = await db.collection(dbVariables.couponCollection).findOne({code:id})
+  return data
+}

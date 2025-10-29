@@ -376,6 +376,8 @@ exports.refundToUserWallet = async (orderId, productId, variantId) => {
   if (!order) {
     throw new Error('Order not found');
     }
+
+    console.log("order before refund ",JSON.stringify(order));
     console.log("order of wallet is ",order);
     order ={
       ...order,

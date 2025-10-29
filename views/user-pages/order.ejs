@@ -64,14 +64,6 @@
       .badge-status.return-pending { background: #fff3cd; color: #856404; }
       .badge-status.return-approved { background: #e6f4ea; color: #198754; }
       .badge-status.return-rejected { background: #f8d7da; color: #dc3545; }
-      .badge-payment {
-        font-weight: 600;
-        padding: 0.4rem 0.8rem;
-        border-radius: 0.5rem;
-        font-size: 0.8rem;
-      }
-      .badge-payment.pending { background: #fff3cd; color: #856404; }
-      .badge-payment.completed { background: #e6f4ea; color: #198754; }
       .filter-chip, .cancel-all-btn {
         border: 1px solid #dee2e6;
         background: #fff;
@@ -133,14 +125,6 @@
       .detail-value { color: #212529; font-size: 1rem; margin-bottom: 1rem; }
       .modal-content { border-radius: 0.75rem; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
       .modal-header, .modal-footer { border: none; }
-      .payment-status-badge {
-        animation: pulse 2s infinite;
-      }
-      @keyframes pulse {
-        0% { opacity: 1; }
-        50% { opacity: 0.7; }
-        100% { opacity: 1; }
-      }
       .item-return-info {
         font-size: 0.8rem;
         margin-top: 0.25rem;
@@ -172,9 +156,6 @@
           <button class="btn filter-chip" data-filter="cancelled"><i class="bi bi-x-circle me-1"></i> Cancelled</button>
         </div>
       </header>
-      <% if (orders.some(order => (order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped') && !order.items.some(item => item.itemStatus === 'Delivered'))) { %>
-        <button class="btn cancel-all-btn mb-4" id="cancelAllBtn"><i class="bi bi-x-circle-fill me-1"></i> Cancel All</button>
-      <% } %>
       <section id="ordersList" class="vstack gap-3">
         <% orders.forEach(order => { %>
           <article class="card card-light order-card" data-status="<%= order.status.toLowerCase() %>">
@@ -185,35 +166,20 @@
                     <i class="bi me-1 <%= order.status.toLowerCase() === 'pending' ? 'bi-hourglass-split' : order.status.toLowerCase() === 'shipped' ? 'bi-truck' : order.status.toLowerCase() === 'delivered' ? 'bi-check2-circle' : 'bi-x-circle' %>"></i>
                     <%= order.status %>
                   </span>
-                  <% if (order.paymentStatus) { %>
-                    <span class="badge badge-payment <%= order.paymentStatus.toLowerCase() === 'paid' ? 'completed' : order.paymentStatus.toLowerCase() %> payment-status-badge text-uppercase">
-                      <i class="bi me-1 <%= order.paymentStatus.toLowerCase() === 'pending' ? 'bi-hourglass-split' : 'bi-check2-circle' %>"></i>
-                      Payment <%= order.paymentStatus %>
-                    </span>
-                  <% } %>
                   <span class="text-muted">Order ID</span>
                   <strong><%= order.orderId %></strong>
                   <span class="text-muted"><i class="bi bi-calendar-date me-1"></i> <%= new Date(order.createdAt).toLocaleDateString() %></span>
                 </div>
                 <div class="order-actions d-flex gap-2">
-                  <% if ((order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped') && !order.items.some(item => item.itemStatus === 'Delivered')) { %>
-                    <button class="btn btn-outline-danger cancel-order-btn" data-cancel="<%= order.orderId %>" data-payment-method="<%= order.paymentMethod %>">
-                      <i class="bi bi-x-circle me-1"></i> Cancel
+                  <form method="get" action="/account/order-details" style="display: inline;">
+                    <input type="hidden" name="orderId" value="<%= order.orderId %>">
+                    <button type="submit" class="btn btn-outline-primary">
+                      <i class="bi bi-list-ul me-1"></i> Order Details
                     </button>
-                  <% } %>
-                  <% if (order.paymentMethod === 'online' && order.paymentStatus && order.paymentStatus.toLowerCase() === 'pending') { %>
-                    <button class="btn repeat-payment-btn" data-order-id="<%= order.orderId %>">
-                      <i class="bi bi-arrow-clockwise me-1"></i> Repeat Payment
-                    </button>
-                  <% } %>
+                  </form>
                   <button class="btn btn-outline-info view-address-btn" data-bs-toggle="modal" data-bs-target="#addressModal" data-address='<%= JSON.stringify(order.selectedAddress) %>' data-order-id="<%= order.orderId %>">
                     <i class="bi bi-geo-alt me-1"></i> Address
                   </button>
-                  <% if (order.paymentMethod === 'online') { %>
-                    <button class="btn btn-outline-primary payment-details-btn" data-bs-toggle="modal" data-bs-target="#paymentModal" data-payment='<%= JSON.stringify({ orderId: order.orderId, razorpayOrderId: order.razorpayOrderId, razorpayPaymentId: order.razorpayPaymentId, paymentMethod: order.paymentMethod }) %>'>
-                      <i class="bi bi-wallet2 me-1"></i> Payment
-                    </button>
-                  <% } %>
                   <a href="/account/orders/invoice/<%= order.orderId %>" class="btn btn-outline-secondary" target="_blank">
                     <i class="bi bi-file-earmark-text me-1"></i> Invoice
                   </a>
@@ -228,7 +194,6 @@
                       <th class="text-center">Qty</th>
                       <th class="text-end">Price</th>
                       <th class="text-end">Status</th>
-                      <th class="text-end">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -238,7 +203,7 @@
                           <div class="d-flex align-items-center gap-2">
                             <img class="order-item-thumb" src="<%= item.product?.images[0] || '/images/placeholder.jpg' %>"alt="Item image" />
                             <div>
-                              <div class="fw-semibold"><%= item.productName || 'Product Name' %></div>
+                              <div class="fw-semibold"><%= item.product?.name || 'Product Name' %></div>
                               <small>Category: Laptops & Accessories</small>
                               <% if (item.itemReturn && item.returnReason) { %>
                                 <div class="item-return-info">
@@ -263,15 +228,7 @@
                                 <i class="bi me-1 <%= item.itemReturn.toLowerCase() === 'pending' ? 'bi-hourglass-split' : item.itemReturn.toLowerCase() === 'approved' ? 'bi-check2-circle' : 'bi-x-circle' %>"></i>
                                 Return: <%= item.itemReturn %>
                               </span>
-                            <% } else { %>
-                              <button class="btn btn-outline-warning btn-sm return-item-btn" data-return-item="<%= order.orderId %>_<%= item.variantId %>">
-                                <i class="bi bi-arrow-return-left me-1"></i> Return
-                              </button>
                             <% } %>
-                          <% } else if ((!item.itemStatus || item.itemStatus !== 'Delivered' && item.itemStatus !== 'Cancelled') && (order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped')) { %>
-                            <button class="btn btn-outline-danger btn-sm cancel-item-btn" data-cancel-item="<%= order.orderId %>_<%= item.variantId %>_<%= order.status %>_<%= order.paymentMethod %>">
-                              <i class="bi bi-x-circle me-1"></i> Cancel
-                            </button>
                           <% } %>
                         </td>
                       </tr>
@@ -352,40 +309,6 @@
         </div>
       </div>
     </div>
-    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="paymentModalLabel"><i class="bi bi-wallet2 me-2"></i>Payment Details</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-              <div class="text-muted small">Order ID: <span id="paymentModalOrderId" class="fw-bold"></span></div>
-            </div>
-            <div class="detail-box">
-              <div class="row g-3">
-                <div class="col-12">
-                  <div class="detail-label">Payment Method</div>
-                  <div class="detail-value text-capitalize" id="modalPaymentMethod"></div>
-                </div>
-                <div class="col-12">
-                  <div class="detail-label">Razorpay Order ID</div>
-                  <div class="detail-value" id="modalRazorpayOrderId"></div>
-                </div>
-                <div class="col-12">
-                  <div class="detail-label">Razorpay Payment ID</div>
-                  <div class="detail-value" id="modalRazorpayPaymentId"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          </div>
-        </div>
-      </div>
-    </div>
     <script>
       const RAZORPAY_KEY = "<%= process.env.RAZORPAY_KEY_ID %>"
     </script>
@@ -407,23 +330,15 @@
               { id: 'modalCountry', key: 'country', container: 'countryContainer' },
               { id: 'modalPhone', key: 'phone', container: 'phoneContainer' }
             ]
-          },
-          payment: {
-            modal: '#paymentModal',
-            fields: [
-              { id: 'modalPaymentMethod', key: 'paymentMethod' },
-              { id: 'modalRazorpayOrderId', key: 'razorpayOrderId' },
-              { id: 'modalRazorpayPaymentId', key: 'razorpayPaymentId' }
-            ]
           }
         };
 
-        document.querySelectorAll('.view-address-btn, .payment-details-btn').forEach(btn => {
+        document.querySelectorAll('.view-address-btn').forEach(btn => {
           btn.addEventListener('click', () => {
-            const type = btn.classList.contains('view-address-btn') ? 'address' : 'payment';
+            const type = 'address';
             const data = JSON.parse(btn.dataset[type]);
             const modal = modals[type];
-            document.getElementById(type === 'address' ? 'modalOrderId' : 'paymentModalOrderId').textContent = btn.dataset.orderId || data.orderId;
+            document.getElementById('modalOrderId').textContent = btn.dataset.orderId || data.orderId;
             modal.fields.forEach(({ id, key, container }) => {
               const element = document.getElementById(id);
               element.textContent = data[key] || 'N/A';
@@ -444,307 +359,6 @@
             });
           });
         });
-
-        const handleAction = async (url, data, successMsg, errorMsg, updateFn) => {
-          const result = await Swal.fire({
-            title: data.title || 'Confirm Action',
-            text: data.text,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: data.confirmColor || '#dc3545',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: data.confirmText || 'Yes, proceed',
-            cancelButtonText: 'Cancel',
-            ...data.input
-          });
-          if (!result.isConfirmed) return;
-          try {
-            const payload = { ...data.payload, ...(result.value && { reason: result.value }) };
-            const response = await axios.post(url, payload);
-            if (response.data.success) {
-              await Swal.fire({ title: successMsg.title, text: successMsg.text, icon: 'success', confirmButtonColor: '#0d6efd' });
-              if (updateFn) updateFn(response, result.value);
-            } else {
-              await Swal.fire({ title: 'Error', text: response.data.error || errorMsg, icon: 'error', confirmButtonColor: '#0d6efd' });
-            }
-          } catch (error) {
-            console.error(`Error in ${url}:`, error);
-            await Swal.fire({ title: 'Error', text: `An error occurred while ${errorMsg.toLowerCase()}`, icon: 'error', confirmButtonColor: '#0d6efd' });
-          }
-        };
-
-        const updateCardStatus = (card, status, badgeText, removeButtons) => {
-          card.dataset.status = status;
-          const badge = card.querySelector('.badge-status');
-          badge.className = `badge badge-status ${status} text-uppercase`;
-          badge.innerHTML = `<i class="bi bi-x-circle me-1"></i>${badgeText}`;
-          removeButtons.forEach(selector => card.querySelector(selector)?.remove());
-        };
-
-        document.getElementById('cancelAllBtn')?.addEventListener('click', () => {
-          const cancellableOrders = Array.from(document.querySelectorAll('.order-card[data-status="pending"], .order-card[data-status="shipped"]'))
-            .filter(card => !card.querySelectorAll('tr').some(tr => tr.querySelector('.badge-status.delivered')))
-            .map(card => card.querySelector('.cancel-order-btn').dataset.cancel);
-          if (!cancellableOrders.length) {
-            Swal.fire({ title: 'No Cancellable Orders', text: 'No pending or shipped orders to cancel.', icon: 'info', confirmButtonColor: '#0d6efd' });
-            return;
-          }
-          handleAction('/account/orders/cancel-all', {
-            text: `Cancel ${cancellableOrders.length} order${cancellableOrders.length > 1 ? 's' : ''}?`,
-            payload: { orderIds: cancellableOrders },
-            input: {
-              input: 'textarea',
-              inputLabel: 'Reason for Cancellation',
-              inputPlaceholder: 'Enter reason for cancellation...',
-              inputAttributes: { 'aria-label': 'Cancellation reason' },
-              inputValidator: value => !value ? 'Provide a reason!' : value.trim().split(/\s+/).length > 50 ? `Reason must not exceed 50 words.` : null
-            }
-          }, {
-            title: 'All Orders Cancelled!',
-            text: 'All eligible orders have been cancelled.'
-          }, 'Failed to cancel all orders', () => {
-            cancellableOrders.forEach(orderId => {
-              const card = document.querySelector(`.order-card .cancel-order-btn[data-cancel="${orderId}"]`).closest('.order-card');
-              updateCardStatus(card, 'cancelled', 'Cancelled', ['.cancel-order-btn', '.cancel-item-btn']);
-            });
-            if (!document.querySelector('.order-card[data-status="pending"] .cancel-order-btn, .order-card[data-status="shipped"] .cancel-order-btn')) {
-              document.getElementById('cancelAllBtn')?.remove();
-            }
-          });
-        });
-
-        document.querySelectorAll('.cancel-order-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const orderId = btn.dataset.cancel;
-            const paymentMethod = btn.dataset.paymentMethod;
-            handleAction('/account/orders/cancel', {
-              text: `Cancel order ${orderId}?`,
-              input: {
-                input: 'textarea',
-                inputLabel: 'Reason for Cancellation',
-                inputPlaceholder: 'Enter reason for cancellation...',
-                inputAttributes: { 'aria-label': 'Cancellation reason' },
-                inputValidator: value => !value ? 'Provide a reason!' : value.trim().split(/\s+/).length > 50 ? `Reason must not exceed 50 words.` : null
-              },
-              payload: { orderId, paymentMethod }
-            }, {
-              title: 'Cancelled!',
-              text: 'Your order has been cancelled.'
-            }, 'Failed to cancel order', () => {
-              const card = btn.closest('.order-card');
-              updateCardStatus(card, 'cancelled', 'Cancelled', ['.cancel-order-btn', '.cancel-item-btn']);
-              if (!document.querySelector('.order-card[data-status="pending"] .cancel-order-btn, .order-card[data-status="shipped"] .cancel-order-btn')) {
-                document.getElementById('cancelAllBtn')?.remove();
-              }
-            });
-          });
-        });
-
-        document.querySelectorAll('.cancel-item-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const [orderId, variantId, status, paymentMethod] = btn.dataset.cancelItem.split('_');
-            handleAction('/account/orders/cancel-item', {
-              text: `Cancel item in order ${orderId}?`,
-              input: {
-                input: 'textarea',
-                inputLabel: 'Reason for Cancellation',
-                inputPlaceholder: 'Enter reason for cancellation...',
-                inputAttributes: { 'aria-label': 'Cancellation reason' },
-                inputValidator: value => !value ? 'Provide a reason!' : value.trim().split(/\s+/).length > 50 ? `Reason must not exceed 50 words.` : null
-              },
-              payload: { orderId, variantId, status, paymentMethod }
-            }, {
-              title: 'Item Cancelled!',
-              text: 'The item has been cancelled.'
-            }, 'Failed to cancel the item', (response) => {
-              const row = btn.closest('tr');
-              row.querySelector('.badge-status').className = 'badge badge-status cancelled';
-              row.querySelector('.badge-status').textContent = 'Item Cancelled';
-              btn.remove();
-              const card = row.closest('.order-card');
-              if (!card.querySelector('.cancel-item-btn')) {
-                updateCardStatus(card, 'cancelled', 'Cancelled', ['.cancel-order-btn']);
-                if (!document.querySelector('.order-card[data-status="pending"] .cancel-order-btn, .order-card[data-status="shipped"] .cancel-order-btn')) {
-                  document.getElementById('cancelAllBtn')?.remove();
-                }
-              }
-              if (response.data.updatedTotal) {
-                card.querySelector('.fs-5.fw-bold').textContent = `${parseFloat(response.data.updatedTotal).toFixed(2)}/-`;
-              }
-            });
-          });
-        });
-
-        document.querySelectorAll('.return-item-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const [orderId, variantId] = btn.dataset.returnItem.split('_');
-            const localResult = {};
-            handleAction('/account/orders/return-item', {
-              text: `Request return for item in order ${orderId}?`,
-              input: {
-                input: 'textarea',
-                inputLabel: 'Reason for Return',
-                inputPlaceholder: 'Enter reason for return...',
-                inputAttributes: { 'aria-label': 'Return reason' },
-                inputValidator: value => !value ? 'Provide a reason!' : value.trim().split(/\s+/).length > 50 ? `Reason must not exceed 50 words.` : null
-              },
-              payload: { orderId, variantId, itemReturn: 'Pending' },
-              confirmColor: '#ffc107',
-              confirmText: 'Submit Return'
-            }, {
-              title: 'Return Requested!',
-              text: `Your item return request has been submitted.`
-            }, `Failed to submit return request`, (response) => {
-              localResult.value = response.data.reason || 'N/A';
-              const row = btn.closest('tr');
-              const actionsTd = row.querySelector('td:last-child');
-              const returnBadge = document.createElement('span');
-              returnBadge.className = 'badge badge-status return-pending';
-              returnBadge.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Return: Pending';
-              actionsTd.innerHTML = '';
-              actionsTd.appendChild(returnBadge);
-              const itemDiv = row.querySelector('td:first-child div:last-child');
-              const existingReason = itemDiv.querySelector('.item-return-info');
-              if (!existingReason) {
-                const returnReasonDiv = document.createElement('div');
-                returnReasonDiv.className = 'item-return-info';
-                returnReasonDiv.innerHTML = `
-                  <div class="detail-label">Return Reason</div>
-                  <div class="detail-value">${localResult.value}</div>
-                `;
-                itemDiv.appendChild(returnReasonDiv);
-              }
-            });
-          });
-        });
-
-        document.querySelectorAll('.repeat-payment-btn').forEach(btn => {
-          btn.addEventListener('click', async () => {
-            const orderId = btn.dataset.orderId;
-            const confirmResult = await Swal.fire({
-              title: 'Repeat Payment',
-              text: `Initiate payment again for order ${orderId}? This will open the payment gateway.`,
-              icon: 'question',
-              showCancelButton: true,
-              confirmButtonColor: '#ffc107',
-              cancelButtonColor: '#6c757d',
-              confirmButtonText: 'Yes, Pay Now',
-              cancelButtonText: 'Cancel'
-            });
-            if (!confirmResult.isConfirmed) return;
-            try {
-              const response = await axios.post('/account/orders/repeat-payment', { orderId });
-              console.log('Repeat payment response:', response.data);
-              if (response.data.success) {
-                const { id, amount, currency, orderId: respOrderId } = response.data;
-                await Swal.fire({
-                  title: 'Redirecting to Payment...',
-                  text: 'Opening secure payment gateway.',
-                  icon: 'info',
-                  timer: 1500,
-                  showConfirmButton: false
-                });
-
-                if (typeof Razorpay === 'undefined') {
-                  const script = document.createElement('script');
-                  script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-                  script.async = true;
-                  script.onload = () => {
-                    console.log('Razorpay script loaded, opening checkout');
-                    openRazorpayCheckout(id, amount, currency, respOrderId);
-                  };
-                  script.onerror = () => {
-                    console.error('Failed to load Razorpay script');
-                    Swal.fire('Error', 'Failed to load payment gateway. Please try again.', 'error');
-                  };
-                  document.head.appendChild(script);
-                } else {
-                  console.log('Razorpay already loaded, opening checkout');
-                  openRazorpayCheckout(id, amount, currency, respOrderId);
-                }
-              } else {
-                console.error('Repeat payment failed:', response.data.error);
-                await Swal.fire({
-                  title: 'Error',
-                  text: response.data.error || 'Failed to initiate repeat payment.',
-                  icon: 'error',
-                  confirmButtonColor: '#0d6efd'
-                });
-              }
-            } catch (error) {
-              console.error('Error initiating repeat payment:', error);
-              await Swal.fire({
-                title: 'Error',
-                text: 'An error occurred while initiating payment. Please try again.',
-                icon: 'error',
-                confirmButtonColor: '#0d6efd'
-              });
-            }
-          });
-        });
-
-        function openRazorpayCheckout(order_id, amount, currency, orderId) {
-          console.log('Opening Razorpay checkout with order_id:', order_id);
-          const options = {
-            key: RAZORPAY_KEY,
-            amount: amount / 100,
-            currency: currency,
-            name: 'Your Store Name',
-            description: `Payment for Order ${orderId}`,
-            order_id: order_id,
-            handler: async function (razorpayResponse) {
-              console.log('Razorpay response:', razorpayResponse);
-              try {
-                const verifyResponse = await axios.post('/order/verifyPayment', {
-                  razorpayPaymentId: razorpayResponse.razorpay_payment_id,
-                  razorpayOrderId: razorpayResponse.razorpay_order_id,
-                  razorpaySignature: razorpayResponse.razorpay_signature,
-                  dbOrderId: orderId
-                });
-                console.log('Verify response:', verifyResponse.data);
-                if (verifyResponse.data.success) {
-                  await Swal.fire({
-                    title: 'Payment Successful!',
-                    text: 'Order confirmed. Reloading page...',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                  });
-                  location.reload();
-                } else {
-                  await Swal.fire({
-                    title: 'Payment Verified Failed',
-                    text: verifyResponse.data.message || 'Please contact support.',
-                    icon: 'error'
-                  });
-                }
-              } catch (error) {
-                console.error('Verification error:', error);
-                await Swal.fire({
-                  title: 'Verification Error',
-                  text: 'Payment may have succeeded, but verification failed. Contact support.',
-                  icon: 'error'
-                });
-              }
-            },
-            prefill: {
-              name: '',
-              email: '',
-              contact: ''
-            },
-            theme: {
-              color: '#0d6efd'
-            },
-            modal: {
-              ondismiss: function () {
-                console.log('Payment modal dismissed');
-              }
-            }
-          };
-
-          const rzp = new Razorpay(options);
-          rzp.open();
-        }
       });
     </script>
   </body>

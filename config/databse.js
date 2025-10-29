@@ -13,5 +13,6 @@ module.exports={
      orderCollection:"order",
      offerCollection:"offers",
      couponCollection:"coupon",
+     returnCollection:"returnOrders",
      walletCollection:"wallet"
 }
