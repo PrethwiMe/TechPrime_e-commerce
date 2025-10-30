@@ -181,20 +181,41 @@ exports.updateItems = async (req, res) => {
 };
 // approve return product
 exports.handleReturnProduct = async (req, res) => {
+  console.log("request body in return product",req.body);    
+let wallet
   try {  
-    const { orderId, productId, variantId, status } = req.body;
-    const result = await adminModel.processReturnProduct(orderId, productId, variantId, status);
+    const {userId, orderId, productId, variantId, status,refundAmount } = req.body;
+    let checkforWallet = await adminModel.checkUserWallet(userId);
     if (status === 'Approved') {
-      await adminModel.refundToUserWallet(orderId, productId, variantId);
-    }
-    if (result) {
+      //check user wallet exists
+    if (!checkforWallet) {
+       wallet = await adminModel.createWallet(req.body);
+        if ((wallet && wallet.acknowledged) || (updateWallet && updateWallet.modifiedCount > 0)) {
       return res.status(200).json({ success: true, message: "Return processed successfully" }); 
     } else {
       return res.status(400).json({ success: false, message: "Failed to process return" });
     } 
+    }else{
+
+     let updateWallet = await adminModel.updateWallet(req.body);
+      if (updateWallet && updateWallet.modifiedCount > 0) {
+        return res.status(200).json({ success: true, message: "Return processed successfully" }); 
+      }else {
+        return res.status(400).json({ success: false, message: "Failed to process return" });
+      }
+    }
+    }if(status==='Rejected'){
+
+      let response = await adminModel.rejectReturnProduct(req.body);
+      if(response && response.modifiedCount>0){
+        return res.status(200).json({ success: true, message: "Return Rejected successfully" }); 
+      }else{
+        return res.status(400).json({ success: false, message: "Failed to process return" });
+      }
+    }
+  
 
 
-console.log("request body in return product",req.body);    
    }catch (err) {
     console.error(" handleReturnProduct error:", err);
     res.status(500).json({ success: false, message: "Server Error" });
@@ -370,9 +391,6 @@ exports.returnOrdersPage = async (req, res) => {
   try {
 
     const data = await adminModel.viewReturnPage();
-
-    console.log("data of approve page",JSON.stringify(data,null,2))
-
     res.render('admin-pages/returnPage.ejs', {
       ordersWithDetails: data,
       search: req.query.search || ''

@@ -207,8 +207,6 @@ exports.userImage = async (req, res) => {
     });
   }
 };
-
-
 exports.updatePassword = async (req, res) => {
   const { firstName, email, phone, currentPassword, newPassword, confirmPassword } = req.body;
 
@@ -297,7 +295,6 @@ console.log("taxzz",tax)
   }
 };
 //add to order
-
 exports.addToOrder = async (req, res) => {
   try {
     const { paymentMethod, selectedAddress, couponCode, items } = req.body;
@@ -423,8 +420,16 @@ exports.eachOrderData = async (req,res) => {
       }
         let imagedata = await userModel.userCheck(query)
 
-
         res.render('user-pages/order-details.ejs',{image:imagedata,order:response})
+}
+//return status page
+exports.returnStatus = async (req, res) => {
+  console.log("params",req.params);
+  const userId = req.session.user.userId;
+  const orderId = req.params.orderId;
+  console.log("userId",userId," orderId",orderId);
+  let data = await userProfileModel.returnStatusData(userId, orderId);
+   res.render('user-pages/return-status.ejs', { returnData: data || null });
 }
 //to download the pdf
 exports.invoice = async (req, res) => {
@@ -759,6 +764,9 @@ console.log("taxxxxxxxxxxxxxxxxxxxxxxx",tax)
 
 exports.returnItem = async (req, res) => {
   const orderData = req.body;
+
+  let checkForReturn = await userProfileModel.checkReturnItem(orderData)
+  if (checkForReturn) return res.status(400).json({ success: false, message: "You have already requested a return for this item." })
   const response = await userProfileModel.returnEachItems(orderData)  
   if (response) {
     return res.status(200).json({ success: true, message: "Return request submitted successfully." })   
@@ -771,7 +779,6 @@ exports.viewWallet = async (req, res) => {
   const userId = req.session.user.userId;
   try {
     //image
-    console.log(userId);
       let data = await userModel.userCheck({_id: new ObjectId(userId)} )
 
     const walletData = await userProfileModel.getWalletData(userId);

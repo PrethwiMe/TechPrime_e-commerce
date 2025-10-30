@@ -195,6 +195,9 @@
           <a href="/account/orders/invoice/<%= order.orderId %>" class="btn btn-outline-secondary" target="_blank">
             <i class="bi bi-file-earmark-text me-1"></i> Invoice
           </a>
+          <a href="/account/order/return-status/<%= order.orderId %>" class="btn btn-outline-info">
+            <i class="bi bi-arrow-return-left me-1"></i> Return Status
+          </a>
           <a href="/account/orders" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-1"></i> Back to Orders
           </a>
@@ -495,6 +498,7 @@
             });
           });
         });
+const userId = "<%= image._id %>";
 
         document.querySelectorAll('.return-item-btn').forEach(btn => {
           btn.addEventListener('click', () => {
@@ -509,7 +513,7 @@
                 inputAttributes: { 'aria-label': 'Return reason' },
                 inputValidator: value => !value ? 'Provide a reason!' : value.trim().split(/\s+/).length > 50 ? `Reason must not exceed 50 words.` : null
               },
-              payload: { orderId, variantId, productId, itemReturn: 'Pending' },
+              payload: { orderId, variantId, productId, itemReturn: 'Pending',userId },
               confirmColor: '#ffc107',
               confirmText: 'Submit Return'
             }, {

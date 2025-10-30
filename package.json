@@ -11,7 +11,7 @@
       "."
     ],
     "ext": "js,json,env",
-    "ignore": [
+    "ignore": [                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
       "node_modules/*",
       "uploads/*",
       "logs/*"

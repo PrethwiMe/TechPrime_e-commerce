@@ -90,6 +90,8 @@ router.post('/cart/checkout/order',userConfirmed,userProfileController.addToOrde
 router.get('/account/orders',userConfirmed,userProfileController.viewOrder)
 //each order
 router.get('/account/order-details',userConfirmed,userProfileController.eachOrderData)
+//return status page
+router.get('/account/order/return-status/:orderId',userConfirmed,userProfileController.returnStatus)
 //download invoice
 router.get('/account/orders/invoice/:orderId',userConfirmed,userProfileController.invoice)
 //cancel order

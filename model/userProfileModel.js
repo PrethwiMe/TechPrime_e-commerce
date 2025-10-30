@@ -444,6 +444,9 @@ exports.returnEachItems = async (data) => {
   try {
     const db = await getDB();
 
+    const timeNow = new Date();
+
+
     const result = await db.collection(dbVariables.orderCollection).findOne(
       { orderId: orderId, "items.variantId": variantId },
       {
@@ -472,14 +475,12 @@ exports.returnEachItems = async (data) => {
 
     
     const refundAmount = +(itemValue + tax ).toFixed(2);
-    console.log("type",typeof(refundAmount));
     const returnData = {
       orderId,
       userId: result.userId,
  
       reason,
       returnStatus: itemReturn,
-      couponCode,
       returnDate: new Date(),
       refundAmount,
       items: item,
@@ -487,8 +488,12 @@ exports.returnEachItems = async (data) => {
 
     const returnCollection = db.collection(dbVariables.returnCollection);
     let response = await returnCollection.insertOne(returnData);
-    console.log("response of returndb",response)
-
+//updating item status of order collection
+  await db.collection(dbVariables.orderCollection).updateOne(
+  { orderId: orderId }, 
+  { $set: { "items.$[elem].itemReturn": "return" } },
+  { arrayFilters: [{ "elem.productId": productId, "elem.variantId": variantId }] }
+);
     return { success: true, refundAmount };
   } catch (error) {
     console.error("Error in returnEachItems:", error);
@@ -505,5 +510,45 @@ exports.getWalletData = async (userId) => {
   console.error("Error in getWalletData:", error);
   return null;  
  }
+};
+
+exports.checkReturnItem = async (data) => {
+  const { orderId, variantId } = data;
+  try {
+    const db = await getDB();
+    const checkDuplicate = await db.collection(dbVariables.returnCollection).findOne({orderId:orderId,"items.variantId":variantId});
+    return checkDuplicate;
+  } catch (error) {
+    console.error("Error in checkReturnItem:", error);
+    return null;  
+  }
+}
+exports.returnStatusData = async (userId, orderId) => {
+  try {
+    const db = await getDB();
+    const returnData = await db.collection(dbVariables.returnCollection).aggregate([
+      { $match: { userId: userId, orderId: orderId } },
+      {
+        $addFields: {
+          userObjectId: { $toObjectId: "$items.productId" }
+        }
+      },
+      {
+        $lookup: {
+          from: dbVariables.productCollection,
+          localField: "userObjectId",   
+          foreignField: "_id",           
+          as: "userDetails"
+        }
+      },
+      { $unwind: "$userDetails" },
+      { $sort: { returnDate: -1 } }
+    ]).toArray();
+
+    return returnData;
+  } catch (error) {
+    console.error("Error in returnStatusData:", error);
+    return null;
+  }
 };
 

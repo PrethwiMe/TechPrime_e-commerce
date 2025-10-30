@@ -196,13 +196,14 @@
                         <button class="btn btn-view btn-primary" onclick='viewUserDetails(<%= JSON.stringify({cust,email,phone,profileImg,userRole,userCreated,referral,isActive}) %>)'>
                           <i class="bi bi-person"></i> User
                         </button>
-                        
-                        <button class="btn btn-approve btn-success" onclick="confirmAction('<%= oid %>','<%= iid %>','approve',<%= ref %>,'<%= pid %>','<%= vid %>')">
-                          <i class="bi bi-check-circle"></i> Approve
-                        </button>
-                        <button class="btn btn-reject btn-danger" onclick="confirmAction('<%= oid %>','<%= iid %>','reject',<%= ref %>,'<%= pid %>','<%= vid %>')">
-                          <i class="bi bi-x-circle"></i> Reject
-                        </button>
+                        <button class="btn btn-approve btn-success" 
+  onclick="confirmAction('<%= oid %>','<%= iid %>','approve',<%= ref %>,'<%= pid %>','<%= vid %>','<%= order.userId %>')">
+  <i class="bi bi-check-circle"></i> Approve
+</button>
+                        <button class="btn btn-reject btn-danger" 
+  onclick="confirmAction('<%= oid %>','<%= iid %>','reject',<%= ref %>,'<%= pid %>','<%= vid %>','<%= order.userId %>')">
+  <i class="bi bi-x-circle"></i> Reject
+</button>
                       </div>
                     </div>
                   </div>
@@ -288,7 +289,7 @@
       document.body.style.overflow = 'hidden';
     }
 
-    function confirmAction(oid, iid, action, ref, pid, vid) {
+    function confirmAction(oid, iid, action, ref, pid, vid,userId) {
       const isApprove = action === 'approve';
       const title = isApprove ? 'Approve Return' : 'Reject Return';
       const status = isApprove ? 'Approved' : 'Rejected';
@@ -310,6 +311,7 @@
       }).then((result) => {
         if (result.isConfirmed) {
           axios.post('/admin/return-product', {
+            userId:userId,
             orderId: oid,
             itemId: iid,
             productId: pid,

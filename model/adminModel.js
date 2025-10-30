@@ -360,6 +360,10 @@ exports.updateItemsStatus = async (orderId, status) => {
 }
 exports.processReturnProduct = async (orderId, productId, variantId, status) => {
   const db = await getDB(); 
+
+  
+
+
   const result = await db.collection(dbVariables.orderCollection).updateOne(
   { orderId: orderId }, 
   { $set: { "items.$[elem].itemReturn": status } },
@@ -369,28 +373,7 @@ exports.processReturnProduct = async (orderId, productId, variantId, status) => 
   return result;
 
 }
-exports.refundToUserWallet = async (orderId, productId, variantId) => {
-  const db = await getDB(); 
 
-  let order = await db.collection(dbVariables.orderCollection).findOne({ orderId: orderId },{projection: { orderId:1,userId: 1, items:{$elemMatch:{  itemReturn: 'Approved'}}} } );
-  if (!order) {
-    throw new Error('Order not found');
-    }
-
-    console.log("order before refund ",JSON.stringify(order));
-    console.log("order of wallet is ",order);
-    order ={
-      ...order,
-      refunded:true,
-      refundDate: new Date(),
-      type: 'credit'
-    }
-    const refund = await db.collection(dbVariables.walletCollection).insertOne(order)
-    console.log("refund update,",refund);
-    return refund;
-
-
-  }
 exports.viewReturnPage = async () => {
   try {
 
@@ -428,4 +411,70 @@ exports.viewReturnPage = async () => {
   } catch (error) {
     console.error(error)
   }
+}
+exports.createWallet = async (data) => {
+      const {userId, orderId, productId, variantId, status,refundAmount } = data
+      const details = {
+        userId,
+        walletAmount: refundAmount,
+        updatedDate: new Date(),
+         refund:"credit",
+        refundHistory: [
+          {
+            orderId,
+            productId,
+            variantId,
+            status,
+            refundAmount,
+            date: new Date(),
+           
+          }]
+      }
+  const db = await getDB();
+  const walletInserted = await db.collection(dbVariables.walletCollection).insertOne(details)  
+  if (walletInserted.insertedId) {
+    const refundUpdate = await db.collection(dbVariables.returnCollection).updateOne(
+      {userId: userId, orderId: orderId, 'items.productId': productId, 'items.variantId': variantId},
+      {$set:{returnStatus:status}}
+    )
+   }
+  return walletInserted;
+}
+exports.rejectReturnProduct = async (data) => {
+  const {userId, orderId, productId, variantId, status } = data
+  const db = await getDB();
+  const response = await db.collection(dbVariables.returnCollection).updateOne(
+    {userId: userId, orderId: orderId, 'items.productId': productId, 'items.variantId': variantId},
+    {$set:{returnStatus:status}}
+  )
+  return response;
+}
+exports.updateWallet = async (data) => {
+    const {userId, orderId, productId, variantId, status,refundAmount } = data;
+    const db = await getDB();
+    const walletData = await db.collection(dbVariables.walletCollection).findOne({userId:userId})
+    let sum = walletData.walletAmount + refundAmount;
+
+if (!walletData) return false
+ console.log("wallet dataaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+  const updateData = await db.collection(dbVariables.walletCollection).updateOne(
+    { userId: userId },
+    {
+      $set: { walletAmount: sum, updatedDate: new Date() },
+      $push:{refundHistory:{orderId,productId,variantId,status,refundAmount,date:new Date()}}
+    })
+     console.log("wallet upatedaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    if (updateData.modifiedCount > 0) {
+        const refundUpdate = await db.collection(dbVariables.returnCollection).updateOne(
+      {userId: userId, orderId: orderId, 'items.productId': productId, 'items.variantId': variantId},
+      {$set:{returnStatus:status}}
+    )
+      }
+ return updateData
+
+}
+exports.checkUserWallet = async (userId) => {
+  const db = await getDB();
+  const walletData = await db.collection(dbVariables.walletCollection).findOne({userId:userId})
+  return walletData
 }
