@@ -68,4 +68,6 @@ router.post('/coupons/add',sessionHandle.adminConfirmed,adminController.addCoupo
 router.post('/coupons/delete/:couponId',sessionHandle.adminConfirmed,adminController.deleteCoupon)
 //edit coupons
 router.post('/coupons/edit/:couponId',sessionHandle.adminConfirmed,adminController.editCoupon)    
+//return history page
+router.get('/returnHistory',sessionHandle.adminConfirmed,adminController.returnHistoryPage)
 module.exports = router;

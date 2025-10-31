@@ -69,8 +69,7 @@ exports.addToCartdb = async (userId, productId, variantId, productName) => {
   // find cart for this user
   const userCart = await db.collection(dbVariables.cartCollection).findOne({ userId });
   // find variant stock
-  const variantData = await db.collection(dbVariables.variantCollection)
-    .findOne({ _id: new ObjectId(variantId) });
+  const variantData = await db.collection(dbVariables.variantCollection).findOne({ _id: new ObjectId(variantId) });
 
   if (!variantData) {
     return { success: false, message: "Variant not found" };

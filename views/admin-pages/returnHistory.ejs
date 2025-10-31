@@ -1,0 +1,67 @@
+<div class="d-flex">
+  <!-- Sidebar (left) -->
+  <%- include('partials/sidebar') %>
+
+  <!-- Main content area (right) -->
+  <div class="flex-grow-1">
+    <!-- Topbar -->
+    <%- include('partials/topBar') %>
+
+    <!-- Page content -->
+    <div class="p-4">
+      <link rel="stylesheet" href="/stylesheets/adminDashboard.css" />
+      <h2 class="dashboard-title">Return History</h2>
+
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead class="table-dark">
+            <tr>
+              <th>Order ID</th>
+              <th>User</th>
+              <th>Product</th>
+              <th>Reason</th>
+              <th>Status</th>
+              <th>Return Date</th>
+              <th>Refund Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (returns && returns.length > 0) { %>
+              <% returns.forEach(function(returnItem) { %>
+                <tr>
+                  <td><%= returnItem.orderId %></td>
+                  <td>
+                    <% if (returnItem.userData && returnItem.userData[0]) { %>
+                      <%= returnItem.userData[0].firstName %> <%= returnItem.userData[0].lastName %>
+                    <% } else { %>
+                      N/A
+                    <% } %>
+                  </td>
+                  <td>
+                    <% if (returnItem.productsData && returnItem.productsData[0]) { %>
+                      <%= returnItem.productsData[0].name %>
+                    <% } else { %>
+                      N/A
+                    <% } %>
+                  </td>
+                  <td><%= returnItem.reason %></td>
+                  <td>
+                    <span class="badge <%= returnItem.returnStatus === 'Approved' ? 'bg-success' : 'bg-danger' %>">
+                      <%= returnItem.returnStatus %>
+                    </span>
+                  </td>
+                  <td><%= new Date(returnItem.returnDate).toLocaleDateString() %></td>
+                  <td>₹<%= returnItem.refundAmount.toLocaleString() %></td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="7" class="text-center">No return history available.</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

@@ -478,3 +478,39 @@ exports.checkUserWallet = async (userId) => {
   const walletData = await db.collection(dbVariables.walletCollection).findOne({userId:userId})
   return walletData
 }
+exports.viewReturnHistoryPage = async () => {
+  try {
+    const db = await getDB();
+   const pipeline = [{$match:{$or:[{returnStatus:'Approved'},{returnStatus:'Rejected'}]}},
+       {
+        $addFields: {
+          'items.productObjId': { $toObjectId: '$items.productId' },
+          userObjId: { $toObjectId: '$userId' }
+        }
+      },
+      {
+        $lookup:{
+          from:dbVariables.productCollection,
+          localField:'items.productObjId',
+          foreignField: '_id',
+            as:"productsData"
+        }
+      },
+        {
+        $lookup: {
+          from: dbVariables.userCollection,
+          localField: 'userObjId',
+          foreignField: '_id',
+          as: 'userData'
+        }
+      },
+      {
+        $sort: { _id: -1 }
+      }
+    ]
+    const returnHistory = await db.collection(dbVariables.returnCollection).aggregate(pipeline).toArray()
+    return returnHistory;
+  } catch (error) {
+    console.error("Error fetching return history:", error);
+    throw error;
+  } }

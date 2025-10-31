@@ -402,3 +402,18 @@ exports.returnOrdersPage = async (req, res) => {
     res.status(500).send('Internal Server Error');
   } 
 }
+//return history page
+exports.returnHistoryPage = async (req, res) => {
+  try {
+    const data = await adminModel.viewReturnHistoryPage();
+    console.log("return history data",JSON.stringify(data,null,2));
+    res.render('admin-pages/returnHistory.ejs', {
+      returns: data || [],
+      search: req.query.search || ''
+    });
+  }  
+  catch (error) {
+    console.error('Error rendering return history page:', error);
+    res.status(500).send('Internal Server Error');
+  }
+}
