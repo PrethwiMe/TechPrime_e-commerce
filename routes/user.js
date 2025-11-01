@@ -84,7 +84,7 @@ router.post('/account/uploadImage',uploadUser.single('profileImage'),userProfile
 router.post('/account/updatePassword',userConfirmed,userProfileController.updatePassword)
 //checkOut
 router.get('/cart/checkout',userConfirmed,userProfileController.checkoutView)
-//order page
+//addtoorder
 router.post('/cart/checkout/order',userConfirmed,userProfileController.addToOrder)
 //view Order
 router.get('/account/orders',userConfirmed,userProfileController.viewOrder)

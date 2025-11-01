@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sales Report - TechPrime Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="/stylesheets/sidebar.css">
+  <link rel="stylesheet" href="/stylesheets/adminDashboard.css">
+  <style>
+    :root {
+      --primary:#3b82f6;--success:#10b981;--info:#06b6d4;--warning:#f59e0b;
+      --dark-bg:#0f172a;--card-bg:#1e293b;--border-color:#334155;
+      --text-primary:#f1f5f9;--text-secondary:#cbd5e1;
+    }
+    body{background:var(--dark-bg);}
+    .dashboard-title{font-size:2rem;font-weight:700;color:var(--text-primary);margin-bottom:2rem;}
+    .metric-box{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:1.5rem;border-left:4px solid;transition:0.3s;}
+    .metric-box:hover{transform:translateY(-4px);}
+    .metric-box h4{font-size:0.875rem;font-weight:600;opacity:0.9;}
+    .metric-box p{font-size:1.75rem;font-weight:700;margin:0.5rem 0 0;}
+    .metric-box.bg-primary{border-left-color:var(--primary);}
+    .metric-box.bg-success{border-left-color:var(--success);}
+    .metric-box.bg-info{border-left-color:var(--info);}
+    .metric-box.bg-warning{border-left-color:var(--warning);}
+    .dashboard-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-bottom:2rem;}
+    .btn-outline-primary{border-color:var(--primary);color:var(--primary);}
+    .btn-outline-primary:hover{background:var(--primary);color:#fff;}
+    .card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;}
+    .table{color:var(--text-primary);}
+    .table thead{background:rgba(30,41,59,0.8);}
+    .table tbody tr:hover{background:rgba(51,65,85,0.3);}
+    .input-group .form-control{background:var(--card-bg);border-color:var(--border-color);color:var(--text-primary);}
+    .filter-btn-group .btn,.export-btn-group .btn{font-size:0.95rem;padding:0.75rem 1.25rem;border-radius:50px;margin:0.5rem;transition:0.3s;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+    #customDateRange .form-control{background:var(--card-bg);border:1px solid var(--primary);color:var(--text-primary);border-radius:10px;padding:0.75rem;width:160px;}
+    #loadingOverlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.85);z-index:2000;align-items:center;justify-content:center;color:white;}
+  </style>
+</head>
+<body>
+<div id="loadingOverlay">
+  <div class="text-center">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="mt-3">Preparing export file...</p>
+  </div>
+</div>
+
+<div class="d-flex">
+  <%- include('partials/sidebar') %>
+  <div class="content-area flex-grow-1">
+    <%- include('partials/topBar') %>
+    <div class="p-4">
+      <h2 class="dashboard-title">📊 Sales Report</h2>
+
+      <!-- FILTER BUTTONS -->
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div class="btn-group filter-btn-group">
+          <a href="?filter=today" class="btn btn-outline-primary">Today</a>
+          <a href="?filter=week" class="btn btn-outline-primary">This Week</a>
+          <a href="?filter=month" class="btn btn-outline-primary">This Month</a>
+          <a href="?filter=custom" id="customFilterBtn" class="btn btn-outline-primary">Custom</a>
+          <a href="?" class="btn btn-outline-primary">Clear</a>
+        </div>
+        <div id="customDateRange" class="d-none gap-2">
+          <input type="date" id="startDate" class="form-control">
+          <input type="date" id="endDate" class="form-control">
+          <button id="applyDateFilter" class="btn btn-primary">Apply</button>
+        </div>
+      </div>
+
+      <% if (sales && sales.length > 0) { %>
+      <%
+        let totalRevenue = 0;
+        let totalOrders = orders;
+        let deliveredOrders = 0;
+
+        sales.forEach(order => {
+          const item = order.items;
+          const itemTotal = (item.discountedPrice * 1.18) * item.discountedPrice;
+          totalRevenue += itemTotal;
+          if (order.status === 'Delivered') deliveredOrders++;
+        });
+
+        let avgOrderValue = totalOrders > 0 ? (totalRevenue / totalOrders).toFixed(2) : 0;
+      %>
+
+      <!-- METRICS -->
+      <div class="dashboard-metrics">
+        <div class="metric-box bg-primary text-white"><h4><i class="bi bi-receipt me-2"></i>Orders</h4><p><%= totalOrders %></p></div>
+        <div class="metric-box bg-success text-white"><h4><i class="bi bi-currency-rupee me-2"></i>Revenue (with 18% tax)</h4><p>₹<%= totalRevenue.toLocaleString() %></p></div>
+        <div class="metric-box bg-info text-white"><h4><i class="bi bi-cart me-2"></i>Avg Order</h4><p>₹<%= avgOrderValue.toLocaleString() %></p></div>
+        <div class="metric-box bg-warning text-white"><h4><i class="bi bi-check-circle me-2"></i>Delivered</h4><p><%= deliveredOrders %></p></div>
+      </div>
+
+      <!-- SEARCH + EXPORT -->
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div class="input-group" style="width: 280px;">
+          <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Search orders..." value="<%= search || '' %>">
+          <button class="btn btn-outline-secondary btn-sm" id="clearSearch"><i class="bi bi-x"></i></button>
+        </div>
+        <div class="btn-group export-btn-group">
+          <button id="exportCSV" class="btn btn-outline-primary"><i class="bi bi-file-earmark-csv me-1"></i>CSV</button>
+          <button id="exportPDF" class="btn btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</button>
+        </div>
+      </div>
+
+      <!-- SALES TABLE -->
+      <div class="card shadow-sm">
+        <div class="card-header"><h5 class="mb-0">Recent Orders (<%= sales.length %>)</h5></div>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0" id="salesTable">
+            <thead>
+              <tr>
+                <th>Order ID</th><th>Customer</th><th>Product</th><th class="text-center">Qty</th>
+                <th class="text-end">Total (with 18% tax)</th><th>Payment</th><th>Status</th><th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% sales.forEach(order => { 
+                const customerName = order.user?.firstName ? `${order.user.firstName} ${order.user.lastName || ''}`.trim() : order.selectedAddress.fullName;
+                const paymentDisplay = order.paymentMethod === 'cod' ? 'COD' : order.paymentMethod.toUpperCase();
+                const statusClass = order.items.itemStatus === 'Delivered' ? 'bg-success' : order.items.itemStatus === 'Pending' ? 'bg-warning' : 'bg-secondary';
+                const totalWithTax = (order.items.discountedPrice * 1.18 * order.items.quantity).toFixed(2);
+              %>
+              <tr>
+                <td><strong><%= order.orderId %></strong></td>
+                <td><%= customerName %></td>
+                <td><%= order.items.productId %></td>
+                <td class="text-center"><%= order.items.quantity %></td>
+                <td class="text-end"><strong>₹<%= parseFloat(totalWithTax).toLocaleString() %></strong></td>
+                <td><span class="badge bg-info"><%= paymentDisplay %></span></td>
+                <td><span class="badge <%= statusClass %>"><%= order.items.itemStatus%></span></td>
+                <td><%= new Date(order.createdAt).toLocaleDateString() %></td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <% } else { %>
+      <div class="text-center py-5">
+        <i class="bi bi-graph-down display-1 mb-3"></i>
+        <h4 class="text-muted">No Sales Data Available</h4>
+        <a href="/admin/dashboard" class="btn btn-primary">Back to Dashboard</a>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  const searchInput=document.getElementById('searchInput');
+  const clearSearch=document.getElementById('clearSearch');
+  const table=document.getElementById('salesTable');
+  const customFilterBtn=document.getElementById('customFilterBtn');
+  const customDateRange=document.getElementById('customDateRange');
+  const applyDateFilter=document.getElementById('applyDateFilter');
+  const startDate=document.getElementById('startDate');
+  const endDate=document.getElementById('endDate');
+  const loadingOverlay=document.getElementById('loadingOverlay');
+  const exportCSV=document.getElementById('exportCSV');
+  const exportPDF=document.getElementById('exportPDF');
+  let rows=table?Array.from(table.querySelectorAll('tbody tr')):[];
+
+  function filterTable(q){rows.forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q.toLowerCase())?'':'none');}
+  searchInput?.addEventListener('input',e=>filterTable(e.target.value));
+  clearSearch?.addEventListener('click',()=>{searchInput.value='';filterTable('');});
+  customFilterBtn?.addEventListener('click',e=>{e.preventDefault();customDateRange.classList.toggle('d-none');});
+  applyDateFilter?.addEventListener('click',()=>{if(startDate.value&&endDate.value)window.location.href=`?filter=custom&start=${startDate.value}&end=${endDate.value}`;});
+
+  function exportData(fmt) {
+    loadingOverlay.style.display = 'flex';
+    const visible = rows.filter(r => r.style.display !== 'none');
+    const data = visible.map(r => {
+      const c = r.querySelectorAll('td');
+      return {
+        orderId: c[0]?.innerText,
+        customer: c[1]?.innerText,
+        product: c[2]?.innerText,
+        quantity: c[3]?.innerText,
+        total: c[4]?.innerText.replace('₹', '').trim(),
+        payment: c[5]?.innerText,
+        status: c[6]?.innerText,
+        date: c[7]?.innerText
+      };
+    });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const filter = urlParams.get('filter') || '';
+    const start = urlParams.get('start') || startDate?.value || '';
+    const end = urlParams.get('end') || endDate?.value || '';
+
+    fetch(`/admin/sales/export/${fmt}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data, filter, start, end })
+    })
+      .then(res => res.blob())
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `sales_report_${filter || 'all'}.${fmt}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      })
+      .finally(() => loadingOverlay.style.display = 'none');
+  }
+
+  exportCSV?.addEventListener('click',()=>exportData('csv'));
+  exportPDF?.addEventListener('click',()=>exportData('pdf'));
+});
+</script>
+</body>
+</html>

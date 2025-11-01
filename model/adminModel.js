@@ -167,7 +167,7 @@ exports.updateOrderStatus = async (orderId, st) => {
 };
 //accept order
 exports.returnAccept = async (id,st) => {
-  console.log(id,"  ",st);
+  console.log("returnAccept",id,"  ",st);
   const db = await getDB();
   const update = await db.collection(dbVariables.orderCollection)
   .updateOne({_id: new ObjectId(id)},{$set:{returnOrder:st}})
@@ -350,6 +350,7 @@ exports.editCoupon = async (couponId, data) => {
   return response;
 }
 exports.updateItemsStatus = async (orderId, status) => {
+  console.log("all items data changed:", orderId, status);
   const db = await getDB();
   const result = await db.collection(dbVariables.orderCollection).updateMany(
     { _id: new ObjectId(orderId) },
@@ -513,4 +514,40 @@ exports.viewReturnHistoryPage = async () => {
   } catch (error) {
     console.error("Error fetching return history:", error);
     throw error;
-  } }
+}}
+exports.salesReportData = async () => {
+  try {
+    const db = await getDB();  
+const pipeline = [
+  { $unwind: "$items" },
+  {
+    $match: {
+      "items.itemStatus": "Delivered",
+      "items.itemReturn": { $ne: "return" },
+   
+    }
+  },
+  {
+    $addFields: {
+      userObjectId: { $toObjectId: "$userId" }
+    }
+  },
+  {
+    $lookup: {
+      from: dbVariables.userCollection,
+      localField: "userObjectId",
+      foreignField: "_id",
+      as: "user"
+    }
+  },
+  { $unwind: "$user" }
+];
+
+    const salesData = await db.collection(dbVariables.orderCollection).aggregate(pipeline).toArray();
+    return salesData;
+
+  } catch (error) {
+    console.error("Error generating sales report:", error);
+    throw error;
+  }
+}

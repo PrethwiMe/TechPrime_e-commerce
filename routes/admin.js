@@ -70,4 +70,10 @@ router.post('/coupons/delete/:couponId',sessionHandle.adminConfirmed,adminContro
 router.post('/coupons/edit/:couponId',sessionHandle.adminConfirmed,adminController.editCoupon)    
 //return history page
 router.get('/returnHistory',sessionHandle.adminConfirmed,adminController.returnHistoryPage)
+//sales report page
+router.get('/salesReport',sessionHandle.adminConfirmed,adminController.salesReportPage)
+//generate sales report
+router.post('/sales/export/csv',sessionHandle.adminConfirmed,adminController.generateSalesReport)
+// genarate pdf
+router.post('/sales/export/pdf',sessionHandle.adminConfirmed,adminController.generateSalesReportPDF)
 module.exports = router;

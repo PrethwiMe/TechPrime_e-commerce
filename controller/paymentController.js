@@ -5,6 +5,8 @@ const createError = require('http-errors');
 const userProfileModel = require("../model/userProfileModel");
 const crypto = require("crypto");
 const { updateAddress } = require('./userProfileController');
+const productModel = require('../model/productModels')
+
 
 
 
@@ -109,6 +111,13 @@ exports.verifyPayment = async (req, res) => {
       razorpaySignature,
       status: "pending",
     });
+
+    console.log("Order update result:", order);
+
+     for (const item of order.items) {
+  const changed = await productModel.updateStockAfterOrder(item.variantId, item.quantity);
+  console.log("stock updat:", changed);
+}
 
     res.json({
       success: updateOrder.modifiedCount > 0,

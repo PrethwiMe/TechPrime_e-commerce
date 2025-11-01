@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -14,16 +15,19 @@
       font-family: 'Inter', sans-serif;
       color: #212529;
     }
+
     .main-content {
       min-height: 100vh;
       padding: 1.5rem;
     }
+
     .table-container {
       background: #fff;
       border-radius: 0.5rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       overflow: hidden;
     }
+
     .table thead th {
       background: #343a40;
       color: #fff;
@@ -31,9 +35,11 @@
       top: 0;
       z-index: 10;
     }
+
     .table tbody tr:hover {
-      background-color: rgba(0,0,0,0.05);
+      background-color: rgba(0, 0, 0, 0.05);
     }
+
     .badge-status {
       padding: 0.4rem 0.8rem;
       border-radius: 0.4rem;
@@ -41,63 +47,117 @@
       display: inline-block;
       min-width: 75px;
     }
-    .badge-status.pending { background-color: #fff3cd; color: #856404; }
-    .badge-status.shipped { background-color: #e7f3fe; color: #0d6efd; }
-    .badge-status.delivered { background-color: #e6f4ea; color: #198754; }
-    .badge-status.cancelled { background-color: #f8d7da; color: #842029; }
-    .badge-status.paid { background-color: #e6f4ea; color: #198754; }
-    .badge-status.not-paid { background-color: #f8d7da; color: #842029; }
+
+    .badge-status.pending {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    .badge-status.shipped {
+      background-color: #e7f3fe;
+      color: #0d6efd;
+    }
+
+    .badge-status.delivered {
+      background-color: #e6f4ea;
+      color: #198754;
+    }
+
+    .badge-status.cancelled {
+      background-color: #f8d7da;
+      color: #842029;
+    }
+
+    .badge-status.paid {
+      background-color: #e6f4ea;
+      color: #198754;
+    }
+
+    .badge-status.not-paid {
+      background-color: #f8d7da;
+      color: #842029;
+    }
+
     .form-select-sm {
       width: 110px;
       border-radius: 0.4rem;
     }
-    .form-select-sm:hover, .form-select-sm:focus {
+
+    .form-select-sm:hover,
+    .form-select-sm:focus {
       border-color: #0d6efd;
       box-shadow: 0 0 4px rgba(13, 110, 253, 0.3);
     }
+
     .form-select-sm option[value="Pending"] {
       color: #856404;
       background-color: #fff3cd;
     }
-    .form-select-sm option[value="Shipped"] { color: #0d6efd; background-color: #e7f3fe; }
+
+    .form-select-sm option[value="Shipped"] {
+      color: #0d6efd;
+      background-color: #e7f3fe;
+    }
+
     .form-select-sm option[value="Delivered"] {
       color: #198754;
       background-color: #e6f4ea;
     }
+
     .form-select-sm option[value="Cancelled"] {
       color: #dc3545;
       background-color: #f8d7da;
     }
+
     .form-select-sm:disabled {
       background-color: #e9ecef;
       opacity: 0.65;
     }
+
     .modal-content {
       border-radius: 0.5rem;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
     }
+
     .modal-body {
       max-height: 65vh;
       overflow-y: auto;
     }
+
     .btn-sm {
       border-radius: 0.4rem;
       transition: transform 0.2s;
     }
+
     .btn-sm:hover {
       transform: translateY(-1px);
     }
+
     .input-group {
       max-width: 280px;
     }
+
     @media (max-width: 768px) {
-      .main-content { padding: 1rem; }
-      .input-group { max-width: 100%; }
-      .form-select-sm { width: 100%; }
-      .d-flex.align-items-center.gap-3 { flex-direction: column; gap: 0.8rem; }
+      .main-content {
+        padding: 1rem;
+      }
+
+      .input-group {
+        max-width: 100%;
+      }
+
+      .form-select-sm {
+        width: 100%;
+      }
+
+      .d-flex.align-items-center.gap-3 {
+        flex-direction: column;
+        gap: 0.8rem;
+      }
     }
   </style>
 </head>
+
 <body>
   <%- include('partials/topbar') %>
   <div class="d-flex">
@@ -132,38 +192,38 @@
             </thead>
             <tbody>
               <% orders.forEach(order => { %>
-                <tr data-order-id="<%= order.orderId %>">
-                  <td><%= order.orderId %></td>
-                  <td><%= order.buyer.fullName %></td>
-                  <td><%= order.selectedAddress.line1 %>, <%= order.selectedAddress.city %>, <%= order.selectedAddress.state %> - <%= order.selectedAddress.pincode %></td>
-                  <td><%= new Date(order.createdAt).toLocaleString() %></td>
-                  <td>
-                    <% order.items.forEach(item => { %>
-                      <div><%= item.productName %> (<%= item.productCompany %>)</div>
-                    <% }) %>
-                  </td>
-                  <td>
-                    <% order.items.forEach(item => { %>
-                      <% if (item.variantDetails) { %>
-                        <div><%= item.variantDetails.processor %>, <%= item.variantDetails.ram %>, <%= item.variantDetails.storage %>, <%= item.variantDetails.color %></div>
-                      <% } %>
-                    <% }) %>
-                  </td>
-                  <td class="order-total">₹ <%= parseFloat(order.total).toLocaleString() %></td>
-                  <td>
-                    <select class="form-select form-select-sm order-status" data-id="<%= order._id %>" data-current-status="<%= order.status %>" <%= order.status === 'Cancelled' || order.status === 'Delivered' ? 'disabled' : '' %>>
-                      <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
-                      <option value="Shipped" <%= order.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
-                      <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
-                      <option value="Cancelled" <%= order.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
-                    </select>
-                  </td>
-                  <td>
-                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editOrderModal-<%= order._id %>">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                  </td>
-                </tr>
+              <tr data-order-id="<%= order.orderId %>">
+                <td><%= order.orderId %></td>
+                <td><%= order.buyer.fullName %></td>
+                <td><%= order.selectedAddress.line1 %>, <%= order.selectedAddress.city %>, <%= order.selectedAddress.state %> - <%= order.selectedAddress.pincode %></td>
+                <td><%= new Date(order.createdAt).toLocaleString() %></td>
+                <td>
+                  <% order.items.forEach(item => { %>
+                  <div><%= item.productName %> (<%= item.productCompany %>)</div>
+                  <% }) %>
+                </td>
+                <td>
+                  <% order.items.forEach(item => { %>
+                  <% if (item.variantDetails) { %>
+                  <div><%= item.variantDetails.processor %>, <%= item.variantDetails.ram %>, <%= item.variantDetails.storage %>, <%= item.variantDetails.color %></div>
+                  <% } %>
+                  <% }) %>
+                </td>
+                <td class="order-total">₹ <%= parseFloat(order.total).toLocaleString() %></td>
+                <td>
+                  <select class="form-select form-select-sm order-status" data-id="<%= order._id %>" data-current-status="<%= order.status %>" <%= order.status === 'Cancelled' || order.status === 'Delivered' ? 'disabled' : '' %>>
+                    <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
+                    <option value="Shipped" <%= order.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                    <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                    <option value="Cancelled" <%= order.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                  </select>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editOrderModal-<%= order._id %>">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </td>
+              </tr>
               <% }) %>
             </tbody>
           </table>
@@ -172,110 +232,116 @@
     </div>
   </div>
   <% orders.forEach(order => { %>
-    <div class="modal fade" id="editOrderModal-<%= order._id %>" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-          <div class="modal-header bg-dark text-white">
-            <h5 class="modal-title fw-bold"><i class="bi bi-receipt me-2"></i>Order #<%= order.orderId %></h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body p-3">
-            <div class="row g-3">
-              <div class="col-md-6">
-                <h6 class="fw-bold text-secondary mb-2">Order Summary</h6>
-                <ul class="list-group list-group-flush small">
-                  <li class="list-group-item"><strong>ID:</strong> <%= order.orderId %></li>
-                  <li class="list-group-item"><strong>Date:</strong> <%= new Date(order.createdAt).toLocaleString() %></li>
-                  <li class="list-group-item"><strong>Payment Method:</strong> <%= order.paymentMethod.toUpperCase() %></li>
-                  <li class="list-group-item"><strong>Payment Status:</strong>
-                    <span class="badge badge-status <%= order.paymentStatus === 'paid' ? 'paid' : 'not-paid' %>">
-                      <%= order.paymentStatus === 'paid' ? 'Paid' : 'Not Paid' %>
-                    </span>
-                  </li>
-                  <% if (order.paymentStatus === 'paid' && order.paymentMethod === 'online') { %>
-                    <li class="list-group-item"><strong>Razorpay Order ID:</strong> <%= order.razorpayOrderId || 'N/A' %></li>
-                    <li class="list-group-item"><strong>Razorpay Payment ID:</strong> <%= order.razorpayPaymentId || 'N/A' %></li>
-                    <li class="list-group-item"><strong>Razorpay Signature:</strong> <%= order.razorpaySignature || 'N/A' %></li>
-                  <% } %>
-                  <li class="list-group-item"><strong>Status:</strong>
-                    <span class="badge badge-status <%= order.status.toLowerCase() %>"><%= order.status %></span>
-                  </li>
-                  <li class="list-group-item"><strong>Subtotal:</strong> ₹ <%= parseFloat(order.subtotal).toLocaleString() %></li>
-                  <li class="list-group-item"><strong>Tax:</strong> ₹ <%= parseFloat(order.tax).toLocaleString() %></li>
-                  <li class="list-group-item"><strong>Delivery:</strong> ₹ <%= parseFloat(order.deliveryCharge).toLocaleString() %></li>
-                  <% if (order.couponCode) { %>
-                    <li class="list-group-item"><strong>Coupon:</strong> <%= order.couponCode %></li>
-                  <% } %>
-                  <li class="list-group-item"><strong>Total:</strong> ₹ <span class="order-total"><%= parseFloat(order.total).toLocaleString() %></span></li>
-                </ul>
-              </div>
-              <div class="col-md-6">
-                <h6 class="fw-bold text-secondary mb-2">Customer</h6>
-                <ul class="list-group list-group-flush small">
-                  <li class="list-group-item"><strong>Buyer:</strong> <%= order.buyer.fullName %></li>
-                  <li class="list-group-item"><strong>Email:</strong> <%= order.buyer.email %></li>
-                  <li class="list-group-item"><strong>Phone:</strong> <%= order.buyer.phone %></li>
-                  <li class="list-group-item"><strong>Address:</strong><br>
-                    <%= order.selectedAddress.fullName %><br>
-                    <%= order.selectedAddress.line1 %>, <%= order.selectedAddress.city %><br>
-                    <%= order.selectedAddress.state %> - <%= order.selectedAddress.pincode %><br>
-                    <small>Phone: <%= order.selectedAddress.phone %></small>
-                  </li>
-                </ul>
-              </div>
-              <div class="col-12">
-                <h6 class="fw-bold text-secondary mb-2">Items</h6>
-                <div class="table-responsive">
-                  <table class="table table-light align-middle">
-                    <thead>
-                      <tr>
-                        <th>Product</th>
-                        <th>Qty</th>
-                        <th>Price</th>
-                        <th>Subtotal</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <% order.items.forEach(item => { %>
-                        <tr data-variant-id="<%= item.variantId %>">
-                          <td>
-                            <img src="<%= item.firstImage %>" class="rounded me-2 border" style="width:32px;height:32px;object-fit:cover;" alt="Product Image">
-                            <%= item.productName %>
-                            <small class="text-muted d-block"><%= item.variantDetails.processor %>, <%= item.variantDetails.ram %></small>
-                          </td>
-                          <td><%= item.quantity %></td>
-                          <td>₹ <%= item.discountedPrice.toLocaleString() %></td>
-                          <td>₹ <%= (item.quantity * item.discountedPrice).toLocaleString() %></td>
-                          <td>
-                            <select class="form-select form-select-sm item-status" data-id="<%= order._id %>" data-variant-id="<%= item.variantId %>" data-current-status="<%= item.itemStatus || 'Pending' %>" <%= item.itemStatus === 'Cancelled' || item.itemStatus === 'Delivered' ? 'disabled' : '' %>>
-                              <option value="Pending" <%= (item.itemStatus || 'Pending') === 'Pending' ? 'selected' : '' %>>Pending</option>
-                              <option value="Shipped" <%= item.itemStatus === 'Shipped' ? 'selected' : '' %>>Shipped</option>
-                              <option value="Delivered" <%= item.itemStatus === 'Delivered' ? 'selected' : '' %>>Delivered</option>
-                              <option value="Cancelled" <%= item.itemStatus === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
-                            </select>
-                          </td>
-                        </tr>
-                      <% }) %>
-                    </tbody>
-                  </table>
-                </div>
+  <div class="modal fade" id="editOrderModal-<%= order._id %>" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-dark text-white">
+          <h5 class="modal-title fw-bold"><i class="bi bi-receipt me-2"></i>Order #<%= order.orderId %></h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-3">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <h6 class="fw-bold text-secondary mb-2">Order Summary</h6>
+              <ul class="list-group list-group-flush small">
+                <li class="list-group-item"><strong>ID:</strong> <%= order.orderId %></li>
+                <li class="list-group-item"><strong>Date:</strong> <%= new Date(order.createdAt).toLocaleString() %></li>
+                <li class="list-group-item"><strong>Payment Method:</strong> <%= order.paymentMethod.toUpperCase() %></li>
+                <li class="list-group-item"><strong>Payment Status:</strong>
+                  <span class="badge badge-status <%= order.paymentStatus === 'paid' ? 'paid' : 'not-paid' %>">
+                    <%= order.paymentStatus === 'paid' ? 'Paid' : 'Not Paid' %>
+                  </span>
+                </li>
+                <% if (order.paymentStatus === 'paid' && order.paymentMethod === 'online') { %>
+                <li class="list-group-item"><strong>Razorpay Order ID:</strong> <%= order.razorpayOrderId || 'N/A' %></li>
+                <li class="list-group-item"><strong>Razorpay Payment ID:</strong> <%= order.razorpayPaymentId || 'N/A' %></li>
+                <li class="list-group-item"><strong>Razorpay Signature:</strong> <%= order.razorpaySignature || 'N/A' %></li>
+                <% } %>
+                <li class="list-group-item"><strong>Status:</strong>
+                  <span class="badge badge-status <%= order.status.toLowerCase() %>"><%= order.status %></span>
+                </li>
+                <li class="list-group-item"><strong>Subtotal:</strong> ₹ <%= parseFloat(order.subtotal).toLocaleString() %></li>
+                <li class="list-group-item"><strong>Tax:</strong> ₹ <%= parseFloat(order.tax).toLocaleString() %></li>
+                <li class="list-group-item"><strong>Delivery:</strong> ₹ <%= parseFloat(order.deliveryCharge).toLocaleString() %></li>
+                <% if (order.couponCode) { %>
+                <li class="list-group-item"><strong>Coupon:</strong> <%= order.couponCode %></li>
+                <% } %>
+                <li class="list-group-item"><strong>Total:</strong> ₹ <span class="order-total"><%= parseFloat(order.total).toLocaleString() %></span></li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <h6 class="fw-bold text-secondary mb-2">Customer</h6>
+              <ul class="list-group list-group-flush small">
+                <li class="list-group-item"><strong>Buyer:</strong> <%= order.buyer.fullName %></li>
+                <li class="list-group-item"><strong>Email:</strong> <%= order.buyer.email %></li>
+                <li class="list-group-item"><strong>Phone:</strong> <%= order.buyer.phone %></li>
+                <li class="list-group-item"><strong>Address:</strong><br>
+                  <%= order.selectedAddress.fullName %><br>
+                  <%= order.selectedAddress.line1 %>, <%= order.selectedAddress.city %><br>
+                  <%= order.selectedAddress.state %> - <%= order.selectedAddress.pincode %><br>
+                  <small>Phone: <%= order.selectedAddress.phone %></small>
+                </li>
+              </ul>
+            </div>
+            <div class="col-12">
+              <h6 class="fw-bold text-secondary mb-2">Items</h6>
+              <div class="table-responsive">
+                <table class="table table-light align-middle">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Qty</th>
+                      <th>Price</th>
+                      <th>Subtotal</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% order.items.forEach(item => { %>
+                    <tr data-variant-id="<%= item.variantId %>">
+                      <td>
+                        <img src="<%= item.firstImage %>" class="rounded me-2 border" style="width:32px;height:32px;object-fit:cover;" alt="Product Image">
+                        <%= item.productName %>
+                        <small class="text-muted d-block"><%= item.variantDetails.processor %>, <%= item.variantDetails.ram %></small>
+                      </td>
+                      <td><%= item.quantity %></td>
+                      <td>₹ <%= item.discountedPrice.toLocaleString() %></td>
+                      <td>₹ <%= (item.quantity * item.discountedPrice).toLocaleString() %></td>
+                      <td>
+                        <select class="form-select form-select-sm item-status" data-id="<%= order._id %>" data-variant-id="<%= item.variantId %>" data-current-status="<%= item.itemStatus || 'Pending' %>" <%= item.itemStatus === 'Cancelled' || item.itemStatus === 'Delivered' ? 'disabled' : '' %>>
+                          <option value="Pending" <%= (item.itemStatus || 'Pending') === 'Pending' ? 'selected' : '' %>>Pending</option>
+                          <option value="Shipped" <%= item.itemStatus === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                          <option value="Delivered" <%= item.itemStatus === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                          <option value="Cancelled" <%= item.itemStatus === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                        </select>
+                      </td>
+                    </tr>
+                    <% }) %>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
-          <div class="modal-footer bg-light">
-            <button type="button" class="btn btn-outline-dark btn-sm" data-bs-dismiss="modal"><i class="bi bi-x-circle me-1"></i>Close</button>
-          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-outline-dark btn-sm" data-bs-dismiss="modal"><i class="bi bi-x-circle me-1"></i>Close</button>
         </div>
       </div>
     </div>
+  </div>
   <% }) %>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script>
     const showAlert = (icon, title, text, isToast = true) => Swal.fire({
-      icon, title, text, timer: isToast ? 1500 : undefined, showConfirmButton: !isToast, toast: isToast, position: isToast ? 'top-end' : 'center'
+      icon,
+      title,
+      text,
+      timer: isToast ? 1500 : undefined,
+      showConfirmButton: !isToast,
+      toast: isToast,
+      position: isToast ? 'top-end' : 'center'
     });
     const updateBadge = (element, status) => {
       if (element) {
@@ -294,7 +360,10 @@
       document.querySelectorAll('.order-status').forEach(select => {
         select.addEventListener('change', async function() {
           if (this.disabled) return;
-          const { id, currentStatus } = this.dataset;
+          const {
+            id,
+            currentStatus
+          } = this.dataset;
           const status = this.value;
           const result = await Swal.fire({
             title: `Update Order Status`,
@@ -311,7 +380,12 @@
             return;
           }
           try {
-            const { data } = await axios.post('/admin/order/updateOrderStatus', { orderId: id, status });
+            const {
+              data
+            } = await axios.post('/admin/order/updateOrderStatus', {
+              orderId: id,
+              status
+            });
             if (data.success) {
               await showAlert('success', 'Order Status Updated', `Order status changed to "${status}"`);
               this.dataset.currentStatus = status;
@@ -338,7 +412,11 @@
       document.querySelectorAll('.item-status').forEach(select => {
         select.addEventListener('change', async function() {
           if (this.disabled) return;
-          const { id, variantId, currentStatus } = this.dataset;
+          const {
+            id,
+            variantId,
+            currentStatus
+          } = this.dataset;
           const itemStatus = this.value;
           const result = await Swal.fire({
             title: `Update Item Status`,
@@ -355,7 +433,13 @@
             return;
           }
           try {
-            const { data } = await axios.post('/admin/orders/update-item-status', { orderId: id, variantId, itemStatus });
+            const {
+              data
+            } = await axios.post('/admin/orders/update-item-status', {
+              orderId: id,
+              variantId,
+              itemStatus
+            });
             if (data.success) {
               await showAlert('success', 'Item Status Updated', `Item status set to ${itemStatus}.`);
               this.dataset.currentStatus = itemStatus;
@@ -403,4 +487,5 @@
     });
   </script>
 </body>
+
 </html>
