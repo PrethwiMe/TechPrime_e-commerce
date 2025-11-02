@@ -551,4 +551,46 @@ exports.returnStatusData = async (userId, orderId) => {
     return null;
   }
 };
+exports.getWalletAmount = async (userId) => {
+
+  try {
+
+    const db = await getDB();
+    const walletData = await db.collection(dbVariables.walletCollection).findOne({ userId: userId });
+    return walletData
+
+  } catch (error) {
+    console.error("Error in getWalletAmount:", error);
+    return 0;  
+  } 
+
+}
+
+exports.deductWalletAmount = async (userId, amount) => {
+
+  try {
+
+    const db = await getDB();
+    const updateData = await db.collection(dbVariables.walletCollection).updateOne(
+      { userId: userId },
+      { $inc: { walletAmount: -amount } }
+    );
+    return updateData;  
+  } catch (error) {
+    console.error("Error in deductWalletAmount:", error);
+    return null;  
+  }
+}
+exports.updateWalletHistory = async (userId, amount) => {
+
+const db = await getDB();
+const users = await db.collection(dbVariables.walletCollection).findOne({userId:userId})
+if(!users) return "No wallet found"
+const updateData = await db.collection(dbVariables.walletCollection).updateOne(
+  { userId: userId },
+  { $push: { walletHistory: { amount: amount, date: new Date(),type:"Debit" } } }
+);
+return updateData;
+
+}
 

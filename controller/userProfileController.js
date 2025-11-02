@@ -296,13 +296,14 @@ console.log("taxzz",tax)
 };
 //add to order
 exports.addToOrder = async (req, res) => {
+  console.log("request body:", req.body);
   try {
     const { paymentMethod, selectedAddress, couponCode, items } = req.body;
     
     const userId = req.session.user?.userId;
     if (!userId) return res.status(401).json({ status: "error", message: "Login required" });
 
-    if (paymentMethod !== "cod") {
+    if (paymentMethod == "razorpay") {
       return res.status(400).json({ status: "error", message: "Only COD supported for now" });
     }
 
@@ -343,7 +344,7 @@ exports.addToOrder = async (req, res) => {
     const deliveryCharge = subtotal > 100000 ? 0 : 100;
     const total = subtotal + tax + deliveryCharge;
 
-    const orderData = {
+    let orderData = {
       userId,
       items: orderItems,
       subtotal,
@@ -360,6 +361,36 @@ exports.addToOrder = async (req, res) => {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
+
+    if (paymentMethod == "wallet") {
+
+      let wallet = await userProfileModel.getWalletAmount(userId);
+    if (wallet.walletAmount < total) return res.status(400).json({ status: "error", message: "Insufficient wallet balance" });
+
+    let deductWallet = await userProfileModel.deductWalletAmount(userId, total);
+
+    let updateWallet = await userProfileModel.updateWalletHistory(userId, total);
+
+
+       orderData = {
+      userId,
+      items: orderItems,
+      subtotal,
+      cartOriginal,
+      cartDiscount,
+      deliveryCharge,
+      tax,
+      total,
+      couponCode: couponCode || "",
+      paymentMethod:"wallet",
+      paymentStatus: "paid",
+      status: "Pending",
+      selectedAddress,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    }
 
     const result = await userProfileModel.addNewOrder(userId, orderData);
     if (!result.acknowledged) {
@@ -782,6 +813,7 @@ exports.viewWallet = async (req, res) => {
       let data = await userModel.userCheck({_id: new ObjectId(userId)} )
 
     const walletData = await userProfileModel.getWalletData(userId);
+    console.log("walletData",JSON.stringify(walletData,null,2));
     res.render('user-pages/wallet.ejs', { wallet: walletData || {}, image: data || null, user: data || null, });
   } catch (error) {
     console.error("Error in viewWallet:", error);

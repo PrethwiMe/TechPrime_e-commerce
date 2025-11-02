@@ -419,13 +419,13 @@ exports.createWallet = async (data) => {
         userId,
         walletAmount: refundAmount,
         updatedDate: new Date(),
-         refund:"credit",
         refundHistory: [
           {
             orderId,
             productId,
             variantId,
             status,
+            refund:"credit",
             refundAmount,
             date: new Date(),
            
@@ -457,14 +457,12 @@ exports.updateWallet = async (data) => {
     let sum = walletData.walletAmount + refundAmount;
 
 if (!walletData) return false
- console.log("wallet dataaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
   const updateData = await db.collection(dbVariables.walletCollection).updateOne(
     { userId: userId },
     {
       $set: { walletAmount: sum, updatedDate: new Date() },
-      $push:{refundHistory:{orderId,productId,variantId,status,refundAmount,date:new Date()}}
+      $push:{refundHistory:{orderId,productId,variantId,status,refund:"credit",refundAmount,date:new Date()}}
     })
-     console.log("wallet upatedaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     if (updateData.modifiedCount > 0) {
         const refundUpdate = await db.collection(dbVariables.returnCollection).updateOne(
       {userId: userId, orderId: orderId, 'items.productId': productId, 'items.variantId': variantId},

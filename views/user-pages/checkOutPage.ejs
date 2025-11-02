@@ -156,7 +156,7 @@
           <div class="card-header bg-secondary text-white">
             <i class="bi bi-credit-card-fill me-2"></i> Payment Methods
           </div>
-          <div class="card-body d-flex justify-content-around">
+          <div class="card-body d-flex justify-content-evenly flex-wrap gap-3">
             <div class="form-check text-center">
               <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="cod" checked>
               <label class="form-check-label d-block" for="cod">
@@ -169,6 +169,13 @@
               <label class="form-check-label d-block" for="online">
                 <i class="bi bi-credit-card" style="font-size: 2.5rem; color: #0d6efd;"></i><br>
                 Online Payment
+              </label>
+            </div>
+            <div class="form-check text-center">
+              <input class="form-check-input" type="radio" name="paymentMethod" id="wallet" value="wallet">
+              <label class="form-check-label d-block" for="wallet">
+                <i class="bi bi-wallet2" style="font-size: 2.5rem; color: #ffc107;"></i><br>
+                Pay with Wallet
               </label>
             </div>
           </div>
@@ -375,7 +382,7 @@
 
       console.log("Order Payload:", orderPayload);
 
-      if (selectedPayment === "cod") {
+      if (selectedPayment === "cod" || selectedPayment === "wallet") {
         try {
           const res = await axios.post("/cart/checkout/order", orderPayload);
           if (res.data.status === "success") {

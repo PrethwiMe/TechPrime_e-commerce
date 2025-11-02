@@ -53,6 +53,13 @@
       padding: 0.5rem 1rem;
       font-weight: 600;
     }
+    .debit-badge {
+      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+      color: var(--white-text);
+      border-radius: 20px;
+      padding: 0.5rem 1rem;
+      font-weight: 600;
+    }
     .header-section {
       background: var(--primary-gradient);
       color: var(--white-text);
@@ -123,26 +130,64 @@
                 <h3 class="mb-0 fw-bold">
                   <i class="fas fa-history me-2"></i>Transaction History
                 </h3>
-                <% if (wallet && wallet.length > 0 && wallet[0]?.refundHistory && wallet[0].refundHistory.length > 0) { %>
+                <% 
+                  var walletData = wallet && wallet.length > 0 ? wallet[0] : null;
+                  var combinedHistory = [];
+                  if (walletData) {
+                    if (walletData.refundHistory && walletData.refundHistory.length > 0) {
+                      walletData.refundHistory.forEach(function(txn) {
+                        combinedHistory.push({
+                          type: 'credit',
+                          amount: txn.refundAmount,
+                          date: txn.date,
+                          description: txn.orderId,
+                          status: txn.status
+                        });
+                      });
+                    }
+                    if (walletData.walletHistory && walletData.walletHistory.length > 0) {
+                      walletData.walletHistory.forEach(function(txn) {
+                        combinedHistory.push({
+                          type: 'debit',
+                          amount: txn.amount,
+                          date: txn.date,
+                          description: 'Order Payment',
+                          status: null
+                        });
+                      });
+                    }
+                    // Sort by date descending (newest first)
+                    combinedHistory.sort(function(a, b) {
+                      return new Date(b.date) - new Date(a.date);
+                    });
+                  }
+                %>
+                <% if (combinedHistory.length > 0) { %>
                   <span class="badge bg-light text-dark fs-6 px-3 py-2 rounded-pill">
-                    <%= wallet[0].refundHistory.length %> Transactions
+                    <%= combinedHistory.length %> Transactions
                   </span>
                 <% } %>
               </div>
             </div>
             <div class="card-body p-0">
-              <% if (wallet && wallet.length > 0 && wallet[0]?.refundHistory && wallet[0].refundHistory.length > 0) { %>
+              <% if (combinedHistory.length > 0) { %>
                 <div class="p-4">
                   <div class="row g-3">
-                    <% wallet[0].refundHistory.forEach((txn) => { %>
+                    <% combinedHistory.forEach((txn) => { %>
                       <div class="col-12">
                         <div class="transaction-item p-4 d-flex align-items-center justify-content-between">
                           <div class="d-flex align-items-center flex-grow-1">
-                            <div class="bg-success bg-opacity-10 rounded-circle p-3 me-4">
-                              <i class="fas fa-arrow-up text-success fa-lg"></i>
-                            </div>
+                            <% if (txn.type === 'credit') { %>
+                              <div class="bg-success bg-opacity-10 rounded-circle p-3 me-4">
+                                <i class="fas fa-arrow-up text-success fa-lg"></i>
+                              </div>
+                            <% } else { %>
+                              <div class="bg-danger bg-opacity-10 rounded-circle p-3 me-4">
+                                <i class="fas fa-arrow-down text-danger fa-lg"></i>
+                              </div>
+                            <% } %>
                             <div class="flex-grow-1">
-                              <h6 class="mb-1 fw-semibold text-dark"><%= txn.orderId %></h6>
+                              <h6 class="mb-1 fw-semibold text-dark"><%= txn.description %></h6>
                               <small class="text-muted d-block">
                                 <i class="fas fa-calendar-day me-1"></i>
                                 <%= new Date(txn.date).toLocaleDateString('en-IN') %> • <%= new Date(txn.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) %>
@@ -155,10 +200,17 @@
                             </div>
                           </div>
                           <div class="text-end ms-3">
-                            <h4 class="mb-1 text-success fw-bold">+₹<%= txn.refundAmount.toLocaleString('en-IN') %></h4>
-                            <span class="credit-badge">
-                              <i class="fas fa-check-circle me-1"></i>Credited
-                            </span>
+                            <% if (txn.type === 'credit') { %>
+                              <h4 class="mb-1 text-success fw-bold">+₹<%= txn.amount.toLocaleString('en-IN') %></h4>
+                              <span class="credit-badge">
+                                <i class="fas fa-check-circle me-1"></i>Credited
+                              </span>
+                            <% } else { %>
+                              <h4 class="mb-1 text-danger fw-bold">-₹<%= txn.amount.toLocaleString('en-IN') %></h4>
+                              <span class="debit-badge">
+                                <i class="fas fa-minus-circle me-1"></i>Debited
+                              </span>
+                            <% } %>
                           </div>
                         </div>
                       </div>
