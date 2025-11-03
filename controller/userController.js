@@ -477,9 +477,16 @@ exports.loadProductDetails = async (req, res) => {
   let data = req.params.id
   try {
     let result = await productModel.viewProducts(data)
+    let categoriesId = result[0].categoriesId   
     const { totalDocs, products } = await productModel.viewAllProducts()
+//related products
+let filteredProducts = products.filter(product => {
+  return product.categoriesId == categoriesId
+}  );
+
+
     let categories = await productModel.getAllCategories()
-    res.render("user-pages/productDetails.ejs", { categories, product: result[0], products: products, query: req.query.q || "" });
+    res.render("user-pages/productDetails.ejs", { relatedProducts:filteredProducts,categories, product: result[0], products: products, query: req.query.q || "" });
   } catch (error) {
     console.log(error);
   }

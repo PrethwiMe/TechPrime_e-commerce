@@ -139,6 +139,26 @@
       </div>
     </div>
 
+    <div class="mt-5">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="section-title">Related Products</div>
+        <a href="/search" class="btn-dark-custom btn-sm">View All Products</a>
+      </div>
+      <div class="scroll-container">
+        <% (relatedProducts || []).forEach(p => { %>
+          <div class="slide-card">
+            <a href="/all-product/product-details/<%= p._id || '' %>" class="text-decoration-none">
+              <img src="<%= (p.images && p.images[0]) || '/images/fallback.jpg' %>" 
+                   alt="<%= p.name ? p.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product' %>" 
+                   onerror="if(this.src !== '/images/fallback.jpg'){ this.src='/images/fallback.jpg'; }" />
+              <p class="fw-semibold"><%= p.name ? p.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></p>
+              <span class="fw-bold">₹<%= p.originalPrice || '' %></span>
+            </a>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+
     <!-- Flash Sale Section -->
     <div class="mt-5">
       <div class="d-flex justify-content-between align-items-center mb-3">
