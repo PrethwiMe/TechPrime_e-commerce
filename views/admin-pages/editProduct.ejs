@@ -39,13 +39,30 @@
       margin: auto;
     }
 
-    .img-wrapper { position: relative; display: inline-block; margin: 0.5rem; }
-    .img-wrapper img { width: 150px; height: 150px; object-fit: cover; border-radius: 0.25rem; border: 1px solid #dee2e6; display: block; }
+    .image-slot {
+      height: 280px;
+    }
+    .image-slot .card-img-top {
+      border-radius: 0.25rem 0.25rem 0 0;
+    }
     .delete-btn {
-      position: absolute; top: 2px; right: 2px;
-      background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 50%;
-      width: 22px; height: 22px; font-weight: bold; cursor: pointer;
-      line-height: 18px; text-align: center; padding: 0;
+      background: rgba(255,0,0,0.8); 
+      color: white; 
+      border: none; 
+      border-radius: 50%;
+      width: 30px; 
+      height: 30px; 
+      font-weight: bold; 
+      cursor: pointer;
+      line-height: 1; 
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+    .add-btn {
+      width: 60px;
+      height: 60px;
     }
   </style>
 </head>
@@ -79,23 +96,33 @@
           </div>
 
           <!-- Images -->
-          <h5 class="mt-4">Existing Images</h5>
-          <div class="d-flex flex-wrap gap-3 mb-3" id="existingImagesContainer">
-            <% if (product.images && product.images.length > 0) { %>
-              <% product.images.forEach((img) => { %>
-                <div class="img-wrapper" data-src="<%= img %>">
-                  <img src="<%= img %>" alt="Existing Image">
-                  <button type="button" class="delete-btn">&times;</button>
-                  <input type="hidden" name="existingImages[]" value="<%= img %>"/>
-                </div>
-              <% }) %>
+          <h5 class="mt-4">Product Images (Max 3)</h5>
+          <div class="row mb-3" id="imagesContainer">
+            <% const maxSlots = 3; %>
+            <% const numExisting = (product.images || []).length; %>
+            <% for(let i = 0; i < maxSlots; i++) { %>
+              <div class="col-md-4 mb-3">
+                <% if(i < numExisting) { %>
+                  <div class="card image-slot filled" data-index="<%= i %>">
+                    <div class="position-relative">
+                      <img src="<%= product.images[i] %>" class="card-img-top" alt="Product Image" style="height: 200px; object-fit: cover;">
+                      <button type="button" class="delete-btn position-absolute top-0 end-0 m-2 z-3">&times;</button>
+                    </div>
+                    <input type="hidden" name="existingImages[]" value="<%= product.images[i] %>"/>
+                  </div>
+                <% } else { %>
+                  <div class="card image-slot empty h-100" data-index="<%= i %>">
+                    <div class="card-body text-center d-flex flex-column justify-content-center h-100">
+                      <button type="button" class="btn btn-outline-primary btn-lg add-btn mb-2">+</button>
+                      <small class="text-muted">Click to add image</small>
+                    </div>
+                  </div>
+                <% } %>
+              </div>
             <% } %>
           </div>
 
-          <h5 class="mt-4">Add New Images</h5>
-          <input type="file" id="imageUploader" class="form-control mb-2" accept="image/*" multiple/>
-          <small class="text-muted">You will crop each image before upload</small>
-          <div class="d-flex flex-wrap gap-3 mt-3" id="newImagesContainer"></div>
+          <input type="file" id="imageUploader" class="d-none" accept="image/*" />
 
           <!-- Pricing & Product Info -->
           <div class="row mb-3 mt-3">
@@ -197,17 +224,79 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
   <script>
-    const existingImagesContainer = document.getElementById("existingImagesContainer");
-    const newImagesContainer = document.getElementById("newImagesContainer");
+    const imagesContainer = document.getElementById("imagesContainer");
     const uploader = document.getElementById("imageUploader");
     const imageToCrop = document.getElementById("imageToCrop");
     const cropModal = new bootstrap.Modal(document.getElementById("cropModal"));
-    let cropper, currentFile;
+    let cropper, currentFile, currentSlot;
 
-  
+    document.getElementById("cropModal").addEventListener("shown.bs.modal", () => {
+      if (cropper) cropper.destroy();
+      cropper = new Cropper(imageToCrop, { viewMode: 1, autoCropArea: 1, responsive: true, background: false, guides: true });
+    });
+
+    document.getElementById("cropBtn").addEventListener("click", () => {
+      cropper.getCroppedCanvas().toBlob((blob) => {
+        const slot = currentSlot;
+        slot.classList.remove('empty');
+        slot.classList.add('filled');
+        const imgUrl = URL.createObjectURL(blob);
+        slot.innerHTML = `
+          <div class="position-relative">
+            <img src="${imgUrl}" class="card-img-top" alt="Product Image" style="height: 200px; object-fit: cover;">
+            <button type="button" class="delete-btn position-absolute top-0 end-0 m-2 z-3">&times;</button>
+          </div>
+          <input type="hidden" name="newImages[]" value=""/>
+        `;
+        const hiddenInput = slot.querySelector('input[name="newImages[]"]');
+        const reader2 = new FileReader();
+        reader2.onloadend = () => {
+          hiddenInput.value = reader2.result;
+        };
+        reader2.readAsDataURL(blob);
+        cropper.destroy();
+        cropModal.hide();
+        uploader.value = "";
+        currentSlot = null;
+      }, "image/jpeg");
+    });
+
+    imagesContainer.addEventListener("click", (e) => {
+      if (e.target.classList.contains("add-btn")) {
+        currentSlot = e.target.closest(".image-slot");
+        uploader.click();
+      }
+      if (e.target.classList.contains("delete-btn")) {
+        e.stopPropagation();
+        const slot = e.target.closest(".image-slot");
+        Swal.fire({
+          title: 'Are you sure?',
+          text: "This image will be removed!",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'Yes, delete it!',
+          cancelButtonText: 'Cancel'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            const hiddenInput = slot.querySelector('input[type="hidden"]');
+            if (hiddenInput) hiddenInput.remove();
+            slot.innerHTML = `
+              <div class="card-body text-center d-flex flex-column justify-content-center h-100">
+                <button type="button" class="btn btn-outline-primary btn-lg add-btn mb-2">+</button>
+                <small class="text-muted">Click to add image</small>
+              </div>
+            `;
+            slot.classList.remove('filled');
+            slot.classList.add('empty');
+          }
+        });
+      }
+    });
 
     uploader.addEventListener("change", (e) => {
-      if (!e.target.files.length) return;
+      if (!e.target.files.length || !currentSlot) return;
       currentFile = e.target.files[0];
       const reader = new FileReader();
       reader.onload = () => {
@@ -217,50 +306,12 @@
       reader.readAsDataURL(currentFile);
     });
 
-    document.getElementById("cropModal").addEventListener("shown.bs.modal", () => {
-      if (cropper) cropper.destroy();
-      cropper = new Cropper(imageToCrop, { viewMode: 1, autoCropArea: 1, responsive: true, background: false, guides: true });
-    });
-
-    document.getElementById("cropBtn").addEventListener("click", () => {
-      cropper.getCroppedCanvas().toBlob((blob) => {
-        const previewWrapper = document.createElement("div");
-        previewWrapper.className = "img-wrapper";
-
-        const preview = document.createElement("img");
-        preview.src = URL.createObjectURL(blob);
-        previewWrapper.appendChild(preview);
-
-        const deleteBtn = document.createElement("button");
-        deleteBtn.type = "button";
-        deleteBtn.className = "delete-btn";
-        deleteBtn.innerHTML = "&times;";
-        previewWrapper.appendChild(deleteBtn);
-
-        const reader2 = new FileReader();
-        reader2.onloadend = () => {
-          const hiddenInput = document.createElement("input");
-          hiddenInput.type = "hidden";
-          hiddenInput.name = "newImages[]";
-          hiddenInput.value = reader2.result;
-          previewWrapper.appendChild(hiddenInput);
-        };
-        reader2.readAsDataURL(blob);
-
-        newImagesContainer.appendChild(previewWrapper);
-
-        cropper.destroy();
-        cropModal.hide();
-        uploader.value = "";
-      }, "image/jpeg");
-    });
-
     document.getElementById("productForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const form = e.target;
       const formData = new FormData(form);
 
-      const base64Inputs = newImagesContainer.querySelectorAll('input[name="newImages[]"]');
+      const base64Inputs = form.querySelectorAll('input[name="newImages[]"]');
       let count = 0;
       for (let input of base64Inputs) {
         const blob = await (await fetch(input.value)).blob();
@@ -282,35 +333,6 @@
       }
     });
   </script>
-  <script>
-  function attachDeleteHandler(container) {
-    container.addEventListener("click", (e) => {
-      if (e.target.classList.contains("delete-btn")) {
-        const wrapper = e.target.parentElement;
-
-        Swal.fire({
-          title: 'Are you sure?',
-          text: "This image will be removed!",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#3085d6',
-          confirmButtonText: 'Yes, delete it!',
-          cancelButtonText: 'Cancel'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            const hiddenInput = wrapper.querySelector('input[type="hidden"]');
-            if (hiddenInput) hiddenInput.remove();
-            wrapper.remove();
-          }
-        });
-      }
-    });
-  }
-
-  attachDeleteHandler(existingImagesContainer);
-  attachDeleteHandler(newImagesContainer);
-</script>
 
 </body>
 </html>

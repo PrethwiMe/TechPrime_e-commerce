@@ -151,10 +151,10 @@ exports.checkOutView = async (userId) => {
         { $match: { userId: userId } },
         { $unwind: "$addresses" },
         { $match: { "addresses.isActive": true } },
-        {$project :{ _id:0,addresses:1 } }
+        { $project: { _id: 0, addresses: 1 } }
       ]
 
-      const addresses= await db.collection(dbVariables.addressCollection).aggregate(pipe).toArray()
+    const addresses = await db.collection(dbVariables.addressCollection).aggregate(pipe).toArray()
     const data = { cartItems, addresses };
     return data;
 
@@ -163,15 +163,15 @@ exports.checkOutView = async (userId) => {
   }
 };
 exports.addNewOrder = async (userId, data) => {
-    
-   const orderId ="ORD"+ Math.floor(10000000 + Math.random() * 90000000);
+
+  const orderId = "ORD" + Math.floor(10000000 + Math.random() * 90000000);
 
   const db = await getDB();
 
   const orderDoc = {
     orderId,
     userId,
-    ...data, 
+    ...data,
     createdAt: new Date(),
     status: "Pending"
   };
@@ -179,20 +179,20 @@ exports.addNewOrder = async (userId, data) => {
   const addData = await db.collection(dbVariables.orderCollection).insertOne(orderDoc);
   return addData;
 };
-exports.deleteCart = async (userId) =>{
+exports.deleteCart = async (userId) => {
   const db = await getDB();
-  const dlt = await db.collection(dbVariables.cartCollection).deleteOne({userId:userId})
+  const dlt = await db.collection(dbVariables.cartCollection).deleteOne({ userId: userId })
 }
 exports.showOrder = async (userId) => {
   const db = await getDB();
 
-  const orders = await db.collection(dbVariables.orderCollection).find({ userId }) .sort({ createdAt: -1 }) .toArray();
+  const orders = await db.collection(dbVariables.orderCollection).find({ userId }).sort({ createdAt: -1 }).toArray();
 
   for (let order of orders) {
-    
-if (!order.items || !Array.isArray(order.items)) {
-  order.items = [];
-}
+
+    if (!order.items || !Array.isArray(order.items)) {
+      order.items = [];
+    }
 
     for (let item of order.items) {
       const product = await db.collection(dbVariables.productCollection).findOne({ _id: new ObjectId(item.productId) }) || {};
@@ -209,16 +209,18 @@ exports.invoiceData = async (userId, orderNumber) => {
 
 
   const pipeline = [
-    { $match: { orderId: String(orderNumber.orderId),userId: String(userId) }},
+    { $match: { orderId: String(orderNumber.orderId), userId: String(userId) } },
     { $unwind: "$items" },
 
-    { $addFields: {
+    {
+      $addFields: {
         "items.productIdObj": { $toObjectId: "$items.productId" },
         "items.variantIdObj": { $toObjectId: "$items.variantId" }
       }
     },
 
-    {$lookup: {
+    {
+      $lookup: {
         from: dbVariables.productCollection,
         localField: "items.productIdObj",
         foreignField: "_id",
@@ -227,7 +229,8 @@ exports.invoiceData = async (userId, orderNumber) => {
     },
     { $unwind: "$product" },
 
-    {$lookup: {
+    {
+      $lookup: {
         from: dbVariables.variantCollection,
         localField: "items.variantIdObj",
         foreignField: "_id",
@@ -236,7 +239,8 @@ exports.invoiceData = async (userId, orderNumber) => {
     },
     { $unwind: "$variant" },
 
-    {$group: {
+    {
+      $group: {
         _id: "$_id",
         orderId: { $first: "$orderId" },
         userId: { $first: "$userId" },
@@ -280,38 +284,28 @@ exports.invoiceData = async (userId, orderNumber) => {
     throw new Error("User not found");
   }
   return {
-    buyer, 
+    buyer,
     order: invoice,
-    
+
 
   };
 };
 exports.cancelOrderModal = async (orderId) => {
 
   const db = await getDB();
-  const update = await db.collection(dbVariables.orderCollection).updateOne({orderId:orderId},{$set:{status:"Cancelled"}})
-return update
+  const update = await db.collection(dbVariables.orderCollection).updateOne({ orderId: orderId }, { $set: { status: "Cancelled" } })
+  return update
 }
-exports.cancellAllOrder = async (ids) => {
-  const db = await getDB()
 
-const result = await Promise.all(ids.map(async (id)=>{
-   
-    const databse= await db.collection(dbVariables.orderCollection).updateOne({orderId:id,status:"Pending"},{$set:{status:"Cancelled"}})
-    return databse
-
-}))
-return result
-}
 exports.returnData = async (data) => {
   const db = await getDB();
- 
+
   return updateData
 }
-exports.newOtp = async (otp,id,emil) =>{
+exports.newOtp = async (otp, id, emil) => {
   const db = await getDB();
   const updateOtp = await db.collection(dbVariables.userCollection).updateOne(
-    {_id:new ObjectId(id)},{$set:{otp:otp,otpCreated:new Date(),tempmail:emil}}
+    { _id: new ObjectId(id) }, { $set: { otp: otp, otpCreated: new Date(), tempmail: emil } }
   )
   return updateOtp;
 }
@@ -324,7 +318,7 @@ exports.updateUser = async (data) => {
     const result = await db
       .collection(dbVariables.userCollection)
       .updateOne(
-        { _id: new ObjectId(id) }, 
+        { _id: new ObjectId(id) },
         {
           $set: {
             firstName,
@@ -355,7 +349,7 @@ exports.canceleachItems = async (data) => {
       { orderId: orderId }, // find the order
       { $set: { "items.$[elem].itemStatus": status } }, // set itemStatus
       {
-        arrayFilters: [{ "elem.variantId": variantId }] // only update matching variant
+        arrayFilters: [{ "elem.variantId": variantId }] 
       }
     );
 
@@ -370,7 +364,7 @@ exports.canceleachItems = async (data) => {
 exports.showOrderVerify = async (dbOrderId) => {
   const db = await getDB();
   return await db.collection(dbVariables.orderCollection).findOne(
-      {orderId : dbOrderId });
+    { orderId: dbOrderId });
 };
 
 exports.orderUpdate = async (razorpayOrderId, data) => {
@@ -382,7 +376,7 @@ exports.orderUpdate = async (razorpayOrderId, data) => {
       { "retryRazorpayOrderId.retryRazorpayOrderId": razorpayOrderId }
     ]
   });
- const updateFields = {
+  const updateFields = {
     updatedAt: new Date(),
     ...(data.paymentStatus && { paymentStatus: data.paymentStatus }),
     ...(data.razorpayPaymentId && { razorpayPaymentId: data.razorpayPaymentId }),
@@ -407,13 +401,13 @@ exports.orderUpdate = async (razorpayOrderId, data) => {
 
 exports.checkCoupon = async (data) => {
   const db = await getDB()
-  const response = await db.collection(dbVariables.couponCollection).findOne({code:data})
+  const response = await db.collection(dbVariables.couponCollection).findOne({ code: data })
   return response;
 }
-exports.getOrderByOrderId = async (userId,code) => {
+exports.getOrderByOrderId = async (userId, code) => {
 
   const db = await getDB();
-  const order = await db.collection(dbVariables.orderCollection).findOne({orderId:code,userId:userId})
+  const order = await db.collection(dbVariables.orderCollection).findOne({ orderId: code, userId: userId })
   return order
 
 }
@@ -440,7 +434,7 @@ exports.updateRetryPaymentOrder = async (razorpayOrderId, newRazorpayOrderId, ne
   }
 };
 exports.returnEachItems = async (data) => {
-  const { orderId,productId, variantId, itemReturn, reason } = data;
+  const { orderId, productId, variantId, itemReturn, reason } = data;
   try {
     const db = await getDB();
 
@@ -471,14 +465,14 @@ exports.returnEachItems = async (data) => {
     const itemValue = item.discountedPrice * item.quantity;
 
 
-      const tax = itemValue * 0.18
+    const tax = itemValue * 0.18
 
-    
-    const refundAmount = +(itemValue + tax ).toFixed(2);
+
+    const refundAmount = +(itemValue + tax).toFixed(2);
     const returnData = {
       orderId,
       userId: result.userId,
- 
+
       reason,
       returnStatus: itemReturn,
       returnDate: new Date(),
@@ -488,12 +482,12 @@ exports.returnEachItems = async (data) => {
 
     const returnCollection = db.collection(dbVariables.returnCollection);
     let response = await returnCollection.insertOne(returnData);
-//updating item status of order collection
-  await db.collection(dbVariables.orderCollection).updateOne(
-  { orderId: orderId }, 
-  { $set: { "items.$[elem].itemReturn": "return" } },
-  { arrayFilters: [{ "elem.productId": productId, "elem.variantId": variantId }] }
-);
+    //updating item status of order collection
+    await db.collection(dbVariables.orderCollection).updateOne(
+      { orderId: orderId },
+      { $set: { "items.$[elem].itemReturn": "return" } },
+      { arrayFilters: [{ "elem.productId": productId, "elem.variantId": variantId }] }
+    );
     return { success: true, refundAmount };
   } catch (error) {
     console.error("Error in returnEachItems:", error);
@@ -502,25 +496,25 @@ exports.returnEachItems = async (data) => {
 };
 
 exports.getWalletData = async (userId) => {
- try {
-  const db = await getDB();
-  const walletData = await db.collection(dbVariables.walletCollection).find({ userId: userId }).sort({refundDate:-1}).toArray();
-  return walletData;
- } catch (error) {
-  console.error("Error in getWalletData:", error);
-  return null;  
- }
+  try {
+    const db = await getDB();
+    const walletData = await db.collection(dbVariables.walletCollection).find({ userId: userId }).sort({ refundDate: -1 }).toArray();
+    return walletData;
+  } catch (error) {
+    console.error("Error in getWalletData:", error);
+    return null;
+  }
 };
 
 exports.checkReturnItem = async (data) => {
   const { orderId, variantId } = data;
   try {
     const db = await getDB();
-    const checkDuplicate = await db.collection(dbVariables.returnCollection).findOne({orderId:orderId,"items.variantId":variantId});
+    const checkDuplicate = await db.collection(dbVariables.returnCollection).findOne({ orderId: orderId, "items.variantId": variantId });
     return checkDuplicate;
   } catch (error) {
     console.error("Error in checkReturnItem:", error);
-    return null;  
+    return null;
   }
 }
 exports.returnStatusData = async (userId, orderId) => {
@@ -536,8 +530,8 @@ exports.returnStatusData = async (userId, orderId) => {
       {
         $lookup: {
           from: dbVariables.productCollection,
-          localField: "userObjectId",   
-          foreignField: "_id",           
+          localField: "userObjectId",
+          foreignField: "_id",
           as: "userDetails"
         }
       },
@@ -561,8 +555,8 @@ exports.getWalletAmount = async (userId) => {
 
   } catch (error) {
     console.error("Error in getWalletAmount:", error);
-    return 0;  
-  } 
+    return 0;
+  }
 
 }
 
@@ -575,22 +569,80 @@ exports.deductWalletAmount = async (userId, amount) => {
       { userId: userId },
       { $inc: { walletAmount: -amount } }
     );
-    return updateData;  
+    return updateData;
   } catch (error) {
     console.error("Error in deductWalletAmount:", error);
-    return null;  
+    return null;
   }
 }
 exports.updateWalletHistory = async (userId, amount) => {
 
-const db = await getDB();
-const users = await db.collection(dbVariables.walletCollection).findOne({userId:userId})
-if(!users) return "No wallet found"
-const updateData = await db.collection(dbVariables.walletCollection).updateOne(
-  { userId: userId },
-  { $push: { walletHistory: { amount: amount, date: new Date(),type:"Debit" } } }
-);
-return updateData;
+  const db = await getDB();
+  const users = await db.collection(dbVariables.walletCollection).findOne({ userId: userId })
+  if (!users) return "No wallet found"
+  const updateData = await db.collection(dbVariables.walletCollection).updateOne(
+    { userId: userId },
+    { $push: { walletHistory: { amount: amount, date: new Date(), type: "Debit" } } }
+  );
+  return updateData;
 
 }
+// update wallet after cancel item
+exports.updateWalletAfterCancelItem = async (userId, data) => {
+  try {
+      //const updateWallet = await walletUpdate.updateOne()
+    let { orderId, variantId } = data;
+    const db = await getDB();
+    const order = await db.collection(dbVariables.orderCollection);
+    const orderData = await order.findOne({ orderId: orderId, "items.variantId": variantId },
+      { projection: { "items.$": 1 ,paymentMethod:1} });
+    let detailsInsert = orderData.items[0];
+          console.log("orderData",orderData)
 
+    let amount = (detailsInsert.subtotal * 0.18) + detailsInsert.subtotal;
+    console.log("detailsInsert.subtotal",detailsInsert.subtotal);
+    console.log("amount before",amount);
+    let refundAmount = detailsInsert.subtotal;
+    let productId = detailsInsert.productId;
+    let rate = (detailsInsert.subtotal * 0.18)+ detailsInsert.subtotal;
+    let status = "Refunded"
+    console.log("amount after",amount);
+    let details =  {
+        userId,
+        walletAmount: rate,
+        updatedDate: new Date(),
+        refundHistory: [
+          {
+            orderId,
+            productId,
+            variantId,
+            status,
+            refund:"credit",
+            refundAmount:rate,
+            date: new Date(),
+           
+          }]
+      }
+    const walletUpdate = await db.collection(dbVariables.walletCollection);
+    const checkWallet = await walletUpdate.findOne({ userId: userId });
+    if (!checkWallet) {
+      console.log("No wallet found for user:", userId);
+      let newWallet = await db.collection(dbVariables.walletCollection).insertOne( details )
+      console.log("No wallet found, created new wallet:", newWallet);
+      return newWallet;
+    }
+    console.log("checkWallet", checkWallet);
+    amount = checkWallet.walletAmount + amount;
+    const updateWallet = await walletUpdate.updateOne(
+         { userId: userId },
+    {
+      $set: { walletAmount: amount, updatedDate: new Date() },
+      $push:{refundHistory:{orderId,productId:detailsInsert.productId,variantId,status:"Refunded",refund:"credit",refundAmount:rate,date:new Date()}}
+    }
+    )
+    return updateWallet;
+  } catch (error) {
+    console.error("Error in updateWalletAfterCancelItem:", error);
+    return null;
+  }
+}

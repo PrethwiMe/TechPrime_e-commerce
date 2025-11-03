@@ -298,7 +298,6 @@ exports.handleEditProduct = async (req, res) => {
       existingImages,
     } = req.body;
 
-
     if (
       !name || !name.trim() ||
       !companyDetails || !companyDetails.trim() ||
@@ -340,19 +339,19 @@ exports.handleEditProduct = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Product not found.' });
     }
 
-    let allImages = [];
-
-    if (req.files && req.files.length > 0) {
-      allImages = req.files.map(file => '/uploads/products/' + file.filename);
-    } else {
-      allImages = Array.isArray(existingImages) ? existingImages : [];
-    }
+    const existingImgUrls = Array.isArray(existingImages) ? existingImages : [];
+    const newImgPaths = req.files && req.files.length > 0 ? req.files.map(file => '/uploads/products/' + file.filename) : [];
+    let allImages = [...existingImgUrls, ...newImgPaths];
 
     if (allImages.length < 3) {
-       imageUploadStats.failedAttempts++;
+      imageUploadStats.failedAttempts++;
       imageUploadStats.failures.push({ attemptNo: imageUploadStats.totalAttempts, reason: 'Less than 3 images uploaded' });
       console.log('Image Upload Log:', imageUploadStats);
       return res.status(400).json({ success: false, message: 'At least 3 images are required for a product.' });
+    }
+
+    if (allImages.length > 3) {
+      return res.status(400).json({ success: false, message: 'No more than 3 images are allowed for a product.' });
     }
 
     const productData = {
@@ -384,7 +383,6 @@ exports.handleEditProduct = async (req, res) => {
         display: variant.display,
         price: Number(variant.price),
         stock: Number(variant.stock),
-
       };
 
       await productModel.updateVariantByProductId(new ObjectId(productId), new ObjectId(variant._id),
@@ -398,7 +396,6 @@ exports.handleEditProduct = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
-
 //edit categories vieew
 exports.editCategories = async (req, res) => {
   console.log(req.params.Id);

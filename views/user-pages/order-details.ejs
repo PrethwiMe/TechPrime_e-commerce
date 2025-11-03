@@ -176,6 +176,9 @@
     <%- include('partials/header') %>
     <%- include('partials/accountSidebar') %>
     <main class="content-wrapper">
+      <% 
+        const hasNonCancelledItems = order.items.some(item => (item.itemStatus || 'pending').toLowerCase() !== 'cancelled');
+      %>
       <header class="page-header d-flex align-items-center justify-content-between gap-3 flex-wrap">
         <div>
           <h1 class="h3 mb-1">Order Details</h1>
@@ -187,8 +190,8 @@
               <i class="bi bi-wallet2 me-1"></i> Payment
             </button>
           <% } %>
-          <% if (order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped') { %>
-            <button class="btn btn-outline-danger cancel-order-btn" data-order-id="<%= order.orderId %>">
+          <% if ((order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped') && hasNonCancelledItems) { %>
+            <button class="btn btn-outline-danger cancel-order-btn" data-order-id="<%= order.orderId %>" data-payment-method="<%= order.paymentMethod %>">
               <i class="bi bi-x-circle me-1"></i> Cancel Order
             </button>
           <% } %>
@@ -203,7 +206,6 @@
           </a>
         </div>
       </header>
-
       <div class="order-summary">
         <div class="row g-3">
           <div class="col-md-3">
@@ -238,7 +240,6 @@
           <% } %>
         </div>
       </div>
-
       <article class="card card-light">
         <div class="card-body">
           <div class="divider"></div>
@@ -280,7 +281,7 @@
                       </span>
                     </td>
                     <td class="text-end">
-                      <% if (item.itemStatus === 'Delivered') { %>
+                      <% if (item.itemStatus && item.itemStatus.toLowerCase() === 'delivered') { %>
                         <% if (item.itemReturn) { %>
                           <span class="badge badge-status return-<%= item.itemReturn.toLowerCase() %>">
                             <i class="bi me-1 <%= item.itemReturn.toLowerCase() === 'pending' ? 'bi-hourglass-split' : item.itemReturn.toLowerCase() === 'approved' ? 'bi-check2-circle' : 'bi-x-circle' %>"></i>
@@ -291,7 +292,7 @@
                             <i class="bi bi-arrow-return-left me-1"></i> Return
                           </button>
                         <% } %>
-                      <% } else if (item.itemStatus && item.itemStatus !== 'Delivered' && item.itemStatus !== 'Cancelled' && (order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped')) { %>
+                      <% } else if (item.itemStatus && item.itemStatus.toLowerCase() !== 'delivered' && item.itemStatus.toLowerCase() !== 'cancelled' && (order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped')) { %>
                         <button class="btn btn-outline-danger btn-sm cancel-item-btn" data-cancel-item="<%= order.orderId %>_<%= item.variantId %>_<%= order.status %>_<%= order.paymentMethod %>">
                           <i class="bi bi-x-circle me-1"></i> Cancel
                         </button>
@@ -302,7 +303,6 @@
               </tbody>
             </table>
           </div>
-
           <div class="row g-3 mt-4">
             <div class="col-12 col-md-6">
               <div class="detail-box">
@@ -352,7 +352,6 @@
         </div>
       </article>
     </main>
-
     <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -405,7 +404,6 @@
             ]
           }
         };
-
         document.querySelectorAll('.payment-details-btn').forEach(btn => {
           btn.addEventListener('click', () => {
             const type = 'payment';
@@ -418,7 +416,6 @@
             });
           });
         });
-
         const handleAction = async (url, data, successMsg, errorMsg, updateFn) => {
           const result = await Swal.fire({
             title: data.title || 'Confirm Action',
@@ -446,10 +443,10 @@
             await Swal.fire({ title: 'Error', text: `An error occurred while ${errorMsg.toLowerCase()}`, icon: 'error', confirmButtonColor: '#0d6efd' });
           }
         };
-
         document.querySelectorAll('.cancel-order-btn').forEach(btn => {
           btn.addEventListener('click', () => {
             const orderId = btn.dataset.orderId;
+            const paymentMethod = btn.dataset.paymentMethod;
             handleAction('/account/orders/cancel', {
               title: 'Cancel Entire Order',
               text: `Cancel the entire order ${orderId}? This action cannot be undone.`,
@@ -460,7 +457,7 @@
                 inputAttributes: { 'aria-label': 'Cancellation reason' },
                 inputValidator: value => !value ? 'Provide a reason!' : value.trim().split(/\s+/).length > 50 ? `Reason must not exceed 50 words.` : null
               },
-              payload: { orderId }
+              payload: { orderId, paymentMethod }
             }, {
               title: 'Order Cancelled!',
               text: 'Your order has been cancelled successfully.'
@@ -469,7 +466,6 @@
             });
           });
         });
-
         document.querySelectorAll('.cancel-item-btn').forEach(btn => {
           btn.addEventListener('click', () => {
             const [orderId, variantId, status, paymentMethod] = btn.dataset.cancelItem.split('_');
@@ -499,16 +495,14 @@
           });
         });
 const userId = "<%= image._id %>";
-
         document.querySelectorAll('.return-item-btn').forEach(btn => {
           btn.addEventListener('click', () => {
             const [orderId, variantId, productId] = btn.dataset.returnItem.split('_');
             handleAction('/account/orders/return-item', {
-              text: `Request return for item in order ${orderId}?`,
+              text: `Request return for item in order ${orderId}? ⚠️ Delivery Charge will not be refunded.`,
               input: {
                 input: 'textarea',
                 inputLabel: 'Reason for Return',
-                inputLabel: '⚠️Delivery Charge will not refunded',
                 inputPlaceholder: 'Enter reason for return...',
                 inputAttributes: { 'aria-label': 'Return reason' },
                 inputValidator: value => !value ? 'Provide a reason!' : value.trim().split(/\s+/).length > 50 ? `Reason must not exceed 50 words.` : null
@@ -524,7 +518,6 @@ const userId = "<%= image._id %>";
             });
           });
         });
-
         <% if (order.paymentMethod === 'online' && order.paymentStatus && order.paymentStatus.toLowerCase() === 'pending') { %>
           // Add repeat payment button if applicable
           const repeatBtn = document.createElement('button');
@@ -583,7 +576,6 @@ const userId = "<%= image._id %>";
           });
           document.querySelector('.order-actions').insertBefore(repeatBtn, document.querySelector('.order-actions .btn-outline-primary'));
         <% } %>
-
         function openRazorpayCheckout(order_id, amount, currency, orderId) {
           const options = {
             key: '<%= process.env.RAZORPAY_KEY_ID %>',

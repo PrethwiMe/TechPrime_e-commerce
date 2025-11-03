@@ -96,8 +96,6 @@ router.get('/account/order/return-status/:orderId',userConfirmed,userProfileCont
 router.get('/account/orders/invoice/:orderId',userConfirmed,userProfileController.invoice)
 //cancel order
 router.post('/account/orders/cancel',userConfirmed,userProfileController.cancelOrder)
-//cancel all order
-router.post('/account/orders/cancel-all',userConfirmed,userProfileController.cancelAllOrder)
 //cancel each item
 router.post('/account/orders/cancel-item',userConfirmed,userProfileController.cancelItem)
 //return

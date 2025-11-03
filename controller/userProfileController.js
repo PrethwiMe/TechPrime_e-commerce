@@ -260,13 +260,14 @@ exports.checkoutView = async (req, res) => {
 
     const netSubtotal = subtotal - totalDiscount;
 
+    console.log("netSubtotal",netSubtotal)
+    console.log("subtotal",subtotal)  
+    console.log("totalDiscount",totalDiscount)
     let tax = 0;
 if (netSubtotal > 0) {
   tax = netSubtotal * 0.18;
   console.log("taxxxx",tax)
 }
-
-console.log("taxzz",tax)
 
     let deliveryCharge = netSubtotal > 100000 ? 0 : 100;
 
@@ -343,6 +344,7 @@ exports.addToOrder = async (req, res) => {
 
     const deliveryCharge = subtotal > 100000 ? 0 : 100;
     const total = subtotal + tax + deliveryCharge;
+    console.log("total",total," subtotal",subtotal," deliveryCharge",deliveryCharge,"tax",tax);
 
     let orderData = {
       userId,
@@ -365,13 +367,15 @@ exports.addToOrder = async (req, res) => {
     if (paymentMethod == "wallet") {
 
       let wallet = await userProfileModel.getWalletAmount(userId);
+      if (!wallet) return res.status(400).json({ status: "error", message: "Wallet not found" });
     if (wallet.walletAmount < total) return res.status(400).json({ status: "error", message: "Insufficient wallet balance" });
 
     let deductWallet = await userProfileModel.deductWalletAmount(userId, total);
+    if (!deductWallet) return res.status(500).json({ status: "error", message: "Failed to deduct wallet amount" });
 
     let updateWallet = await userProfileModel.updateWalletHistory(userId, total);
 
-
+if (!updateWallet) return res.status(500).json({ status: "error", message: "Failed to update wallet history" });
        orderData = {
       userId,
       items: orderItems,
@@ -444,6 +448,7 @@ exports.eachOrderData = async (req,res) => {
   const orderId = req.query.orderId
 
   let response = await productModel.eachOrderData(orderId)
+
 
    const id = req.session.user.userId
       const query = {
@@ -687,18 +692,7 @@ exports.cancelOrder = async (req, res) => {
     return res.status(400).json({ success: false, message: "Can not cancel at the moment" })
   }
 }
-//cancel all order
-exports.cancelAllOrder = async (req, res) => {
-  let data = req.body.orderIds
 
-  let result = await userProfileModel.cancellAllOrder(data)
-
-  if (result) {
-    return res.status(200).json({ success: true, message: "Your All orders Are cancelled" })
-  }
-  return res.status(400).json({ success: false, message: "Error, Try after some time" })
-
-}
 //return order
 exports.returnOrder = async (req, res) => {
   console.log(req.body);
@@ -711,9 +705,19 @@ exports.returnOrder = async (req, res) => {
 }
 //cancel item
 exports.cancelItem = async (req, res) => {
-  console.log(req.body)
+  let user =req.session.user.userId;
+  console.log("req.body of cancel item",req.body)
+  const data = req.body;
   const orderData = req.body;
   const response = await userProfileModel.canceleachItems(orderData)
+  let updateWallet = await userProfileModel.checkReturnItem(orderData)
+  if(req.body.paymentMethod !== "cod"){
+    //new controller for update wallet
+      let walletOperation = await userProfileModel.updateWalletAfterCancelItem(user,data)  
+
+  }
+
+
   if (response) {
     return res.status(200).json({ success: true, message: "done" })
 
@@ -775,7 +779,6 @@ exports.couponLogic = async (req, res) => {
         discountedPrice: Math.max(0, Math.floor(discountedPrice)), // no negative values
       };
     });
-console.log("taxxxxxxxxxxxxxxxxxxxxxxx",tax)
     // 8️⃣ Return response with tax and all calculated values
     return res.json({
       success: true,
@@ -813,7 +816,6 @@ exports.viewWallet = async (req, res) => {
       let data = await userModel.userCheck({_id: new ObjectId(userId)} )
 
     const walletData = await userProfileModel.getWalletData(userId);
-    console.log("walletData",JSON.stringify(walletData,null,2));
     res.render('user-pages/wallet.ejs', { wallet: walletData || {}, image: data || null, user: data || null, });
   } catch (error) {
     console.error("Error in viewWallet:", error);
