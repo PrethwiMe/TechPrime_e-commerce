@@ -150,6 +150,89 @@ const orderData = await db.collection(dbVariables.orderCollection).find({$or: [{
     throw error;
   }
 };
+//get eachOrder
+exports.getEachOrder = async (id) => {
+  try {
+    const db = await getDB();
+    const pipeline = [
+      { $match: { _id: new ObjectId(id) } },
+      { $unwind: "$items" },
+      {
+        $addFields: {
+          "items.productObjectId": { $toObjectId: "$items.productId" },
+          "items.variantObjectId": { $toObjectId: "$items.variantId" }
+        }
+      },
+      {
+        $lookup: {
+          from: dbVariables.productCollection,
+          localField: "items.productObjectId",
+          foreignField: "_id",
+          as: "productData"
+        }
+      },
+      { $unwind: { path: "$productData", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: dbVariables.variantCollection,
+          localField: "items.variantObjectId",
+          foreignField: "_id",
+          as: "variantData"
+        }
+      },
+      { $unwind: { path: "$variantData", preserveNullAndEmptyArrays: true } },
+      {
+        $group: {
+          _id: "$_id",
+          orderId: { $first: "$orderId" },
+          userId: { $first: "$userId" },
+          status: { $first: "$status" },
+          paymentMethod: { $first: "$paymentMethod" },
+          paymentStatus: { $first: "$paymentStatus" },
+          subtotal: { $first: "$subtotal" },
+          deliveryCharge: { $first: "$deliveryCharge" },
+          total: { $first: "$total" },
+          createdAt: { $first: "$createdAt" },
+          selectedAddress: { $first: "$selectedAddress" },
+          items: {
+            $push: {
+              productId: "$items.productId",
+              variantId: "$items.variantId",
+              quantity: "$items.quantity",
+              discountedPrice: "$items.discountedPrice",
+              itemStatus: "$items.itemStatus",
+              productName: "$productData.name",
+              productImage: {
+                $ifNull: [{ $arrayElemAt: ["$productData.images", 0] }, null]
+              },
+              variantSpecs: {
+                processor: "$variantData.processor",
+                ram: "$variantData.ram",
+                storage: "$variantData.storage",
+                graphics: "$variantData.graphics",
+                color: "$variantData.color",
+                display: "$variantData.display"
+              }
+            }
+          }
+        }
+      }
+    ];
+
+    const order = await db
+      .collection(dbVariables.orderCollection)
+      .aggregate(pipeline)
+      .toArray();
+
+
+    return order[0];
+  } catch (error) {
+    console.error(" Error in getEachOrder:", error);
+    throw error;
+  }
+};
+
+
 // update order status
 exports.updateOrderStatus = async (orderId, st) => {
     try {

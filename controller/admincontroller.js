@@ -135,22 +135,16 @@ exports.controleUser = async (req, res) => {
 //oder page
 exports.orderPage = async (req, res) => {
   try {
-
-
     const data = await adminModel.viewOrders();
-
     let orderData = data.ordersWithDetails
     const filter = req.query.search || '';
     console.log("filter value:", req.query.search);
     if (filter) {
       console.log("Applying filter:", filter);
       orderData = orderData.filter(order => {
-        console.log("orderId", order.orderId)
         return order.orderId == filter
-
       });
     }
-
     res.render('admin-pages/allOrders', {
       orders: orderData,
       filter,
@@ -161,6 +155,13 @@ exports.orderPage = async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 };
+//view each product
+exports.viewEachOrder = async(req,res)=>{
+  let id = req.params.Id
+  const response = await adminModel.getEachOrder(id)
+  console.log("data from backend",JSON.stringify(response,null,2))
+  res.render('admin-pages/EachOrder.ejs',{order:response})
+}
 //edit order page
 exports.editOrderStatus = async (req, res) => {
   try {

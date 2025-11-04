@@ -1,0 +1,605 @@
+<!-- order-details.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Details - Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
+  <style>
+    :root {
+      --soft-black: #2c3e50;
+      --soft-gray: #34495e;
+      --light-gray: #ecf0f1;
+      --white: #ffffff;
+      --shadow-soft: 0 4px 20px rgba(44, 62, 80, 0.1);
+      --shadow-hover: 0 8px 30px rgba(44, 62, 80, 0.15);
+      --border-radius: 12px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+      background: var(--white);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--soft-black);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    .main-content {
+      min-height: 100vh;
+      padding: 2rem;
+      background: var(--white);
+    }
+
+    .card {
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(52, 73, 94, 0.05);
+      overflow: hidden;
+      transition: var(--transition);
+      background: var(--white);
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, var(--soft-gray) 0%, var(--soft-black) 100%);
+      color: var(--white);
+      border: none;
+      padding: 1.25rem 1.5rem;
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
+    }
+
+    .card-header h5,
+    .card-header h6 {
+      margin: 0;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-status {
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      display: inline-block;
+      min-width: 85px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: var(--transition);
+    }
+
+    .badge-status:hover {
+      transform: scale(1.05);
+    }
+
+    .badge-status.pending {
+      background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+      color: var(--soft-black);
+    }
+
+    .badge-status.shipped {
+      background: linear-gradient(135deg, #e7f3fe 0%, #a8d5f0 100%);
+      color: #0d6efd;
+    }
+
+    .badge-status.delivered {
+      background: linear-gradient(135deg, #e6f4ea 0%, #b8e6b8 100%);
+      color: #198754;
+    }
+
+    .badge-status.cancelled {
+      background: linear-gradient(135deg, #f8d7da 0%, #ffcccb 100%);
+      color: #842029;
+    }
+
+    .badge-status.paid {
+      background: linear-gradient(135deg, #e6f4ea 0%, #b8e6b8 100%);
+      color: #198754;
+    }
+
+    .badge-status.not-paid {
+      background: linear-gradient(135deg, #f8d7da 0%, #ffcccb 100%);
+      color: #842029;
+    }
+
+    .form-select-sm {
+      width: 120px;
+      border-radius: 8px;
+      border: 2px solid rgba(52, 73, 94, 0.1);
+      padding: 0.5rem 0.75rem;
+      font-size: 0.85rem;
+      background: var(--white);
+      color: var(--soft-black);
+      transition: var(--transition);
+    }
+
+    .form-select-sm:hover,
+    .form-select-sm:focus {
+      border-color: var(--soft-gray);
+      box-shadow: 0 0 0 3px rgba(52, 73, 94, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .form-select-sm option[value="pending"] {
+      color: var(--soft-black);
+      background: #fff3cd;
+    }
+
+    .form-select-sm option[value="shipped"] {
+      color: #0d6efd;
+      background: #e7f3fe;
+    }
+
+    .form-select-sm option[value="delivered"] {
+      color: #198754;
+      background: #e6f4ea;
+    }
+
+    .form-select-sm option[value="cancelled"] {
+      color: #dc3545;
+      background: #f8d7da;
+    }
+
+    .form-select-sm:disabled {
+      background: var(--light-gray);
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .btn-sm {
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      font-weight: 500;
+      transition: var(--transition);
+      border: 2px solid transparent;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-sm::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn-sm:hover::before {
+      left: 100%;
+    }
+
+    .btn-sm:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(44, 62, 80, 0.2);
+    }
+
+    .btn-outline-secondary {
+      color: var(--soft-gray);
+      border-color: rgba(52, 73, 94, 0.2);
+    }
+
+    .btn-outline-secondary:hover {
+      background: var(--soft-gray);
+      color: var(--white);
+      border-color: var(--soft-gray);
+    }
+
+    .list-group-item {
+      border: none;
+      padding: 0.875rem 1.25rem;
+      background: transparent;
+      color: var(--soft-black);
+      border-bottom: 1px solid rgba(52, 73, 94, 0.05);
+      transition: var(--transition);
+    }
+
+    .list-group-item:hover {
+      background: rgba(52, 73, 94, 0.02);
+      padding-left: 1.5rem;
+    }
+
+    .list-group-item:last-child {
+      border-bottom: none;
+    }
+
+    .list-group-item strong {
+      color: var(--soft-gray);
+      font-weight: 600;
+    }
+
+    .table-responsive {
+      border-radius: 0 0 var(--border-radius) var(--border-radius);
+      overflow: hidden;
+    }
+
+    .table {
+      margin: 0;
+      font-size: 0.9rem;
+      background: var(--white);
+    }
+
+    .table th {
+      background: linear-gradient(135deg, var(--light-gray) 0%, #f8f9fa 100%);
+      color: var(--soft-black);
+      font-weight: 600;
+      padding: 1rem;
+      border: none;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 0.8rem;
+    }
+
+    .table td {
+      padding: 1rem;
+      vertical-align: middle;
+      border-color: rgba(52, 73, 94, 0.05);
+      color: var(--soft-black);
+    }
+
+    .table img {
+      transition: var(--transition);
+    }
+
+    .table tr:hover {
+      background: rgba(52, 73, 94, 0.02);
+    }
+
+    .table img:hover {
+      transform: scale(1.1);
+    }
+
+    .small {
+      font-size: 0.85rem;
+    }
+
+    .text-muted {
+      color: var(--soft-gray) !important;
+    }
+
+    .text-secondary {
+      color: var(--soft-gray) !important;
+    }
+
+    .fw-bold {
+      font-weight: 600;
+    }
+
+    .border-bottom {
+      border-bottom: 1px solid rgba(52, 73, 94, 0.1) !important;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .container-fluid {
+      max-width: 1400px;
+    }
+
+    .row {
+      margin: 0 -1rem;
+    }
+
+    .row > * {
+      padding: 0 1rem;
+    }
+
+    .g-4 {
+      --bs-gutter-x: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        padding: 1rem;
+      }
+
+      .form-select-sm {
+        width: 100%;
+        margin-bottom: 0.5rem;
+      }
+
+      .card-header {
+        padding: 1rem;
+      }
+
+      .row > * {
+        padding: 0 0.5rem;
+      }
+
+      .container-fluid {
+        padding: 0;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .main-content {
+        padding: 0.5rem;
+      }
+
+      .card-header .d-flex {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: stretch;
+      }
+
+      .btn-sm {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <%- include('partials/topbar') %>
+  <div class="d-flex">
+    <%- include('partials/sidebar') %>
+    <div class="flex-grow-1 main-content">
+      <div class="border-bottom shadow-sm bg-white mb-4 p-3">
+        <h4 class="mb-0 fw-bold"><i class="bi bi-file-earmark-text me-2"></i>Order Management</h4>
+      </div>
+      <div class="container-fluid">
+        <div class="row g-4">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-receipt me-2"></i>Order #<%= order.orderId %></h5>
+                <div class="d-flex align-items-center gap-2">
+                  <select class="form-select form-select-sm order-status" data-id="<%= order._id %>" data-current-status="<%= order.status.toLowerCase() %>" <%= order.status.toLowerCase() === 'cancelled' || order.status.toLowerCase() === 'delivered' ? 'disabled' : '' %>>
+                    <option value="pending" <%= order.status.toLowerCase() === 'pending' ? 'selected' : '' %>>Pending</option>
+                    <option value="shipped" <%= order.status.toLowerCase() === 'shipped' ? 'selected' : '' %>>Shipped</option>
+                    <option value="delivered" <%= order.status.toLowerCase() === 'delivered' ? 'selected' : '' %>>Delivered</option>
+                    <option value="cancelled" <%= order.status.toLowerCase() === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                  </select>
+                  <a href="/admin/orders" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back to List</a>
+                </div>
+              </div>
+              <div class="card-body p-4">
+                <% const tax = order.total - order.subtotal - order.deliveryCharge; %>
+                <h6 class="fw-bold text-secondary mb-4">Order Summary</h6>
+                <ul class="list-group list-group-flush small">
+                  <li class="list-group-item"><strong>ID:</strong> <%= order.orderId %></li>
+                  <li class="list-group-item"><strong>Date:</strong> <%= new Date(order.createdAt).toLocaleString() %></li>
+                  <li class="list-group-item"><strong>Payment Method:</strong> <%= order.paymentMethod.toUpperCase() %></li>
+                  <li class="list-group-item"><strong>Payment Status:</strong>
+                    <span class="badge badge-status <%= order.paymentStatus === 'paid' ? 'paid' : 'not-paid' %>">
+                      <%= order.paymentStatus === 'paid' ? 'Paid' : 'Not Paid' %>
+                    </span>
+                  </li>
+                  <% if (order.paymentStatus === 'paid' && order.paymentMethod === 'online') { %>
+                  <li class="list-group-item"><strong>Razorpay Order ID:</strong> <%= order.razorpayOrderId || 'N/A' %></li>
+                  <li class="list-group-item"><strong>Razorpay Payment ID:</strong> <%= order.razorpayPaymentId || 'N/A' %></li>
+                  <li class="list-group-item"><strong>Razorpay Signature:</strong> <%= order.razorpaySignature || 'N/A' %></li>
+                  <% } %>
+                  <li class="list-group-item"><strong>Status:</strong>
+                    <span class="badge badge-status <%= order.status.toLowerCase() %>"><%= order.status.charAt(0).toUpperCase() + order.status.slice(1).toLowerCase() %></span>
+                  </li>
+                  <li class="list-group-item"><strong>Subtotal:</strong> ₹ <%= parseFloat(order.subtotal).toLocaleString() %></li>
+                  <li class="list-group-item"><strong>Tax:</strong> ₹ <%= parseFloat(tax).toLocaleString() %></li>
+                  <li class="list-group-item"><strong>Delivery:</strong> ₹ <%= parseFloat(order.deliveryCharge).toLocaleString() %></li>
+                  <% if (order.couponCode) { %>
+                  <li class="list-group-item"><strong>Coupon:</strong> <%= order.couponCode %></li>
+                  <% } %>
+                  <li class="list-group-item"><strong>Total:</strong> ₹ <span class="order-total fw-bold text-primary"><%= parseFloat(order.total).toLocaleString() %></span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h6 class="fw-bold text-white mb-0"><i class="bi bi-person-lines-fill me-1"></i>Delivery Details</h6>
+              </div>
+              <div class="card-body p-4">
+                <ul class="list-group list-group-flush small">
+                  <li class="list-group-item"><strong>Buyer:</strong> <%= order.selectedAddress.fullName %></li>
+                  <li class="list-group-item"><strong>Phone:</strong> <%= order.selectedAddress.phone %></li>
+                  <li class="list-group-item"><strong>Address:</strong><br>
+                    <span class="text-muted"><%= order.selectedAddress.fullName %></span><br>
+                    <%= order.selectedAddress.line1 %>, <%= order.selectedAddress.city %><br>
+                    <%= order.selectedAddress.state %> - <%= order.selectedAddress.pincode %><br>
+                    <small class="text-muted">Phone: <%= order.selectedAddress.phone %></small>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header">
+                <h6 class="fw-bold text-white mb-0"><i class="bi bi-basket2-fill me-1"></i>Order Items</h6>
+              </div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table align-middle mb-0">
+                    <thead>
+                      <tr>
+                        <th scope="col">Product</th>
+                        <th scope="col" class="text-center">Qty</th>
+                        <th scope="col" class="text-end">Price</th>
+                        <th scope="col" class="text-end">Subtotal</th>
+                        <th scope="col" class="text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% order.items.forEach(item => { %>
+                      <tr data-variant-id="<%= item.variantId %>">
+                        <td>
+                          <div class="d-flex align-items-center">
+                            <img src="<%= item.productImage %>" class="rounded me-3 border" style="width:40px;height:40px;object-fit:cover; flex-shrink: 0;" alt="Product Image">
+                            <div>
+                              <div class="fw-semibold"><%= item.productName %></div>
+                              <small class="text-muted d-block">
+                                <%= item.variantSpecs.processor %>, <%= item.variantSpecs.ram %>, <%= item.variantSpecs.storage %>, <%= item.variantSpecs.color %>
+                              </small>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="text-center fw-semibold"><%= item.quantity %></td>
+                        <td class="text-end">₹ <%= parseFloat(item.discountedPrice).toLocaleString() %></td>
+                        <td class="text-end fw-semibold">₹ <%= (item.quantity * item.discountedPrice).toLocaleString() %></td>
+                        <td class="text-center">
+                          <select class="form-select form-select-sm item-status" data-id="<%= order._id %>" data-variant-id="<%= item.variantId %>" data-current-status="<%= (item.itemStatus || 'pending').toLowerCase() %>" <%= (item.itemStatus || 'pending').toLowerCase() === 'cancelled' || (item.itemStatus || 'pending').toLowerCase() === 'delivered' ? 'disabled' : '' %>>
+                            <option value="pending" <%= (item.itemStatus || 'pending').toLowerCase() === 'pending' ? 'selected' : '' %>>Pending</option>
+                            <option value="shipped" <%= (item.itemStatus || 'pending').toLowerCase() === 'shipped' ? 'selected' : '' %>>Shipped</option>
+                            <option value="delivered" <%= (item.itemStatus || 'pending').toLowerCase() === 'delivered' ? 'selected' : '' %>>Delivered</option>
+                            <option value="cancelled" <%= (item.itemStatus || 'pending').toLowerCase() === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                          </select>
+                        </td>
+                      </tr>
+                      <% }) %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script>
+    const showAlert = (icon, title, text, isToast = true) => Swal.fire({
+      icon,
+      title,
+      text,
+      timer: isToast ? 2000 : undefined,
+      showConfirmButton: !isToast,
+      toast: isToast,
+      position: isToast ? 'top-end' : 'center',
+      background: '#fff',
+      color: '#2c3e50'
+    });
+
+    const updateBadge = (element, status) => {
+      if (element) {
+        element.className = `badge badge-status ${status.toLowerCase()}`;
+        element.innerHTML = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Order Status Update
+      document.querySelectorAll('.order-status').forEach(select => {
+        select.addEventListener('change', async function() {
+          if (this.disabled) return;
+          const { id, currentStatus } = this.dataset;
+          let status = this.value;
+          const result = await Swal.fire({
+            title: `Update Order Status`,
+            text: `Are you sure you want to set order ${id} to ${status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3498db',
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: `Yes, set to ${status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}`,
+            cancelButtonText: 'No, cancel',
+            background: '#fff',
+            color: '#2c3e50'
+          });
+          if (!result.isConfirmed) {
+            this.value = currentStatus;
+            return;
+          }
+          try {
+            const { data } = await axios.post('/admin/order/updateOrderStatus', {
+              orderId: id,
+              status
+            });
+            if (data.success) {
+              await showAlert('success', 'Order Status Updated', `Order status changed to "${status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}"`);
+              this.dataset.currentStatus = status;
+              updateBadge(document.querySelector('.badge-status'), status);
+              if (status === 'cancelled' || status === 'delivered') {
+                this.disabled = true;
+                document.querySelectorAll('.item-status').forEach(sel => {
+                  if (sel.dataset.currentStatus !== 'cancelled' && sel.dataset.currentStatus !== 'delivered') {
+                    sel.value = status;
+                    sel.dataset.currentStatus = status;
+                    sel.disabled = true;
+                  }
+                });
+              }
+            } else throw new Error('Failed to update order status!');
+          } catch (err) {
+            console.error('Error updating order status:', err);
+            await showAlert('error', 'Error', 'Failed to update order status!');
+            this.value = currentStatus;
+          }
+        });
+      });
+
+      // Item Status Update
+      document.querySelectorAll('.item-status').forEach(select => {
+        select.addEventListener('change', async function() {
+          if (this.disabled) return;
+          const { id, variantId, currentStatus } = this.dataset;
+          let itemStatus = this.value;
+          const result = await Swal.fire({
+            title: `Update Item Status`,
+            text: `Are you sure you want to set item ${variantId} in order ${id} to ${itemStatus.charAt(0).toUpperCase() + itemStatus.slice(1).toLowerCase()}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3498db',
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: `Yes, set to ${itemStatus.charAt(0).toUpperCase() + itemStatus.slice(1).toLowerCase()}`,
+            cancelButtonText: 'No, cancel',
+            background: '#fff',
+            color: '#2c3e50'
+          });
+          if (!result.isConfirmed) {
+            this.value = currentStatus;
+            return;
+          }
+          try {
+            const { data } = await axios.post('/admin/orders/update-item-status', {
+              orderId: id,
+              variantId,
+              itemStatus
+            });
+            if (data.success) {
+              await showAlert('success', 'Item Status Updated', `Item status set to ${itemStatus.charAt(0).toUpperCase() + itemStatus.slice(1).toLowerCase()}.`);
+              this.dataset.currentStatus = itemStatus;
+              if (data.updatedTotal) {
+                document.querySelector('.order-total').textContent = parseFloat(data.updatedTotal).toLocaleString();
+              }
+              if (itemStatus === 'cancelled' || itemStatus === 'delivered') {
+                this.disabled = true;
+              }
+              // Update order status if all items have the same status
+              const allItems = Array.from(document.querySelectorAll('.item-status'));
+              const allSameStatus = allItems.every(sel => sel.dataset.currentStatus === itemStatus);
+              if (allSameStatus) {
+                const orderSelect = document.querySelector('.order-status');
+                if (orderSelect && !orderSelect.disabled) {
+                  orderSelect.value = itemStatus;
+                  orderSelect.dataset.currentStatus = itemStatus;
+                  updateBadge(document.querySelector('.badge-status'), itemStatus);
+                  if (itemStatus === 'cancelled' || itemStatus === 'delivered') {
+                    orderSelect.disabled = true;
+                  }
+                }
+              }
+            } else throw new Error(`Failed to set item status to ${itemStatus}.`);
+          } catch (error) {
+            console.error(`Error setting item status to ${itemStatus}:`, error);
+            await showAlert('error', 'Error', `An error occurred while setting item status to ${itemStatus}.`);
+            this.value = currentStatus;
+          }
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>
