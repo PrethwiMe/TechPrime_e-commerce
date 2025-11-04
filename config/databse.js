@@ -14,5 +14,6 @@ module.exports={
      offerCollection:"offers",
      couponCollection:"coupon",
      returnCollection:"returnOrders",
-     walletCollection:"wallet"
+     walletCollection:"wallet",
+     referalCollection:"referrals"
 }

@@ -646,3 +646,26 @@ exports.updateWalletAfterCancelItem = async (userId, data) => {
     return null;
   }
 }
+exports.updateReferralInDb = async (code, userId) => {
+  try {
+    const db = await getDB();
+    let collectionIs = await db.collection(dbVariables.referalCollection);
+    let checkrefer =await collectionIs.findOne({userId:userId});
+    console.log("checkOffer",checkrefer)
+    if (checkrefer) {
+      console.log("checkoffer there and updat")
+      
+      let result =await collectionIs.updateOne({ userId:userId },{ $set: { code: code } });
+    return { success: true, result };
+    }else{
+      console.log("no refer document")
+      let addrefer = await collectionIs.insertOne({userId:userId,count:0,code,totalEarnings:0})
+          return { success: true, addrefer };
+
+    }
+
+  } catch (error) {
+    console.error("updateReferralInDb error:", error);
+    return { success: false, error };
+  }
+}

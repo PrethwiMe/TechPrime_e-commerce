@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Referrals | TechCart</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.2/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    .sidebar {
+      position: fixed;
+      top: 92px;
+      left: 0;
+      width: 280px;
+      height: calc(100vh - 92px);
+      background: linear-gradient(180deg, #ffffff, #f8f9fa);
+      border-right: 1px solid #e0e4e8;
+      padding: 2rem 1.5rem;
+      z-index: 1000;
+      transition: transform 0.3s ease-in-out;
+      overflow-y: auto;
+      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .content-wrapper {
+      margin-left: 280px;
+      padding: 2rem;
+      min-height: calc(100vh - 92px);
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        transform: translateX(-100%);
+      }
+
+      .sidebar.show {
+        transform: translateX(0);
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+        z-index: 1050;
+      }
+
+      .content-wrapper {
+        margin-left: 0;
+        padding: 1rem;
+      }
+    }
+
+    .referral-hero {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 20px;
+      padding: 3rem 2rem;
+      color: white;
+      text-align: center;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .referral-hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: pulse 15s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    .referral-hero h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .referral-hero p {
+      font-size: 1.1rem;
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+    }
+
+    .referral-card {
+      background: white;
+      border-radius: 15px;
+      padding: 2rem;
+      box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
+      margin-bottom: 2rem;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .referral-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 35px rgba(0, 0, 0, 0.12);
+    }
+
+    .code-box {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      margin: 1.5rem 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .code-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+
+    .referral-code {
+      font-size: 2rem;
+      font-weight: 700;
+      color: white;
+      letter-spacing: 3px;
+      margin: 0;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn-generate {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      color: white;
+      padding: 1rem 2.5rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 50px;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-generate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+
+    .btn-generate:active {
+      transform: translateY(0);
+    }
+
+    .btn-generate:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .btn-copy {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      border: none;
+      color: white;
+      padding: 0.8rem 2rem;
+      font-weight: 600;
+      border-radius: 50px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(250, 112, 154, 0.4);
+    }
+
+    .btn-copy:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(250, 112, 154, 0.5);
+    }
+
+    .spinner-border-custom {
+      width: 1.5rem;
+      height: 1.5rem;
+      border-width: 3px;
+      vertical-align: middle;
+      margin-right: 0.5rem;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 15px;
+      padding: 1.5rem;
+      text-align: center;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      font-size: 1.5rem;
+    }
+
+    .stat-icon.purple {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .stat-icon.pink {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+
+    .stat-icon.orange {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      color: white;
+    }
+
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1a1d29;
+      margin: 0;
+    }
+
+    .stat-label {
+      color: #6c757d;
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    .info-section {
+      background: white;
+      border-radius: 15px;
+      padding: 2rem;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .info-section h4 {
+      color: #1a1d29;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: start;
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .step-item:hover {
+      background: #f8f9fa;
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      margin-right: 1rem;
+      flex-shrink: 0;
+    }
+
+    .step-content h5 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1a1d29;
+      margin-bottom: 0.3rem;
+    }
+
+    .step-content p {
+      color: #6c757d;
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 2rem;
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      color: #e0e4e8;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state h4 {
+      color: #6c757d;
+      font-weight: 600;
+    }
+
+    .empty-state p {
+      color: #adb5bd;
+    }
+  </style>
+</head>
+
+<body>
+  <%- include('partials/header') %>
+  <%- include('partials/accountSidebar') %>
+
+  <div class="content-wrapper">
+    <div class="container-fluid">
+      <!-- Hero Section -->
+      <div class="referral-hero">
+        <h1><i class="fas fa-gift"></i> Refer & Earn</h1>
+        <p>Share your referral code with friends and earn exciting rewards!</p>
+      </div>
+
+      <!-- Referral Code Section -->
+      <div class="referral-card">
+        <h3 class="text-center mb-3"><i class="fas fa-code"></i> Your Referral Code</h3>
+        
+        <div id="codeSection" class="d-none">
+          <div class="code-box">
+            <p class="mb-2" style="color: white; opacity: 0.9; font-size: 0.9rem;">Your Code</p>
+            <p class="referral-code" id="referralCode">LOADING...</p>
+          </div>
+          <div class="text-center">
+            <button class="btn btn-copy" onclick="copyCode()">
+              <i class="fas fa-copy"></i> Copy Code
+            </button>
+          </div>
+        </div>
+
+        <div id="generateSection" class="text-center">
+          <div class="empty-state">
+            <i class="fas fa-ticket-alt"></i>
+            <h4></i><%= data.code %></h4>
+            <p class="mb-4">Generate your unique referral code and start earning rewards!</p>
+          </div>
+          <button class="btn btn-generate" id="generateBtn" onclick="generateCode()">
+            <i class="fas fa-plus-circle"></i> Generate Referral Code
+          </button>
+        </div>
+
+        <div id="loadingSection" class="text-center d-none" style="padding: 3rem 2rem;">
+          <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-3 text-muted">Generating your unique code...</p>
+        </div>
+      </div>
+
+      <!-- Stats Section -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon purple">
+            <i class="fas fa-users"></i>
+          </div>
+          <p class="stat-number" id="totalReferrals"><%= data.count %></p>
+          <p class="stat-label">Total Referral</p>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon pink">
+            <i class="fas fa-gift"></i>
+          </div>
+          <p class="stat-number" id="earnedRewards">₹<%= data.totalEarnings %></p>
+          <p class="stat-label">Rewards Earned</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Check if referral code exists on page load
+    window.addEventListener('DOMContentLoaded', function() {
+      checkExistingCode();
+    });
+
+    async function checkExistingCode() {
+      try {
+        const response = await axios.get('/account/referral/codeGenarate');
+        if (response.data.success && response.data.referralCode) {
+          showCode(response.referralCode);
+          
+          // Update stats
+          document.getElementById('totalReferrals').textContent = response.data.totalReferrals || 0;
+          document.getElementById('earnedRewards').textContent = '₹' + (response.data.earnedRewards || 0);
+        }
+      } catch (error) {
+        console.log('No existing code or error checking:', error);
+      }
+    }
+
+  async function generateCode() {
+  const generateBtn = document.getElementById('generateBtn');
+  const generateSection = document.getElementById('generateSection');
+  const loadingSection = document.getElementById('loadingSection');
+
+  generateSection.classList.add('d-none');
+  loadingSection.classList.remove('d-none');
+  generateBtn.disabled = true;
+
+  try {
+    const response = await axios.post('/account/referral/codeGenarate');
+
+    if (response.data.success && response.data.referralCode) {
+      await Swal.fire({
+        icon: 'success',
+        title: 'Code Generated!',
+        text: 'Your referral code has been created successfully',
+        timer: 2000,
+        showConfirmButton: false
+      });
+
+      showCode(response.data.referralCode);
+    } else {
+      throw new Error("No referral code returned");
+    }
+  } catch (error) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Oops!',
+      text: error.response?.data?.message || 'Failed to generate referral code. Please try again.',
+    });
+  } finally {
+    loadingSection.classList.add('d-none');
+    generateBtn.disabled = false;
+  }
+}
+
+    function showCode(code) {
+      const loadingSection = document.getElementById('loadingSection');
+      const generateSection = document.getElementById('generateSection');
+      const codeSection = document.getElementById('codeSection');
+      const referralCodeEl = document.getElementById('referralCode');
+
+      loadingSection.classList.add('d-none');
+      generateSection.classList.add('d-none');
+      codeSection.classList.remove('d-none');
+      referralCodeEl.textContent = code;
+    }
+
+    function copyCode() {
+      const code = document.getElementById('referralCode').textContent;
+      
+      navigator.clipboard.writeText(code).then(() => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Copied!',
+          text: 'Referral code copied to clipboard',
+          timer: 1500,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        });
+      }).catch(() => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed',
+          text: 'Could not copy code. Please copy manually.',
+          timer: 2000
+        });
+      });
+    }
+
+    // Sidebar toggle for mobile
+    document.getElementById('sidebarToggle')?.addEventListener('click', function () {
+      document.getElementById('accountSidebar')?.classList.toggle('show');
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

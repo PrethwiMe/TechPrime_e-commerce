@@ -1,6 +1,6 @@
 
 // mongo data 
-const { Query } = require('mongoose');
+const { Query, get } = require('mongoose');
 const dbVariables = require('../config/databse')
 const { getDB } = require('../config/mongodb')
 const { ObjectId } = require('mongodb');
@@ -18,6 +18,27 @@ exports.insertUser = async (userdata) => {
     return res.status(500).render('error', { error: 'Server error. Please try again.' });
   }
 
+}
+//check refer
+exports.updateRefferal = async (code) =>{
+  const db = await getDB()
+  const collectionIs =await db.collection(dbVariables.referalCollection)
+    const walletCol = db.collection(dbVariables.walletCollection)
+
+  let checkCode = await collectionIs.findOne({code:code});
+   let user = checkCode.userId
+   console.log("useridddddddd",user)
+   console.log("checkCode",checkCode)
+   let updatReferal = await collectionIs.updateOne({code:code},{$inc:{count:+1,totalEarnings:100}})
+   //updat wallet
+   let walletcheck = await walletCol.findOne({userId:user})
+   if (walletcheck) {
+     let wallet = await walletCol.updateOne({userId:user},{$inc:{walletAmount:100}})
+    }else{
+      let wallet = await walletCol.insertOne({userId:user,walletAmount:100,updatedDate:new Date(),refundHistory: [],walletHistory: []})
+      console.log("wallert",wallet)
+   }
+  return
 }
 //find one user
 exports.fetchUser = async (email) => {
@@ -409,5 +430,11 @@ exports.couponOffer = async (id) => {
 console.log("code is",id)
   const db = await getDB()
   const data = await db.collection(dbVariables.couponCollection).findOne({code:id})
+  return data
+}
+
+exports.getReferral = async (userId) => {
+  const db = await getDB();
+  const data = await db.collection(dbVariables.referalCollection).findOne({userId:userId});
   return data
 }

@@ -142,6 +142,14 @@ exports.handleSignup = async (req, res) => {
 
     const result = await userModel.insertUser(newUser);
 
+    //referral logic
+
+    if (referralCode) {
+      let referr = await userModel.updateRefferal(referralCode)
+      console.log("referral Applied")
+    }
+
+
     if (result) {
       console.log("OTP....!!", otp);
       await sendMail(email, otp, "signup");

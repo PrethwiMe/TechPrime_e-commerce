@@ -15,7 +15,7 @@
       --text-primary:#f1f5f9;--text-secondary:#cbd5e1;
     }
     body{background:var(--dark-bg);}
-    .dashboard-title{font-size:2rem;font-weight:700;color:var(--text-primary);margin-bottom:2rem;}
+    .dashboard-title{font-size:2rem;font-weight:700;color:var(--text-dark);margin-bottom:2rem;}
     .metric-box{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:1.5rem;border-left:4px solid;transition:0.3s;}
     .metric-box:hover{transform:translateY(-4px);}
     .metric-box h4{font-size:0.875rem;font-weight:600;opacity:0.9;}
@@ -84,14 +84,7 @@
         let avgOrderValue = totalOrders > 0 ? (totalRevenue / totalOrders).toFixed(2) : 0;
       %>
 
-      <!-- METRICS -->
-      <div class="dashboard-metrics">
-        <div class="metric-box bg-primary text-white"><h4><i class="bi bi-receipt me-2"></i>Orders</h4><p><%= totalOrders %></p></div>
-        <div class="metric-box bg-success text-white"><h4><i class="bi bi-currency-rupee me-2"></i>Revenue (with 18% tax)</h4><p>₹<%= totalRevenue.toLocaleString() %></p></div>
-        <div class="metric-box bg-info text-white"><h4><i class="bi bi-cart me-2"></i>Avg Order</h4><p>₹<%= avgOrderValue.toLocaleString() %></p></div>
-        <div class="metric-box bg-warning text-white"><h4><i class="bi bi-check-circle me-2"></i>Delivered</h4><p><%= deliveredOrders %></p></div>
-      </div>
-
+ 
       <!-- SEARCH + EXPORT -->
       <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div class="input-group" style="width: 280px;">

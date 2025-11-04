@@ -112,6 +112,10 @@ router.post("/checkout/apply-coupon",userConfirmed,userProfileController.couponL
 router.post('/account/orders/repeat-payment',userConfirmed,paymentController.repeatPayment)
 //wallet page
 router.get('/account/wallet',userConfirmed,userProfileController.viewWallet)    
+//referal
+router.get('/account/referrals',userConfirmed,userProfileController.referrals)
+//genarate referral code
+router.post('/account/referral/codeGenarate',userConfirmed,userProfileController.genarateReferralCode)
 
 module.exports = router;
   

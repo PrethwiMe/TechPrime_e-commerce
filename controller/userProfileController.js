@@ -22,6 +22,7 @@ const adminModal = require('../model/adminModel');
 const dbVariables = require('../config/databse')
 const { handleWalletPayment } = require("../utils/walletUtils");
 const { cancelOrderUtils } = require("../utils/cancelUtils");
+const crypto = require('crypto');
 
 
 
@@ -36,7 +37,6 @@ exports.viewProfile = async (req, res) => {
     }
     let data = await userModel.userCheck(query)
 
-    console.log("imageee",data);
     return res.render('user-pages/profile.ejs', {
       user, image: data || null
     })
@@ -806,3 +806,25 @@ exports.viewWallet = async (req, res) => {
     console.error("Error in viewWallet:", error);
     res.status(500).send("Internal Server Error");
   }}
+
+  exports.referrals = async(req,res) => {
+    let userId = req.session.user.userId
+
+          let data = await userModel.userCheck({_id: new ObjectId(userId)} )
+let dataForReferral = await userModel.getReferral(userId)
+    res.render('user-pages/referal.ejs', { image: data || null, user: data || null, data:dataForReferral || []});
+  }
+
+exports.genarateReferralCode = async (req, res) => {
+  const length = 8;
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < length; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  let userId = req.session.user.userId
+  console.log("Referral code generated:", code);
+      const updateResult = await userProfileModel.updateReferralInDb(code, userId);
+
+res.json({ success: true, referralCode: code, dbUpdate: updateResult });
+};
