@@ -300,3 +300,17 @@ exports.eachOrderData = async (orderId) => {
     return null;
   }
 };
+
+exports.changeItemStatus = async (userId,orderId,status,variantId) => {
+  const db = getDB();
+  let changeStatus = await db.collection(dbVariables.orderCollection);
+
+  let test = await changeStatus.findOne({userId:userId,orderId: orderId });
+  console.log("Test Status:", test);
+  let changed = await changeStatus.updateOne(
+    { userId:userId,orderId: orderId, "items.variantId": variantId },
+    { $set: { "items.$.itemStatus": status } }
+  );
+  console.log("Changed Status:", changed);
+  return changed;
+}

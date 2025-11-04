@@ -20,6 +20,10 @@ const joi = require('../utils/validation')
 const { ObjectId } = require("mongodb");
 const adminModal = require('../model/adminModel');
 const dbVariables = require('../config/databse')
+const { handleWalletPayment } = require("../utils/walletUtils");
+const { cancelOrderUtils } = require("../utils/cancelUtils");
+
+
 
 exports.viewProfile = async (req, res) => {
   const userId = req.session.user
@@ -296,11 +300,11 @@ if (netSubtotal > 0) {
   }
 };
 //add to order
+
 exports.addToOrder = async (req, res) => {
   console.log("request body:", req.body);
   try {
     const { paymentMethod, selectedAddress, couponCode, items } = req.body;
-    
     const userId = req.session.user?.userId;
     if (!userId) return res.status(401).json({ status: "error", message: "Login required" });
 
@@ -312,7 +316,6 @@ exports.addToOrder = async (req, res) => {
       return res.status(400).json({ status: "error", message: "No items to order" });
     }
 
-    // Calculate totals
     let subtotal = 0, cartOriginal = 0, cartDiscount = 0;
     const orderItems = items.map(item => {
       const original = +item.originalPrice || 0;
@@ -338,13 +341,9 @@ exports.addToOrder = async (req, res) => {
       };
     });
 
- const tax = subtotal * 0.18;
-
-    console.log("tax",tax)
-
+    const tax = subtotal * 0.18;
     const deliveryCharge = subtotal > 100000 ? 0 : 100;
     const total = subtotal + tax + deliveryCharge;
-    console.log("total",total," subtotal",subtotal," deliveryCharge",deliveryCharge,"tax",tax);
 
     let orderData = {
       userId,
@@ -364,36 +363,14 @@ exports.addToOrder = async (req, res) => {
       updatedAt: new Date(),
     };
 
-    if (paymentMethod == "wallet") {
+    if (paymentMethod === "wallet") {
+      const walletResult = await handleWalletPayment(userId, total);
+      if (!walletResult.success) {
+        return res.status(400).json({ status: "error", message: walletResult.message });
+      }
 
-      let wallet = await userProfileModel.getWalletAmount(userId);
-      if (!wallet) return res.status(400).json({ status: "error", message: "Wallet not found" });
-    if (wallet.walletAmount < total) return res.status(400).json({ status: "error", message: "Insufficient wallet balance" });
-
-    let deductWallet = await userProfileModel.deductWalletAmount(userId, total);
-    if (!deductWallet) return res.status(500).json({ status: "error", message: "Failed to deduct wallet amount" });
-
-    let updateWallet = await userProfileModel.updateWalletHistory(userId, total);
-
-if (!updateWallet) return res.status(500).json({ status: "error", message: "Failed to update wallet history" });
-       orderData = {
-      userId,
-      items: orderItems,
-      subtotal,
-      cartOriginal,
-      cartDiscount,
-      deliveryCharge,
-      tax,
-      total,
-      couponCode: couponCode || "",
-      paymentMethod:"wallet",
-      paymentStatus: "paid",
-      status: "Pending",
-      selectedAddress,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
+      orderData.paymentStatus = "paid";
+      orderData.paymentMethod = "wallet";
     }
 
     const result = await userProfileModel.addNewOrder(userId, orderData);
@@ -403,23 +380,22 @@ if (!updateWallet) return res.status(500).json({ status: "error", message: "Fail
 
     await userProfileModel.deleteCart(userId);
 
-    // Update product stock
-
     for (const item of orderItems) {
       await productModel.updateStockAfterOrder(item.variantId, item.quantity);
     }
 
-    
     res.status(200).json({
       status: "success",
       message: "Order placed successfully",
       orderSummary: { subtotal, cartOriginal, cartDiscount, tax, deliveryCharge, total }
     });
+
   } catch (error) {
-    console.error(" addToOrder error:", error);
+    console.error("addToOrder error:", error);
     res.status(500).json({ status: "error", message: "Internal Server Error" });
   }
 };
+
 // view order user
 exports.viewOrder = async (req, res) => {
   try {
@@ -683,15 +659,31 @@ exports.invoice = async (req, res) => {
 };
 //cancel order
 exports.cancelOrder = async (req, res) => {
-  const orderId = req.body.orderId;
+  try {
+    console.log("Cancel order body:", req.body);
 
-  const update = await userProfileModel.cancelOrderModal(orderId)
-  if (update.modifiedCount > 0) {
-    return res.status(200).json({ success: true, message: "your order is cancelled..!!" })
-  } else {
-    return res.status(400).json({ success: false, message: "Can not cancel at the moment" })
+    const result = await cancelOrderUtils(req);
+
+    if (result.success) {
+      return res.status(200).json({
+        success: true,
+        message: "Order items cancelled successfully",
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: "Unable to cancel order",
+    });
+  } catch (err) {
+    console.error("Error in cancelOrder:", err);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error during cancellation",
+    });
   }
-}
+};
+
 
 //return order
 exports.returnOrder = async (req, res) => {
@@ -705,26 +697,20 @@ exports.returnOrder = async (req, res) => {
 }
 //cancel item
 exports.cancelItem = async (req, res) => {
-  let user =req.session.user.userId;
-  console.log("req.body of cancel item",req.body)
-  const data = req.body;
-  const orderData = req.body;
-  const response = await userProfileModel.canceleachItems(orderData)
-  let updateWallet = await userProfileModel.checkReturnItem(orderData)
-  if(req.body.paymentMethod !== "cod"){
-    //new controller for update wallet
-      let walletOperation = await userProfileModel.updateWalletAfterCancelItem(user,data)  
+  try {
+    const response = await cancelOrderUtils(req);
 
+    if (response) {
+      return res.status(200).json({ success: true, message: "Item cancelled successfully" });
+    } else {
+      return res.status(400).json({ success: false, message: "Cancellation failed" });
+    }
+  } catch (err) {
+    console.error("Error in cancelItem controller:", err);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
+};
 
-
-  if (response) {
-    return res.status(200).json({ success: true, message: "done" })
-
-  } else {
-    return res.status(400).json({ success: false, message: "failed" })
-  }
-}
 exports.couponLogic = async (req, res) => {
   try {
     const { code, subtotal, items } = req.body;
@@ -779,7 +765,6 @@ exports.couponLogic = async (req, res) => {
         discountedPrice: Math.max(0, Math.floor(discountedPrice)), // no negative values
       };
     });
-    // 8️⃣ Return response with tax and all calculated values
     return res.json({
       success: true,
       message: "Coupon applied successfully",

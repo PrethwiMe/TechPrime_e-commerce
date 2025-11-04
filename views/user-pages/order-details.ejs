@@ -178,6 +178,7 @@
     <main class="content-wrapper">
       <% 
         const hasNonCancelledItems = order.items.some(item => (item.itemStatus || 'pending').toLowerCase() !== 'cancelled');
+        const hasDeliveredItems = order.items.some(item => (item.itemStatus || 'pending').toLowerCase() === 'delivered');
       %>
       <header class="page-header d-flex align-items-center justify-content-between gap-3 flex-wrap">
         <div>
@@ -190,7 +191,7 @@
               <i class="bi bi-wallet2 me-1"></i> Payment
             </button>
           <% } %>
-          <% if ((order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped') && hasNonCancelledItems) { %>
+          <% if ((order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped') && hasNonCancelledItems && !hasDeliveredItems) { %>
             <button class="btn btn-outline-danger cancel-order-btn" data-order-id="<%= order.orderId %>" data-payment-method="<%= order.paymentMethod %>">
               <i class="bi bi-x-circle me-1"></i> Cancel Order
             </button>
@@ -293,7 +294,7 @@
                           </button>
                         <% } %>
                       <% } else if (item.itemStatus && item.itemStatus.toLowerCase() !== 'delivered' && item.itemStatus.toLowerCase() !== 'cancelled' && (order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped')) { %>
-                        <button class="btn btn-outline-danger btn-sm cancel-item-btn" data-cancel-item="<%= order.orderId %>_<%= item.variantId %>_<%= order.status %>_<%= order.paymentMethod %>">
+                        <button class="btn btn-outline-danger btn-sm cancel-item-btn" data-cancel-item="<%= order.orderId %>_<%= item.variantId %>_<%= (item.itemStatus || 'Pending') %>_<%= order.paymentMethod %>">
                           <i class="bi bi-x-circle me-1"></i> Cancel
                         </button>
                       <% } %>
@@ -394,6 +395,9 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
       document.addEventListener('DOMContentLoaded', () => {
+        // Inject order data for use in JS
+        const orderData = <%- JSON.stringify(order) %>;
+
         const modals = {
           payment: {
             modal: '#paymentModal',
@@ -447,6 +451,13 @@
           btn.addEventListener('click', () => {
             const orderId = btn.dataset.orderId;
             const paymentMethod = btn.dataset.paymentMethod;
+            // Prepare items array with variantId and current itemStatus (default to 'Pending' if not set)
+            const items = orderData.items
+              .filter(item => (item.itemStatus || 'pending').toLowerCase() !== 'cancelled') // Only non-cancelled items
+              .map(item => ({
+                variantId: item.variantId,
+                status: item.itemStatus || 'Pending' // Use current itemStatus, default to 'Pending'
+              }));
             handleAction('/account/orders/cancel', {
               title: 'Cancel Entire Order',
               text: `Cancel the entire order ${orderId}? This action cannot be undone.`,
@@ -457,7 +468,11 @@
                 inputAttributes: { 'aria-label': 'Cancellation reason' },
                 inputValidator: value => !value ? 'Provide a reason!' : value.trim().split(/\s+/).length > 50 ? `Reason must not exceed 50 words.` : null
               },
-              payload: { orderId, paymentMethod }
+              payload: { 
+                orderId, 
+                paymentMethod,
+                items // Include the array of item data
+              }
             }, {
               title: 'Order Cancelled!',
               text: 'Your order has been cancelled successfully.'
@@ -470,7 +485,8 @@
           btn.addEventListener('click', () => {
             const [orderId, variantId, status, paymentMethod] = btn.dataset.cancelItem.split('_');
             handleAction('/account/orders/cancel-item', {
-              text: `Cancel item in order ${orderId}?`,
+              title: 'Cancel Item',
+              text: `Cancel this item in order ${orderId}? This action cannot be undone.`,
               input: {
                 input: 'textarea',
                 inputLabel: 'Reason for Cancellation',
@@ -478,7 +494,11 @@
                 inputAttributes: { 'aria-label': 'Cancellation reason' },
                 inputValidator: value => !value ? 'Provide a reason!' : value.trim().split(/\s+/).length > 50 ? `Reason must not exceed 50 words.` : null
               },
-              payload: { orderId, variantId, status, paymentMethod }
+              payload: { 
+                orderId, 
+                paymentMethod,
+                items: [{ variantId, status }] // Wrap single item in array format
+              }
             }, {
               title: 'Item Cancelled!',
               text: 'The item has been cancelled.'

@@ -538,7 +538,7 @@ const pipeline = [
       as: "user"
     }
   },
-  { $unwind: "$user" }
+  { $unwind: "$user" },{$sort: { updatedAt: -1 } }
 ];
 
     const salesData = await db.collection(dbVariables.orderCollection).aggregate(pipeline).toArray();
