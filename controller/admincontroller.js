@@ -5,6 +5,8 @@ const paginate = require('../utils/paginate');
 const productModel = require('../model/productModels');
 const { offerValidation, couponValidation } = require('../utils/validation')
 const ExcelJS = require("exceljs");
+const PDFDocument = require("pdfkit");
+
 
 
 // clear-require-cache.js
@@ -508,7 +510,8 @@ exports.salesReportPage = async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 };
-const PDFDocument = require("pdfkit");
+
+
 
 exports.generateSalesReportPDF = async (req, res) => {
   try {
@@ -536,7 +539,6 @@ exports.generateSalesReportPDF = async (req, res) => {
     );
     doc.pipe(res);
 
-    // HEADER
     doc
       .fontSize(20)
       .fillColor("#2563EB")
@@ -552,7 +554,6 @@ exports.generateSalesReportPDF = async (req, res) => {
       )
       .moveDown(1.2);
 
-    // TABLE HEADER
     const headers = [
       "Order ID",
       "Customer",
@@ -563,57 +564,96 @@ exports.generateSalesReportPDF = async (req, res) => {
       "Status",
       "Date"
     ];
-    const columnWidths = [80, 90, 80, 30, 60, 60, 70, 60];
+    const columnWidths = [65, 85, 90, 30, 60, 55, 65, 65];
+    const tableLeft = 50;
+    const tableWidth = columnWidths.reduce((a, b) => a + b, 0);
     let y = doc.y + 10;
 
-    doc.fillColor("white").rect(50, y - 5, 495, 20).fill("#3B82F6");
-    doc.fillColor("white").fontSize(10);
-    let x = 55;
-    headers.forEach((h, i) => {
-      doc.text(h, x, y, { width: columnWidths[i], align: "left" });
-      x += columnWidths[i];
-    });
-    y += 20;
+    // Function to draw table header
+    const drawTableHeader = () => {
+      doc.fillColor("white").rect(tableLeft, y - 5, tableWidth, 22).fill("#3B82F6");
+      doc.fillColor("white").fontSize(9).font("Helvetica-Bold");
+      let x = tableLeft + 5;
+      headers.forEach((h, i) => {
+        doc.text(h, x, y, { 
+          width: columnWidths[i] - 10, 
+          align: "left",
+          lineBreak: false,
+          ellipsis: true
+        });
+        x += columnWidths[i];
+      });
+      y += 22;
+    };
+
+    // Draw header once
+    drawTableHeader();
 
     // TABLE ROWS
-    data.forEach((order, index) => {
-      const bg = index % 2 === 0 ? "#F1F5F9" : "#FFFFFF";
-      doc.rect(50, y - 2, 495, 18).fill(bg).fillColor("#0F172A").fontSize(9);
+    const rowHeight = 20;
+    doc.fontSize(8).font("Helvetica");
 
-      const rowData = [
-        order.orderId,
-        order.customer,
-        order.product,
-        order.quantity,
-        order.total,
-        order.payment,
-        order.status,
-        order.date
-      ];
-
-      let xRow = 55;
-      rowData.forEach((cell, i) => {
-        doc.text(String(cell), xRow, y, { width: columnWidths[i], align: "left" });
-        xRow += columnWidths[i];
-      });
-      y += 18;
-
-      if (y > 750) {
+    const checkPageBreak = (heightNeeded = rowHeight + 10) => {
+      if (y + heightNeeded > doc.page.height - 60) {
         doc.addPage();
         y = 70;
+        drawTableHeader();
       }
+    };
+
+    // Helper function to truncate text if needed
+    const truncateText = (text, maxLength) => {
+      const str = String(text || "");
+      return str.length > maxLength ? str.substring(0, maxLength - 2) + ".." : str;
+    };
+
+    data.forEach((order, index) => {
+      checkPageBreak();
+
+      const bgColor = index % 2 === 0 ? "#F1F5F9" : "#FFFFFF";
+      doc.rect(tableLeft, y - 3, tableWidth, rowHeight).fill(bgColor);
+      doc.fillColor("#0F172A").font("Helvetica");
+
+      // Prepare row data with truncation for long text
+      const rowData = [
+        truncateText(order.orderId, 12),
+        truncateText(order.customer, 16),
+        truncateText(order.product, 18),
+        truncateText(order.quantity, 5),
+        truncateText(order.total, 12),
+        truncateText(order.payment, 10),
+        truncateText(order.status, 12),
+        truncateText(order.date, 12)
+      ];
+
+      let x = tableLeft + 5;
+      rowData.forEach((cell, i) => {
+        const textOptions = { 
+          width: columnWidths[i] - 10, 
+          align: "left",
+          lineBreak: false,
+          ellipsis: true
+        };
+        doc.text(cell, x, y + 3, textOptions);
+        x += columnWidths[i];
+      });
+
+      y += rowHeight;
     });
 
     // SUMMARY SECTION
+    checkPageBreak(140);
     y += 30;
+
     doc
       .fontSize(14)
       .fillColor("white")
-      .rect(50, y - 8, 495, 22)
+      .font("Helvetica-Bold")
+      .rect(tableLeft, y - 8, tableWidth, 24)
       .fill("#1E293B")
-      .text("Summary", 55, y - 5, { align: "left" });
+      .text("Summary", tableLeft + 10, y - 4, { align: "left" });
 
-    y += 25;
+    y += 28;
     const summaryData = [
       ["Total Orders", totalOrders],
       ["Delivered Orders", deliveredOrders],
@@ -621,11 +661,17 @@ exports.generateSalesReportPDF = async (req, res) => {
       ["Average Order Value", `₹${parseFloat(avgOrderValue).toLocaleString()}`]
     ];
 
-    doc.fontSize(11);
+    doc.fontSize(11).font("Helvetica");
     summaryData.forEach(([label, value]) => {
-      doc.fillColor("#334155").text(label, 60, y);
-      doc.fillColor("#0F172A").text(String(value), 400, y, { align: "right" });
-      y += 18;
+      doc.fillColor("#334155").text(label, tableLeft + 10, y);
+      doc.fillColor("#0F172A").font("Helvetica-Bold").text(
+        String(value), 
+        tableLeft + tableWidth - 150, 
+        y, 
+        { width: 140, align: "right" }
+      );
+      doc.font("Helvetica");
+      y += 20;
     });
 
     // FOOTER
@@ -633,7 +679,10 @@ exports.generateSalesReportPDF = async (req, res) => {
     doc
       .fontSize(9)
       .fillColor("gray")
-      .text("Generated by TechPrime Admin Panel", { align: "center" });
+      .text("Generated by TechPrime Admin Panel", { align: "center" })
+      .moveDown(0.3)
+      .fontSize(8)
+      .text(`Generated on: ${new Date().toLocaleString()}`, { align: "center" });
 
     doc.end();
   } catch (err) {
@@ -641,8 +690,6 @@ exports.generateSalesReportPDF = async (req, res) => {
     res.status(500).json({ message: "Error generating PDF" });
   }
 };
-
-
 
 
 
