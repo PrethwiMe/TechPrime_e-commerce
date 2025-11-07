@@ -509,6 +509,7 @@ exports.salesReportPage = async (req, res) => {
 
     console.log("Start Date:", startDate);
     console.log("End Date:", endDate);
+    console.log("datas is : ",salesData.length)
     res.render('admin-pages/salesReport.ejs', {
       sales: filteredSales || [],
       search: req.query.search || '',
@@ -598,7 +599,6 @@ exports.generateSalesReportPDF = async (req, res) => {
     // Draw header once
     drawTableHeader();
 
-    // TABLE ROWS
     const rowHeight = 20;
     doc.fontSize(8).font("Helvetica");
 
@@ -618,12 +618,9 @@ exports.generateSalesReportPDF = async (req, res) => {
 
     data.forEach((order, index) => {
       checkPageBreak();
-
       const bgColor = index % 2 === 0 ? "#F1F5F9" : "#FFFFFF";
       doc.rect(tableLeft, y - 3, tableWidth, rowHeight).fill(bgColor);
       doc.fillColor("#0F172A").font("Helvetica");
-
-      // Prepare row data with truncation for long text
       const rowData = [
         truncateText(order.orderId, 12),
         truncateText(order.customer, 16),
@@ -683,7 +680,6 @@ exports.generateSalesReportPDF = async (req, res) => {
       y += 20;
     });
 
-    // FOOTER
     doc.moveDown(2);
     doc
       .fontSize(9)
@@ -692,16 +688,12 @@ exports.generateSalesReportPDF = async (req, res) => {
       .moveDown(0.3)
       .fontSize(8)
       .text(`Generated on: ${new Date().toLocaleString()}`, { align: "center" });
-
     doc.end();
   } catch (err) {
     console.error("PDF generation failed:", err);
     res.status(500).json({ message: "Error generating PDF" });
   }
 };
-
-
-
 exports.generateSalesReport = async (req, res) => {
   try {
     console.log("Generating sales report...", req.body);

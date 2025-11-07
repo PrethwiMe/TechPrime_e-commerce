@@ -93,8 +93,9 @@ exports.viewOrders = async () => {
 
 const orderData = await db.collection(dbVariables.orderCollection).find({$or: [{ paymentStatus: "paid" },{ paymentMethod: "cod" } ]})
   .sort({ createdAt: -1 }).toArray();
-    if (!orderData) throw new Error('No orders found or query failed');
 
+    if (!orderData) throw new Error('No orders found or query failed');
+console.log("leeength", orderData.length)
     const ordersWithDetails = await Promise.all(orderData.map(async (order) => {
       const userId = order.userId; 
 
@@ -597,37 +598,56 @@ exports.viewReturnHistoryPage = async () => {
 }}
 exports.salesReportData = async () => {
   try {
-    const db = await getDB();  
-const pipeline = [
-  { $unwind: "$items" },
-  {
-    $match: {
-      "items.itemStatus": "Delivered",
-      "items.itemReturn": { $ne: "return" },
-   
-    }
-  },
-  {
-    $addFields: {
-      userObjectId: { $toObjectId: "$userId" }
-    }
-  },
-  {
-    $lookup: {
-      from: dbVariables.userCollection,
-      localField: "userObjectId",
-      foreignField: "_id",
-      as: "user"
-    }
-  },
-  { $unwind: "$user" },{$sort: { updatedAt: -1 } }
-];
+    const db = await getDB();
 
-    const salesData = await db.collection(dbVariables.orderCollection).aggregate(pipeline).toArray();
+    const pipeline = [
+      // Match only paid or COD orders
+      {
+        $match: {
+          $or: [
+            { paymentStatus: "paid" },
+            { paymentMethod: "cod" }
+          ]
+        }
+      },
+      // Unwind items to filter at item level
+      { $unwind: "$items" },
+      // Exclude returned or cancelled items (case-insensitive)
+      {
+        $match: {
+          "items.itemReturn": { $ne: "return" },
+          "items.itemStatus": { $not: /^cancelled$/i }
+        }
+      },
+      // Convert userId to ObjectId for lookup
+      {
+        $addFields: {
+          userObjectId: { $toObjectId: "$userId" }
+        }
+      },
+      // Lookup user details
+      {
+        $lookup: {
+          from: dbVariables.userCollection,
+          localField: "userObjectId",
+          foreignField: "_id",
+          as: "user"
+        }
+      },
+      { $unwind: "$user" },
+      // Sort latest first
+      { $sort: { updatedAt: -1 } }
+    ];
+
+    const salesData = await db
+      .collection(dbVariables.orderCollection)
+      .aggregate(pipeline)
+      .toArray();
+
     return salesData;
 
   } catch (error) {
     console.error("Error generating sales report:", error);
     throw error;
   }
-}
+};

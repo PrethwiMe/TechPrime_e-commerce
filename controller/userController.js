@@ -53,7 +53,7 @@ exports.loginAccess = async (req, res) => {
     const user = await userModel.fetchUser(email);
 
     if (user.googleId ) {
-      return res.status(400).json({ error: 'Please log in using Google OAuth.' });
+      return res.status(400).json({ error: 'Please log in using Google Acount...' });
     }
     console.log("Login attempt for user:", user);  
     if (!user) {
@@ -457,9 +457,20 @@ exports.sortAndSearchProducts = async (req, res) => {
 }
 
 
-    if (sort === "low-high") products.sort((a, b) => a.originalPrice - b.originalPrice);
-    if (sort === "high-low") products.sort((a, b) => b.originalPrice - a.originalPrice);
-    if (sort === "newest") products = products.reverse();
+  if (sort) {
+  switch (sort) {
+    case "low-high":
+      products.sort((a, b) => a.fullProduct[0].price - b.fullProduct[0].price);
+      break;
+    case "high-low":
+      products.sort((a, b) => b.fullProduct[0].price - a.fullProduct[0].price);
+      break;
+    case "newest":
+      products.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      break;
+  }
+}
+
 
     if (sort === "a-z") products.sort((a, b) => a.name.localeCompare(b.name));
     if (sort === "z-a") products.sort((a, b) => b.name.localeCompare(a.name));

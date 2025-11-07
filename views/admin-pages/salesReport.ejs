@@ -15,7 +15,7 @@
       --text-primary:#f1f5f9;--text-secondary:#cbd5e1;
     }
     body{background:var(--dark-bg);}
-    .dashboard-title{font-size:2rem;font-weight:700;color:var(--text-dark);margin-bottom:2rem;}
+    .dashboard-title{font-size:2rem;font-weight:700;color:var(--text-primary);margin-bottom:2rem;}
     .metric-box{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:1.5rem;border-left:4px solid;transition:0.3s;}
     .metric-box:hover{transform:translateY(-4px);}
     .metric-box h4{font-size:0.875rem;font-weight:600;opacity:0.9;}
@@ -76,7 +76,7 @@
 
         sales.forEach(order => {
           const item = order.items;
-          const itemTotal = (item.discountedPrice ) * item.discountedPrice;
+          const itemTotal = item.discountedPrice;
           totalRevenue += itemTotal;
           if (order.status === 'Delivered') deliveredOrders++;
         });
@@ -84,15 +84,14 @@
         let avgOrderValue = totalOrders > 0 ? (totalRevenue / totalOrders).toFixed(2) : 0;
       %>
 
- 
       <!-- SEARCH + EXPORT -->
       <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div class="input-group" style="width: 280px;">
-          <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Search orders..." value="<%= search || '' %>">
+          <input type="text" class="form-control form-control-sm bg-white" id="searchInput" placeholder="Search orders..." value="<%= search || '' %>">
           <button class="btn btn-outline-secondary btn-sm" id="clearSearch"><i class="bi bi-x"></i></button>
         </div>
         <div class="btn-group export-btn-group">
-          <button id="exportCSV" class="btn btn-outline-primary"><i class="bi bi-file-earmark-csv me-1"></i>Excel</button>
+          <button id="exportCSV" class="btn btn-outline-primary"><i class="bi bi-file-earmark-csv me-1"></i>CSV</button>
           <button id="exportPDF" class="btn btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</button>
         </div>
       </div>
@@ -105,7 +104,7 @@
             <thead>
               <tr>
                 <th>Order ID</th><th>Customer</th><th>Product</th><th class="text-center">Qty</th>
-                <th class="text-end">Total </th><th>Payment</th><th>Status</th><th>Date</th>
+                <th class="text-end">Total (with 18% tax)</th><th>Payment</th><th>Status</th><th>Date</th>
               </tr>
             </thead>
             <tbody>
@@ -113,12 +112,14 @@
                 const customerName = order.user?.firstName ? `${order.user.firstName} ${order.user.lastName || ''}`.trim() : order.selectedAddress.fullName;
                 const paymentDisplay = order.paymentMethod === 'cod' ? 'COD' : order.paymentMethod.toUpperCase();
                 const statusClass = order.items.itemStatus === 'Delivered' ? 'bg-success' : order.items.itemStatus === 'Pending' ? 'bg-warning' : 'bg-secondary';
+                const totalWithTax = (order.items.discountedPrice *  order.items.quantity).toFixed(2);
               %>
               <tr>
                 <td><strong><%= order.orderId %></strong></td>
                 <td><%= customerName %></td>
                 <td><%= order.items.productId %></td>
                 <td class="text-center"><%= order.items.quantity %></td>
+                <td class="text-end"><strong>₹<%= parseFloat(totalWithTax).toLocaleString() %></strong></td>
                 <td><span class="badge bg-info"><%= paymentDisplay %></span></td>
                 <td><span class="badge <%= statusClass %>"><%= order.items.itemStatus%></span></td>
                 <td><%= new Date(order.createdAt).toLocaleDateString() %></td>

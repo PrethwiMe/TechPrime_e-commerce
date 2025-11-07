@@ -340,7 +340,7 @@ exports.canceleachItems = async (data) => {
     let { orderId, variantId, status } = data;
 
     if (status == "Pending" || "Shipped") {
-      status = "cancelled"
+      status = "Cancelled"
     }
     const db = await getDB();
 

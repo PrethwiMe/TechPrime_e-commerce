@@ -56,38 +56,6 @@ exports.addAddress = async (req, res) => {
 
     const { fullName, phone, line1, city, state, pincode } = req.body;
 
-    // Step 1: Validate pincode using Zippopotam API
-    const zipUrl = `https://api.zippopotam.us/in/${pincode}`;
-    let locationData;
-    try {
-      const zipResponse = await axios.get(zipUrl);
-      if (zipResponse.status === 200 && zipResponse.data.places.length > 0) {
-        locationData = zipResponse.data.places[0];
-      } else {
-        return res.status(400).json({ message: "Invalid pincode or not found." });
-      }
-    } catch {
-      return res.status(400).json({ message: "Invalid or unsupported pincode." });
-    }
-
-    // Step 2: Optional cross-check: city/state match with API result
-    const apiCity = locationData["place name"]?.toLowerCase();
-    const apiState = locationData["state"]?.toLowerCase();
-
-    console.log("citty issssssss",apiCity)
-
-    if (
-      city.toLowerCase() !== apiCity &&
-      !apiCity.includes(city.toLowerCase())
-    ) {
-      return res.status(400).json({ message: "City does not match the pincode." });
-    }
-
-    if (state.toLowerCase() !== apiState) {
-      return res.status(400).json({ message: "State does not match the pincode." });
-    }
-
-    // Step 3: Save validated address
     const data = {
       id: uuidv4(),
       userId,
