@@ -23,7 +23,6 @@
     .p-4 { padding: 1.5rem !important; }
     .container-fluid { width: 100%; padding-right: var(--bs-gutter-x, 0.75rem); padding-left: var(--bs-gutter-x, 0.75rem); margin-right: auto; margin-left: auto; }
     .text-end { text-align: right !important; }
-
     #cropModal .modal-body {
       position: relative;
       height: calc(100% - 120px);
@@ -38,7 +37,6 @@
       display: block;
       margin: auto;
     }
-
     .image-slot {
       height: 280px;
     }
@@ -46,15 +44,15 @@
       border-radius: 0.25rem 0.25rem 0 0;
     }
     .delete-btn {
-      background: rgba(255,0,0,0.8); 
-      color: white; 
-      border: none; 
+      background: rgba(255,0,0,0.8);
+      color: white;
+      border: none;
       border-radius: 50%;
-      width: 30px; 
-      height: 30px; 
-      font-weight: bold; 
+      width: 30px;
+      height: 30px;
+      font-weight: bold;
       cursor: pointer;
-      line-height: 1; 
+      line-height: 1;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -73,11 +71,8 @@
       <%- include('partials/topBar') %>
       <div class="container-fluid p-4 flex-grow-1">
         <h2 class="mb-4 fw-bold">EDIT PRODUCT</h2>
-
         <div id="errorAlert" class="alert alert-danger d-none"></div>
-
         <form id="productForm" action="/admin/edit-product/<%= product._id %>" method="POST" enctype="multipart/form-data">
-
           <!-- Product Info -->
           <div class="row mb-3">
             <div class="col-md-6">
@@ -89,41 +84,35 @@
               <input type="text" name="companyDetails" class="form-control" value="<%= product.companyDetails %>"/>
             </div>
           </div>
-
           <div class="mb-3">
             <label class="form-label">Description</label>
             <textarea name="description" class="form-control" rows="3"><%= product.description %></textarea>
           </div>
-
           <!-- Images -->
-          <h5 class="mt-4">Product Images (Max 3)</h5>
+          <h5 class="mt-4">Product Images (Exactly 3)</h5>
           <div class="row mb-3" id="imagesContainer">
             <% const maxSlots = 3; %>
             <% const numExisting = (product.images || []).length; %>
             <% for(let i = 0; i < maxSlots; i++) { %>
               <div class="col-md-4 mb-3">
-                <% if(i < numExisting) { %>
-                  <div class="card image-slot filled" data-index="<%= i %>">
+                <div class="card image-slot <%= i < numExisting ? 'filled' : 'empty' %> h-100" data-index="<%= i %>">
+                  <% if(i < numExisting) { %>
                     <div class="position-relative">
                       <img src="<%= product.images[i] %>" class="card-img-top" alt="Product Image" style="height: 200px; object-fit: cover;">
                       <button type="button" class="delete-btn position-absolute top-0 end-0 m-2 z-3">&times;</button>
                     </div>
-                    <input type="hidden" name="existingImages[]" value="<%= product.images[i] %>"/>
-                  </div>
-                <% } else { %>
-                  <div class="card image-slot empty h-100" data-index="<%= i %>">
+                    <input type="hidden" class="existing-input" data-slot="<%= i %>" value="<%= product.images[i] %>"/>
+                  <% } else { %>
                     <div class="card-body text-center d-flex flex-column justify-content-center h-100">
                       <button type="button" class="btn btn-outline-primary btn-lg add-btn mb-2">+</button>
                       <small class="text-muted">Click to add image</small>
                     </div>
-                  </div>
-                <% } %>
+                  <% } %>
+                </div>
               </div>
             <% } %>
           </div>
-
           <input type="file" id="imageUploader" class="d-none" accept="image/*" />
-
           <!-- Pricing & Product Info -->
           <div class="row mb-3 mt-3">
             <div class="col-md-4">
@@ -143,7 +132,6 @@
               <input type="text" name="packageItems" class="form-control" value="<%= product.packageItems %>"/>
             </div>
           </div>
-
           <div class="row mb-3">
             <div class="col-md-3">
               <label class="form-label">Operating System</label>
@@ -165,10 +153,8 @@
               </select>
             </div>
           </div>
-
           <hr class="my-4" />
           <h4 class="fw-bold">Variant Details</h4>
-
           <% if (product.fullProduct && product.fullProduct.length > 0) { %>
             <% product.fullProduct.forEach((variant, idx) => { %>
               <div class="border rounded p-3 mb-4">
@@ -191,15 +177,13 @@
           <% } else { %>
             <p class="text-muted">No variants available.</p>
           <% } %>
-
           <div class="text-end">
-            <button type="submit" class="btn btn-success px-4">Update Product</button>
+            <button type="submit" class="btn btn-success px-4" id="submitBtn">Update Product</button>
           </div>
         </form>
       </div>
     </div>
   </div>
-
   <!-- Crop Modal -->
   <div class="modal fade" id="cropModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 95vw; height: 95vh;">
@@ -217,18 +201,39 @@
       </div>
     </div>
   </div>
-
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-
   <script>
     const imagesContainer = document.getElementById("imagesContainer");
     const uploader = document.getElementById("imageUploader");
     const imageToCrop = document.getElementById("imageToCrop");
     const cropModal = new bootstrap.Modal(document.getElementById("cropModal"));
     let cropper, currentFile, currentSlot;
+    const submitBtn = document.getElementById("submitBtn");
+    const form = document.getElementById("productForm");
+
+    // Track filled slots for validation
+    let filledSlots = new Set();
+    <% for(let i = 0; i < (product.images || []).length; i++) { %>
+      filledSlots.add(<%= i %>);
+    <% } %>
+
+    // Function to update submit button based on filled slots
+    function updateImageCount() {
+      const totalFilled = filledSlots.size;
+      if (totalFilled !== 3) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = `Update Product (Need Exactly 3 Images - Currently: ${totalFilled})`;
+      } else {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Update Product';
+      }
+    }
+
+    // Initial check
+    updateImageCount();
 
     document.getElementById("cropModal").addEventListener("shown.bs.modal", () => {
       if (cropper) cropper.destroy();
@@ -237,27 +242,24 @@
 
     document.getElementById("cropBtn").addEventListener("click", () => {
       cropper.getCroppedCanvas().toBlob((blob) => {
-        const slot = currentSlot;
-        slot.classList.remove('empty');
-        slot.classList.add('filled');
+        const slotIndex = parseInt(currentSlot.dataset.index);
+        currentSlot.classList.remove('empty');
+        currentSlot.classList.add('filled');
         const imgUrl = URL.createObjectURL(blob);
-        slot.innerHTML = `
+        currentSlot.innerHTML = `
           <div class="position-relative">
             <img src="${imgUrl}" class="card-img-top" alt="Product Image" style="height: 200px; object-fit: cover;">
             <button type="button" class="delete-btn position-absolute top-0 end-0 m-2 z-3">&times;</button>
           </div>
-          <input type="hidden" name="newImages[]" value=""/>
         `;
-        const hiddenInput = slot.querySelector('input[name="newImages[]"]');
-        const reader2 = new FileReader();
-        reader2.onloadend = () => {
-          hiddenInput.value = reader2.result;
-        };
-        reader2.readAsDataURL(blob);
+        // Store blob temporarily for submit
+        currentSlot._blob = blob;
+        filledSlots.add(slotIndex);
         cropper.destroy();
         cropModal.hide();
         uploader.value = "";
         currentSlot = null;
+        updateImageCount();
       }, "image/jpeg");
     });
 
@@ -269,9 +271,10 @@
       if (e.target.classList.contains("delete-btn")) {
         e.stopPropagation();
         const slot = e.target.closest(".image-slot");
+        const slotIndex = parseInt(slot.dataset.index);
         Swal.fire({
           title: 'Are you sure?',
-          text: "This image will be removed!",
+          text: `This image at position ${slotIndex + 1} will be removed! You'll need to add a new one to that slot to keep 3 total images.`,
           icon: 'warning',
           showCancelButton: true,
           confirmButtonColor: '#d33',
@@ -280,8 +283,11 @@
           cancelButtonText: 'Cancel'
         }).then((result) => {
           if (result.isConfirmed) {
-            const hiddenInput = slot.querySelector('input[type="hidden"]');
-            if (hiddenInput) hiddenInput.remove();
+            // Remove existing input if present
+            const existingInput = slot.querySelector('.existing-input');
+            if (existingInput) existingInput.remove();
+            // Clear any stored blob
+            delete slot._blob;
             slot.innerHTML = `
               <div class="card-body text-center d-flex flex-column justify-content-center h-100">
                 <button type="button" class="btn btn-outline-primary btn-lg add-btn mb-2">+</button>
@@ -290,6 +296,8 @@
             `;
             slot.classList.remove('filled');
             slot.classList.add('empty');
+            filledSlots.delete(slotIndex);
+            updateImageCount();
           }
         });
       }
@@ -308,19 +316,49 @@
 
     document.getElementById("productForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const form = e.target;
-      const formData = new FormData(form);
-
-      const base64Inputs = form.querySelectorAll('input[name="newImages[]"]');
-      let count = 0;
-      for (let input of base64Inputs) {
-        const blob = await (await fetch(input.value)).blob();
-        formData.append("images", blob, `image${++count}.jpg`);
-        input.remove();
+      updateImageCount();
+      if (filledSlots.size !== 3) {
+        Swal.fire({
+          icon: "error",
+          title: "Image Requirement Not Met",
+          text: `You must have exactly 3 images in order. Currently: ${filledSlots.size} (replace deleted ones in their slots).`
+        });
+        return;
       }
 
+      const formData = new FormData(form);
+      // Append other form fields
+      const otherInputs = form.querySelectorAll('input:not(.existing-input), textarea, select');
+      otherInputs.forEach(input => {
+        if (input.type === 'file') return; // Skip file inputs
+        if (input.name) formData.append(input.name, input.value);
+      });
+
+      // Handle images by slot position (0-2)
+      for (let i = 0; i < 3; i++) {
+        const slot = imagesContainer.querySelector(`[data-index="${i}"]`);
+        if (slot.classList.contains('filled')) {
+          const existingInput = slot.querySelector('.existing-input');
+          if (existingInput) {
+            // Existing image: append as text field for backend to read as body
+            formData.append(`slot${i}`, existingInput.value);
+          } else if (slot._blob) {
+            // New image: append as file
+            formData.append(`slot${i}`, slot._blob, `image${i}.jpg`);
+          }
+        }
+      }
+
+      // Append variants (assuming they are already in formData from inputs)
+      const variantInputs = form.querySelectorAll('input[name^="variants"]');
+      variantInputs.forEach(input => {
+        formData.append(input.name, input.value);
+      });
+
       try {
-        const res = await axios.post(form.action, formData, { headers: { "Content-Type": "multipart/form-data" } });
+        const res = await axios.post(form.action, formData, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
         if (res.data.success) {
           Swal.fire({ icon: "success", title: "Updated!", text: "Product updated successfully." }).then(() => {
             window.location.href = "/admin/products";
@@ -329,10 +367,9 @@
           Swal.fire({ icon: "error", title: "Error", text: res.data.message || "Unknown error" });
         }
       } catch (err) {
-        Swal.fire({ icon: "error", title: "Error", text: err.message });
+        Swal.fire({ icon: "error", title: "Error", text: err.response?.data?.message || err.message });
       }
     });
   </script>
-
 </body>
 </html>

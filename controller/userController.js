@@ -16,12 +16,10 @@ const { json } = require('express');
 exports.loadHome = async (req, res) => {
   try {
 
+   
+
     const data = await productModel.allProductsDisplay();
     const products = data;
-    // data.forEach(element => {
-    //   console.log(element);
-
-    // }); 
     const categories = await productModel.getAllCategories();
       res.render('user-pages/home', {
       products,
@@ -498,6 +496,8 @@ exports.loadProductDetails = async (req, res) => {
     let result = await productModel.viewProducts(data)
     let categoriesId = result[0].categoriesId   
     const { totalDocs, products } = await productModel.viewAllProducts()
+
+    console.log("dataas",JSON.stringify(result,null,2))
 //related products
 let filteredProducts = products.filter(product => {
   return product.categoriesId == categoriesId

@@ -62,6 +62,14 @@ exports.statusOfCategory = async (categoryId) => {
 
   return updateResult;
 };
+//count in cart
+exports.countInCart = async (userId)=> {
+
+  const db = await getDB();
+  const cartCount = await db.collection(dbVariables.cartCollection).findOne({userId:userId})
+  console.log("cartdata",JSON.stringify(cartCount,null,2))
+
+}
 // all products with pagination
 exports.showProducts = async ({ skip = 0, limit = 5, search = "" }) => {
   const db = getDB();

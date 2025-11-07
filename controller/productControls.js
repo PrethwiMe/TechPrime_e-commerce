@@ -283,77 +283,52 @@ let imageUploadStats = {
 exports.handleEditProduct = async (req, res) => {
   try {
     const productId = req.params.productId;
-    const {
-      name,
-      companyDetails,
-      description,
-      originalPrice,
-      categoriesId,
-      packageItems,
-      OS,
-      dimension,
-      series,
-      isActive,
-      variants,
-      existingImages,
-    } = req.body;
 
-    if (
-      !name || !name.trim() ||
-      !companyDetails || !companyDetails.trim() ||
-      !description || !description.trim() ||
-      !categoriesId || !categoriesId.trim() ||
-      !packageItems || !packageItems.trim() ||
-      !OS || !OS.trim() ||
-      !dimension || !dimension.trim() ||
-      !series || !series.trim()
-    ) {
-      return res.status(400).json({ success: false, message: 'Please fill in all required product fields.' });
-    }
+    // Helper to clean repeated or array values
+    const cleanValue = (val) => {
+      if (Array.isArray(val)) return val[0];
+      return val;
+    };
 
-    if (!originalPrice || isNaN(originalPrice) || Number(originalPrice) <= 0) {
-      return res.status(400).json({ success: false, message: 'Original price must be a positive number.' });
-    }
+    // Normalize input fields
+    const name = cleanValue(req.body.name);
+    const companyDetails = cleanValue(req.body.companyDetails);
+    const description = cleanValue(req.body.description);
+    const originalPrice = cleanValue(req.body.originalPrice);
+    const categoriesId = cleanValue(req.body.categoriesId);
+    const packageItems = cleanValue(req.body.packageItems);
+    const OS = cleanValue(req.body.OS);
+    const dimension = cleanValue(req.body.dimension);
+    const series = cleanValue(req.body.series);
+    const isActive = cleanValue(req.body.isActive);
+    const variants = req.body.variants; // keep as is if used elsewhere
 
-    if (!variants || !Array.isArray(variants) || variants.length === 0) {
-      return res.status(400).json({ success: false, message: 'Variant details are required.' });
-    }
-
-    for (let variant of variants) {
-      const requiredFields = ['processor', 'ram', 'storage', 'graphics', 'color', 'display', 'price', 'stock'];
-      for (let field of requiredFields) {
-        if (!variant[field] || (typeof variant[field] === 'string' && !variant[field].trim())) {
-          return res.status(400).json({ success: false, message: 'Please fill in all required variant fields.' });
-        }
-      }
-      if (isNaN(variant.price) || Number(variant.price) <= 0) {
-        return res.status(400).json({ success: false, message: 'Variant price must be a positive number.' });
-      }
-      if (isNaN(variant.stock) || Number(variant.stock) < 0) {
-        return res.status(400).json({ success: false, message: 'Variant stock must be a non-negative integer.' });
+    // Image logic remains same
+    const allImages = [];
+    for (let i = 0; i < 3; i++) {
+      const slotKey = `slot${i}`;
+      const files = req.files && req.files[slotKey];
+      if (files && files.length > 0) {
+        const newImgPath = '/uploads/products/' + files[0].filename;
+        allImages.push(newImgPath);
+      } else if (req.body[slotKey]) {
+        allImages.push(req.body[slotKey]);
+      } else {
+        return res.status(400).json({ success: false, message: `Image slot ${i + 1} is required.` });
       }
     }
 
+    if (allImages.length !== 3) {
+      return res.status(400).json({ success: false, message: 'Exactly 3 images are required for a product.' });
+    }
+
+    // Check if product exists
     const existingProduct = await productModel.showEditProduct(productId);
     if (!existingProduct) {
       return res.status(404).json({ success: false, message: 'Product not found.' });
     }
 
-    const existingImgUrls = Array.isArray(existingImages) ? existingImages : [];
-    const newImgPaths = req.files && req.files.length > 0 ? req.files.map(file => '/uploads/products/' + file.filename) : [];
-    let allImages = [...existingImgUrls, ...newImgPaths];
-
-    if (allImages.length < 3) {
-      imageUploadStats.failedAttempts++;
-      imageUploadStats.failures.push({ attemptNo: imageUploadStats.totalAttempts, reason: 'Less than 3 images uploaded' });
-      console.log('Image Upload Log:', imageUploadStats);
-      return res.status(400).json({ success: false, message: 'At least 3 images are required for a product.' });
-    }
-
-    if (allImages.length > 3) {
-      return res.status(400).json({ success: false, message: 'No more than 3 images are allowed for a product.' });
-    }
-
+    // Build product data for update
     const productData = {
       name,
       companyDetails,
@@ -365,37 +340,21 @@ exports.handleEditProduct = async (req, res) => {
       OS,
       dimension,
       series,
-      isActive: isActive === 'true',
+      isActive: isActive === 'true' || isActive === true,
       createdAt: new Date()
     };
 
-    let insert = await productModel.updateProduct(productId, productData);
-
-    console.log("Varients", variants);
-
-    for (let variant of variants) {
-      const variantData = {
-        processor: variant.processor,
-        ram: variant.ram,
-        storage: variant.storage,
-        graphics: variant.graphics,
-        color: variant.color,
-        display: variant.display,
-        price: Number(variant.price),
-        stock: Number(variant.stock),
-      };
-
-      await productModel.updateVariantByProductId(new ObjectId(productId), new ObjectId(variant._id),
-        variantData);
-    }
+    // Update product
+    await productModel.updateProduct(productId, productData);
 
     return res.status(200).json({ success: true, message: 'Product updated successfully' });
-
   } catch (error) {
     console.error('Update Product Error:', error);
     return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
+
+
 //edit categories vieew
 exports.editCategories = async (req, res) => {
   console.log(req.params.Id);

@@ -38,8 +38,11 @@ router.get('/products/search', sessionHandle.adminConfirmed, productController.p
 //edit products page render
 router.get('/products/edit/:productId', sessionHandle.adminConfirmed, productController.editProductPage)
 //edit products
-router.post('/edit-product/:productId', sessionHandle.adminConfirmed, upload.array('images', 3), productController.handleEditProduct);
-//edit categories view edit pages
+router.post('/edit-product/:productId', sessionHandle.adminConfirmed, upload.fields([
+  { name: 'slot0', maxCount: 1 },
+  { name: 'slot1', maxCount: 1 },
+  { name: 'slot2', maxCount: 1 }
+]), productController.handleEditProduct);
 router.get('/categories/edit/:Id', sessionHandle.adminConfirmed, productController.editCategories)
 router.post('/categories/edit-req', sessionHandle.adminConfirmed, productController.editDataCategories)
 //all orders

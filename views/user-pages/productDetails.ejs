@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><%= product && product.name ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product Details' %> | TechCart</title>
+  <title><%= product && product.name ? (typeof product.name === 'string' ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product') : 'Product Details' %> | TechCart</title>
   <link rel="icon" href="/images/favicon.ico" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
@@ -44,7 +44,7 @@
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="/">Home</a></li>
       <li class="breadcrumb-item"><a href="/search">All Products</a></li>
-      <li class="breadcrumb-item active" aria-current="page"><%= product && product.name ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product' %></li>
+      <li class="breadcrumb-item active" aria-current="page"><%= product && product.name ? (typeof product.name === 'string' ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product') : 'Product' %></li>
     </ol>
   </nav>
 
@@ -54,7 +54,7 @@
       <div class="col-lg-6">
         <div id="zoomContainer" class="zoom-container">
           <img id="mainImage" class="main-img" src="<%= (product && product.images && product.images.length) ? product.images[0] : '/images/fallback.jpg' %>" 
-               alt="<%= product && product.name ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product Image' %>" 
+               alt="<%= product && product.name ? (typeof product.name === 'string' ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product') : 'Product Image' %>" 
                onerror="if(this.src !== '/images/fallback.jpg'){ this.src='/images/fallback.jpg'; }" />
         </div>
         <div class="d-flex thumbs">
@@ -66,8 +66,8 @@
 
       <!-- Product Info -->
       <div class="col-lg-6">
-        <h2 class="fw-bold"><%= product && product.name ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product' %></h2>
-        <p class="text-secondary"><%= product && product.companyDetails ? product.companyDetails.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %> | Series: <%= product && product.series ? product.series.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></p>
+        <h2 class="fw-bold"><%= product && product.name ? (typeof product.name === 'string' ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product') : 'Product' %></h2>
+        <p class="text-secondary"><%= product && product.companyDetails ? (typeof product.companyDetails === 'string' ? product.companyDetails.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '') : '' %> | Series: <%= product && product.series ? (typeof product.series === 'string' ? product.series.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '') : '' %></p>
 
         <div class="d-flex align-items-baseline gap-3 mb-3">
           <h4 class="mb-0"><small class="text-muted"><del>₹<%= product && product.originalPrice || '' %></del></small></h4>
@@ -75,17 +75,17 @@
           <span class="badge bg-success" id="stockBadge"></span>
         </div>
 
-        <p><%= product && product.description ? product.description.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></p>
+        <p><%= product && product.description ? (typeof product.description === 'string' ? product.description.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '') : '' %></p>
 
         <div class="d-flex gap-3 mb-4">
           <button id="addToCartBtn" class="btn-dark-custom"
-            data-product-name="<%= product && product.name ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;') : '' %>"
+            data-product-name="<%= product && product.name ? (typeof product.name === 'string' ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;') : '') : '' %>"
             data-product-id="<%= product && product._id || '' %>"
             data-variant-id="">
             Add to Cart
           </button>
           <button id="wishlistBtn" class="btn-light-custom"
-            data-product-name="<%= product && product.name ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;') : '' %>"
+            data-product-name="<%= product && product.name ? (typeof product.name === 'string' ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;') : '') : '' %>"
             data-product-id="<%= product && product._id || '' %>"
             data-variant-id="">
             ❤ Wishlist
@@ -98,11 +98,11 @@
           <% if (product && product.combProduct && product.combProduct.length) { %>
             <% (product.combProduct || []).forEach((variant, idx) => { %>
               <div class="variant-card" data-variant-index="<%= idx %>">
-                <p class="fw-semibold mb-1"><%= variant && variant.processor ? variant.processor.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></p>
+                <p class="fw-semibold mb-1"><%= variant && variant.processor ? (typeof variant.processor === 'string' ? variant.processor.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '') : '' %></p>
                 <small>
-                  RAM: <%= variant && variant.ram ? variant.ram.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %> | 
-                  Storage: <%= variant && variant.storage ? variant.storage.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %> | 
-                  GPU: <%= variant && variant.graphics ? variant.graphics.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %>
+                  RAM: <%= variant && variant.ram ? (typeof variant.ram === 'string' ? variant.ram.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '') : '' %> | 
+                  Storage: <%= variant && variant.storage ? (typeof variant.storage === 'string' ? variant.storage.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '') : '' %> | 
+                  GPU: <%= variant && variant.graphics ? (typeof variant.graphics === 'string' ? variant.graphics.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '') : '' %>
                 </small>
                 <div class="d-flex justify-content-between align-items-center mt-2">
                   <span class="fw-bold">₹<%= variant && variant.price || '' %></span>
@@ -129,10 +129,10 @@
             <tr><th scope="row">Graphics</th><td id="tdGraphics">—</td></tr>
             <tr><th scope="row">Display</th><td id="tdDisplay">—</td></tr>
             <tr><th scope="row">Color</th><td id="tdColor">—</td></tr>
-            <tr><th scope="row">Operating System</th><td><%= product && product.OS ? product.OS.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></td></tr>
-            <tr><th scope="row">Dimension</th><td><%= product && product.dimension ? product.dimension.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></td></tr>
-            <tr><th scope="row">Series</th><td><%= product && product.series ? product.series.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></td></tr>
-            <tr><th scope="row">Included Items</th><td><%= product && product.packageItems ? product.packageItems.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></td></tr>
+            <tr><th scope="row">Operating System</th><td><%= product && product.OS ? (typeof product.OS === 'string' ? product.OS.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '') : '' %></td></tr>
+            <tr><th scope="row">Dimension</th><td><%= product && product.dimension ? (typeof product.dimension === 'string' ? product.dimension.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '') : '' %></td></tr>
+            <tr><th scope="row">Series</th><td><%= product && product.series ? (typeof product.series === 'string' ? product.series.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '') : '' %></td></tr>
+            <tr><th scope="row">Included Items</th><td><%= product && product.packageItems ? (typeof product.packageItems === 'string' ? product.packageItems.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '') : '' %></td></tr>
             <tr><th scope="row">Created At</th><td><%= product && product.createdAt ? new Date(product.createdAt).toDateString() : '' %></td></tr>
           </tbody>
         </table>
@@ -149,9 +149,9 @@
           <div class="slide-card">
             <a href="/all-product/product-details/<%= p._id || '' %>" class="text-decoration-none">
               <img src="<%= (p.images && p.images[0]) || '/images/fallback.jpg' %>" 
-                   alt="<%= p.name ? p.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product' %>" 
+                   alt="<%= (p.name && typeof p.name === 'string') ? p.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product' %>" 
                    onerror="if(this.src !== '/images/fallback.jpg'){ this.src='/images/fallback.jpg'; }" />
-              <p class="fw-semibold"><%= p.name ? p.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></p>
+              <p class="fw-semibold"><%= (p.name && typeof p.name === 'string') ? p.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></p>
               <span class="fw-bold">₹<%= p.originalPrice || '' %></span>
             </a>
           </div>
@@ -170,9 +170,9 @@
           <div class="slide-card">
             <a href="/all-product/product-details/<%= p._id || '' %>" class="text-decoration-none">
               <img src="<%= (p.images && p.images[0]) || '/images/fallback.jpg' %>" 
-                   alt="<%= p.name ? p.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product' %>" 
+                   alt="<%= (p.name && typeof p.name === 'string') ? p.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product' %>" 
                    onerror="if(this.src !== '/images/fallback.jpg'){ this.src='/images/fallback.jpg'; }" />
-              <p class="fw-semibold"><%= p.name ? p.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></p>
+              <p class="fw-semibold"><%= (p.name && typeof p.name === 'string') ? p.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></p>
               <span class="fw-bold">₹<%= p.originalPrice || '' %></span>
             </a>
           </div>
