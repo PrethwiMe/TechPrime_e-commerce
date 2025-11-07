@@ -145,10 +145,21 @@ exports.orderPage = async (req, res) => {
         return order.orderId == filter
       });
     }
+    const page = parseInt(req.query.page) || 1;
+    const limit = 4
+    const totalDocs = orderData.length;
+    const { skip, totalPages } = paginate({ totalDocs, page, limit });
+
+    const orders = orderData.slice(skip, skip + limit);
+
+    const validPage = Math.max(1, Math.min(page, totalPages));
+
     res.render('admin-pages/allOrders', {
-      orders: orderData,
+      orders,
       filter,
-      search: req.query.search || ''
+      search: req.query.search || '',
+      currentPage: validPage,
+      totalPages
     });
   } catch (error) {
     console.error('Error rendering order page:', error);
@@ -159,7 +170,6 @@ exports.orderPage = async (req, res) => {
 exports.viewEachOrder = async(req,res)=>{
   let id = req.params.Id
   const response = await adminModel.getEachOrder(id)
-  console.log("data from backend",JSON.stringify(response,null,2))
   res.render('admin-pages/EachOrder.ejs',{order:response})
 }
 //edit order page
@@ -211,7 +221,6 @@ exports.updateItems = async (req, res) => {
 };
 // approve return product
 exports.handleReturnProduct = async (req, res) => {
-  console.log("request body in return product", req.body);
   let wallet
   try {
     const { userId, orderId, productId, variantId, status, refundAmount } = req.body;
@@ -436,7 +445,6 @@ exports.returnOrdersPage = async (req, res) => {
 exports.returnHistoryPage = async (req, res) => {
   try {
     const data = await adminModel.viewReturnHistoryPage();
-    console.log("return history data", JSON.stringify(data, null, 2));
     res.render('admin-pages/returnHistory.ejs', {
       returns: data || [],
       search: req.query.search || ''

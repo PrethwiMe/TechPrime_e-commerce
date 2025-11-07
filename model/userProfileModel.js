@@ -247,7 +247,6 @@ exports.invoiceData = async (userId, orderNumber) => {
         selectedAddress: { $first: "$selectedAddress" },
         paymentMethod: { $first: "$paymentMethod" },
         subtotal: { $first: "$subtotal" },
-        tax: { $first: "$tax" },
         deliveryCharge: { $first: "$deliveryCharge" },
         total: { $first: "$total" },
         createdAt: { $first: "$createdAt" },
@@ -451,7 +450,6 @@ exports.returnEachItems = async (data) => {
           couponCode: 1,
           subtotal: 1,
           couponDiscount: 1,
-          tax: 1,
           total: 1
         }
       }
@@ -465,10 +463,8 @@ exports.returnEachItems = async (data) => {
     const itemValue = item.discountedPrice * item.quantity;
 
 
-    const tax = itemValue * 0.18
 
-
-    const refundAmount = +(itemValue + tax).toFixed(2);
+    const refundAmount = +(itemValue ).toFixed(2);
     const returnData = {
       orderId,
       userId: result.userId,
@@ -599,12 +595,12 @@ exports.updateWalletAfterCancelItem = async (userId, data) => {
     let detailsInsert = orderData.items[0];
           console.log("orderData",orderData)
 
-    let amount = (detailsInsert.subtotal * 0.18) + detailsInsert.subtotal;
+    let amount = (detailsInsert.subtotal ) + detailsInsert.subtotal;
     console.log("detailsInsert.subtotal",detailsInsert.subtotal);
     console.log("amount before",amount);
     let refundAmount = detailsInsert.subtotal;
     let productId = detailsInsert.productId;
-    let rate = (detailsInsert.subtotal * 0.18)+ detailsInsert.subtotal;
+    let rate = (detailsInsert.subtotal )+ detailsInsert.subtotal;
     let status = "Refunded"
     console.log("amount after",amount);
     let details =  {
@@ -668,4 +664,11 @@ exports.updateReferralInDb = async (code, userId) => {
     console.error("updateReferralInDb error:", error);
     return { success: false, error };
   }
+}
+
+exports.disableCoupon = async (code) => {
+
+  const db = await getDB()
+  const changeState = await db.collection(dbVariables.couponCollection).updateOne({code:code},{$set:{isActive:false}})
+  return changeState
 }

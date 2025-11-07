@@ -191,7 +191,7 @@
               <i class="bi bi-wallet2 me-1"></i> Payment
             </button>
           <% } %>
-          <% if ((order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped') && hasNonCancelledItems && !hasDeliveredItems) { %>
+          <% if (hasNonCancelledItems && !hasDeliveredItems) { %>
             <button class="btn btn-outline-danger cancel-order-btn" data-order-id="<%= order.orderId %>" data-payment-method="<%= order.paymentMethod %>">
               <i class="bi bi-x-circle me-1"></i> Cancel Order
             </button>
@@ -209,13 +209,6 @@
       </header>
       <div class="order-summary">
         <div class="row g-3">
-          <div class="col-md-3">
-            <div class="detail-label">Status</div>
-            <span class="badge badge-status <%= order.status.toLowerCase() %> text-uppercase">
-              <i class="bi me-1 <%= order.status.toLowerCase() === 'pending' ? 'bi-hourglass-split' : order.status.toLowerCase() === 'shipped' ? 'bi-truck' : order.status.toLowerCase() === 'delivered' ? 'bi-check2-circle' : 'bi-x-circle' %>"></i>
-              <%= order.status %>
-            </span>
-          </div>
           <% if (order.paymentStatus) { %>
             <div class="col-md-3">
               <div class="detail-label">Payment Status</div>
@@ -293,7 +286,7 @@
                             <i class="bi bi-arrow-return-left me-1"></i> Return
                           </button>
                         <% } %>
-                      <% } else if (item.itemStatus && item.itemStatus.toLowerCase() !== 'delivered' && item.itemStatus.toLowerCase() !== 'cancelled' && (order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'shipped')) { %>
+                      <% } else if (item.itemStatus && item.itemStatus.toLowerCase() !== 'delivered' && item.itemStatus.toLowerCase() !== 'cancelled' && !hasDeliveredItems) { %>
                         <button class="btn btn-outline-danger btn-sm cancel-item-btn" data-cancel-item="<%= order.orderId %>_<%= item.variantId %>_<%= (item.itemStatus || 'Pending') %>_<%= order.paymentMethod %>">
                           <i class="bi bi-x-circle me-1"></i> Cancel
                         </button>
@@ -336,12 +329,7 @@
                       <div class="detail-value text-end"><%= parseFloat(order.deliveryCharge).toFixed(2) %>/-</div>
                     </div>
                   <% } %>
-                  <% if (order.tax > 0) { %>
-                    <div class="col-12">
-                      <div class="detail-label">Tax</div>
-                      <div class="detail-value text-end"><%= parseFloat(order.tax).toFixed(2) %>/-</div>
-                    </div>
-                  <% } %>
+                 
                   <div class="col-12">
                     <div class="detail-label fw-bold">Order Total</div>
                     <div class="detail-value fs-5 fw-bold text-end"><%= parseFloat(order.total).toFixed(2) %>/-</div>

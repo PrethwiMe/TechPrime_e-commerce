@@ -274,7 +274,6 @@ exports.updateItemStatus = async (params) => {
       }
     );
 
-    console.log("Update result:", result);
 
     if (result.modifiedCount === 0) {
       console.warn(" No item was updated. Check orderId/variantId match.");

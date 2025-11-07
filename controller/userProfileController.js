@@ -23,7 +23,7 @@ const dbVariables = require('../config/databse')
 const { handleWalletPayment } = require("../utils/walletUtils");
 const { cancelOrderUtils } = require("../utils/cancelUtils");
 const crypto = require('crypto');
-
+const axios = require("axios");
 
 
 exports.viewProfile = async (req, res) => {
@@ -44,29 +44,73 @@ exports.viewProfile = async (req, res) => {
 
   res.render('user-pages/profile.ejs', { user, image: null });
 }
-//add address
-exports.addAddress = async (req, res) => {
-  const userId = req.session.user.userId
-  const { error } = addressValidation(req.body)
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message })
-  }
-  const { fullName, phone, line1, city, state, pincode } = req.body;
-  const data =
-  {
-    id: uuidv4(),
-    userId,
-    fullName,
-    phone,
-    line1,
-    city,
-    state,
-    pincode,
 
+
+exports.addAddress = async (req, res) => {
+  try {
+    const userId = req.session.user.userId;
+    const { error } = addressValidation(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
+    const { fullName, phone, line1, city, state, pincode } = req.body;
+
+    // Step 1: Validate pincode using Zippopotam API
+    const zipUrl = `https://api.zippopotam.us/in/${pincode}`;
+    let locationData;
+    try {
+      const zipResponse = await axios.get(zipUrl);
+      if (zipResponse.status === 200 && zipResponse.data.places.length > 0) {
+        locationData = zipResponse.data.places[0];
+      } else {
+        return res.status(400).json({ message: "Invalid pincode or not found." });
+      }
+    } catch {
+      return res.status(400).json({ message: "Invalid or unsupported pincode." });
+    }
+
+    // Step 2: Optional cross-check: city/state match with API result
+    const apiCity = locationData["place name"]?.toLowerCase();
+    const apiState = locationData["state"]?.toLowerCase();
+
+    console.log("citty issssssss",apiCity)
+
+    if (
+      city.toLowerCase() !== apiCity &&
+      !apiCity.includes(city.toLowerCase())
+    ) {
+      return res.status(400).json({ message: "City does not match the pincode." });
+    }
+
+    if (state.toLowerCase() !== apiState) {
+      return res.status(400).json({ message: "State does not match the pincode." });
+    }
+
+    // Step 3: Save validated address
+    const data = {
+      id: uuidv4(),
+      userId,
+      fullName,
+      phone,
+      line1,
+      city,
+      state,
+      pincode,
+    };
+
+    const result = await userProfileModel.addAddress(data);
+    if (!result) {
+      return res.status(500).json({ message: "Failed to add address." });
+    }
+
+    return res.status(200).json({ message: "Address added successfully and validated." });
+  } catch (err) {
+    console.error("Error adding address:", err.message);
+    return res.status(500).json({ message: "Server error while adding address." });
   }
-  let result = await userProfileModel.addAddress(data)
-  if (result) return res.status(200).json({ message: "address added successfully" })
-}
+};
+
 //deleteAddress address remove
 exports.deleteAddress = async (req, res) => {
   try {
@@ -267,15 +311,11 @@ exports.checkoutView = async (req, res) => {
     console.log("netSubtotal",netSubtotal)
     console.log("subtotal",subtotal)  
     console.log("totalDiscount",totalDiscount)
-    let tax = 0;
-if (netSubtotal > 0) {
-  tax = netSubtotal * 0.18;
-  console.log("taxxxx",tax)
-}
+
 
     let deliveryCharge = netSubtotal > 100000 ? 0 : 100;
 
-    let total = netSubtotal + tax + deliveryCharge;
+    let total = netSubtotal + deliveryCharge;
 
     const addresses = Array.isArray(data.addresses)
       ? data.addresses.map((a) => a.addresses)
@@ -288,7 +328,6 @@ if (netSubtotal > 0) {
       addresses,
       subtotal,
       totalDiscount,
-      tax,
       deliveryCharge,
       total,
       coupon: coupons || []
@@ -341,9 +380,9 @@ exports.addToOrder = async (req, res) => {
       };
     });
 
-    const tax = subtotal * 0.18;
+    
     const deliveryCharge = subtotal > 100000 ? 0 : 100;
-    const total = subtotal + tax + deliveryCharge;
+    const total = subtotal + deliveryCharge;
 
     let orderData = {
       userId,
@@ -352,12 +391,10 @@ exports.addToOrder = async (req, res) => {
       cartOriginal,
       cartDiscount,
       deliveryCharge,
-      tax,
       total,
       couponCode: couponCode || "",
       paymentMethod,
       paymentStatus: false,
-      status: "Pending",
       selectedAddress,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -387,7 +424,7 @@ exports.addToOrder = async (req, res) => {
     res.status(200).json({
       status: "success",
       message: "Order placed successfully",
-      orderSummary: { subtotal, cartOriginal, cartDiscount, tax, deliveryCharge, total }
+      orderSummary: { subtotal, cartOriginal, cartDiscount, deliveryCharge, total }
     });
 
   } catch (error) {
@@ -624,7 +661,6 @@ exports.invoice = async (req, res) => {
       .fontSize(10)
       .fillColor('black')
       .text(`Subtotal: ₹${Number(order.subtotal).toLocaleString('en-IN')}`, 350, totalsTop, { align: 'right' })
-      .text(`Tax: ₹${Number(order.tax).toLocaleString('en-IN')}`, 350, totalsTop + 15, { align: 'right' })
       .text(`Delivery: ₹${Number(order.deliveryCharge).toLocaleString('en-IN')}`, 350, totalsTop + 30, { align: 'right' })
       .text(`Grand Total: ₹${Number(order.total).toLocaleString('en-IN')}`, 350, totalsTop + 45, { align: 'right' });
 
@@ -745,20 +781,23 @@ exports.couponLogic = async (req, res) => {
 
     const newSubtotal = subTotalNum - discountAmount;
 
-    let tax = 0;
-    if (newSubtotal ) tax = newSubtotal * 0.18;
- 
-    else tax = 0;
+
 
     const deliveryCharge = newSubtotal > 100000 ? 0 : 100;
 
-    const total = newSubtotal + tax + deliveryCharge;
+    const total = newSubtotal + deliveryCharge;
+
+    
+          //disable coupons
+          let disableCoupon = await userProfileModel.disableCoupon(code)
 
     const updatedItems = items.map((item) => {
       const discountedPrice =
         coupon.discountType === "percentage"
           ? item.price - (item.price * coupon.discount) / 100
-          : item.price - coupon.discount / items.length; // distribute flat discount
+          : item.price - coupon.discount / items.length; 
+
+
       return {
         ...item,
         appliedOffer: true,
@@ -770,7 +809,6 @@ exports.couponLogic = async (req, res) => {
       message: "Coupon applied successfully",
       discount: discountAmount,
       discountedSubtotal: newSubtotal,
-      tax: Math.floor(tax),
       deliveryCharge,
       discountedTotal: Math.floor(total),
       updatedItems,

@@ -76,7 +76,7 @@
 
         sales.forEach(order => {
           const item = order.items;
-          const itemTotal = (item.discountedPrice * 1.18) * item.discountedPrice;
+          const itemTotal = (item.discountedPrice ) * item.discountedPrice;
           totalRevenue += itemTotal;
           if (order.status === 'Delivered') deliveredOrders++;
         });
@@ -105,7 +105,7 @@
             <thead>
               <tr>
                 <th>Order ID</th><th>Customer</th><th>Product</th><th class="text-center">Qty</th>
-                <th class="text-end">Total (with 18% tax)</th><th>Payment</th><th>Status</th><th>Date</th>
+                <th class="text-end">Total </th><th>Payment</th><th>Status</th><th>Date</th>
               </tr>
             </thead>
             <tbody>
@@ -113,14 +113,12 @@
                 const customerName = order.user?.firstName ? `${order.user.firstName} ${order.user.lastName || ''}`.trim() : order.selectedAddress.fullName;
                 const paymentDisplay = order.paymentMethod === 'cod' ? 'COD' : order.paymentMethod.toUpperCase();
                 const statusClass = order.items.itemStatus === 'Delivered' ? 'bg-success' : order.items.itemStatus === 'Pending' ? 'bg-warning' : 'bg-secondary';
-                const totalWithTax = (order.items.discountedPrice * 1.18 * order.items.quantity).toFixed(2);
               %>
               <tr>
                 <td><strong><%= order.orderId %></strong></td>
                 <td><%= customerName %></td>
                 <td><%= order.items.productId %></td>
                 <td class="text-center"><%= order.items.quantity %></td>
-                <td class="text-end"><strong>₹<%= parseFloat(totalWithTax).toLocaleString() %></strong></td>
                 <td><span class="badge bg-info"><%= paymentDisplay %></span></td>
                 <td><span class="badge <%= statusClass %>"><%= order.items.itemStatus%></span></td>
                 <td><%= new Date(order.createdAt).toLocaleDateString() %></td>

@@ -352,17 +352,10 @@
               <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 fw-bold"><i class="bi bi-receipt me-2"></i>Order #<%= order.orderId %></h5>
                 <div class="d-flex align-items-center gap-2">
-                  <select class="form-select form-select-sm order-status" data-id="<%= order._id %>" data-current-status="<%= order.status.toLowerCase() %>" <%= order.status.toLowerCase() === 'cancelled' || order.status.toLowerCase() === 'delivered' ? 'disabled' : '' %>>
-                    <option value="pending" <%= order.status.toLowerCase() === 'pending' ? 'selected' : '' %>>Pending</option>
-                    <option value="shipped" <%= order.status.toLowerCase() === 'shipped' ? 'selected' : '' %>>Shipped</option>
-                    <option value="delivered" <%= order.status.toLowerCase() === 'delivered' ? 'selected' : '' %>>Delivered</option>
-                    <option value="cancelled" <%= order.status.toLowerCase() === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
-                  </select>
                   <a href="/admin/orders" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back to List</a>
                 </div>
               </div>
               <div class="card-body p-4">
-                <% const tax = order.total - order.subtotal - order.deliveryCharge; %>
                 <h6 class="fw-bold text-secondary mb-4">Order Summary</h6>
                 <ul class="list-group list-group-flush small">
                   <li class="list-group-item"><strong>ID:</strong> <%= order.orderId %></li>
@@ -378,11 +371,7 @@
                   <li class="list-group-item"><strong>Razorpay Payment ID:</strong> <%= order.razorpayPaymentId || 'N/A' %></li>
                   <li class="list-group-item"><strong>Razorpay Signature:</strong> <%= order.razorpaySignature || 'N/A' %></li>
                   <% } %>
-                  <li class="list-group-item"><strong>Status:</strong>
-                    <span class="badge badge-status <%= order.status.toLowerCase() %>"><%= order.status.charAt(0).toUpperCase() + order.status.slice(1).toLowerCase() %></span>
-                  </li>
                   <li class="list-group-item"><strong>Subtotal:</strong> ₹ <%= parseFloat(order.subtotal).toLocaleString() %></li>
-                  <li class="list-group-item"><strong>Tax:</strong> ₹ <%= parseFloat(tax).toLocaleString() %></li>
                   <li class="list-group-item"><strong>Delivery:</strong> ₹ <%= parseFloat(order.deliveryCharge).toLocaleString() %></li>
                   <% if (order.couponCode) { %>
                   <li class="list-group-item"><strong>Coupon:</strong> <%= order.couponCode %></li>
@@ -481,64 +470,7 @@
       color: '#2c3e50'
     });
 
-    const updateBadge = (element, status) => {
-      if (element) {
-        element.className = `badge badge-status ${status.toLowerCase()}`;
-        element.innerHTML = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-      }
-    };
-
     document.addEventListener('DOMContentLoaded', () => {
-      // Order Status Update
-      document.querySelectorAll('.order-status').forEach(select => {
-        select.addEventListener('change', async function() {
-          if (this.disabled) return;
-          const { id, currentStatus } = this.dataset;
-          let status = this.value;
-          const result = await Swal.fire({
-            title: `Update Order Status`,
-            text: `Are you sure you want to set order ${id} to ${status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3498db',
-            cancelButtonColor: '#95a5a6',
-            confirmButtonText: `Yes, set to ${status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}`,
-            cancelButtonText: 'No, cancel',
-            background: '#fff',
-            color: '#2c3e50'
-          });
-          if (!result.isConfirmed) {
-            this.value = currentStatus;
-            return;
-          }
-          try {
-            const { data } = await axios.post('/admin/order/updateOrderStatus', {
-              orderId: id,
-              status
-            });
-            if (data.success) {
-              await showAlert('success', 'Order Status Updated', `Order status changed to "${status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}"`);
-              this.dataset.currentStatus = status;
-              updateBadge(document.querySelector('.badge-status'), status);
-              if (status === 'cancelled' || status === 'delivered') {
-                this.disabled = true;
-                document.querySelectorAll('.item-status').forEach(sel => {
-                  if (sel.dataset.currentStatus !== 'cancelled' && sel.dataset.currentStatus !== 'delivered') {
-                    sel.value = status;
-                    sel.dataset.currentStatus = status;
-                    sel.disabled = true;
-                  }
-                });
-              }
-            } else throw new Error('Failed to update order status!');
-          } catch (err) {
-            console.error('Error updating order status:', err);
-            await showAlert('error', 'Error', 'Failed to update order status!');
-            this.value = currentStatus;
-          }
-        });
-      });
-
       // Item Status Update
       document.querySelectorAll('.item-status').forEach(select => {
         select.addEventListener('change', async function() {
@@ -575,20 +507,6 @@
               }
               if (itemStatus === 'cancelled' || itemStatus === 'delivered') {
                 this.disabled = true;
-              }
-              // Update order status if all items have the same status
-              const allItems = Array.from(document.querySelectorAll('.item-status'));
-              const allSameStatus = allItems.every(sel => sel.dataset.currentStatus === itemStatus);
-              if (allSameStatus) {
-                const orderSelect = document.querySelector('.order-status');
-                if (orderSelect && !orderSelect.disabled) {
-                  orderSelect.value = itemStatus;
-                  orderSelect.dataset.currentStatus = itemStatus;
-                  updateBadge(document.querySelector('.badge-status'), itemStatus);
-                  if (itemStatus === 'cancelled' || itemStatus === 'delivered') {
-                    orderSelect.disabled = true;
-                  }
-                }
               }
             } else throw new Error(`Failed to set item status to ${itemStatus}.`);
           } catch (error) {

@@ -42,8 +42,7 @@ exports.cancelOrderUtils = async (req) => {
 
       const details = orderData.items[0];
       const refundBase = details.subtotal || 0;
-      const refundTax = refundBase * 0.18;
-      const refundAmount = refundBase + refundTax;
+      const refundAmount = refundBase 
 
       const refundEntry = {
         orderId,

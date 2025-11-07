@@ -66,36 +66,6 @@
       gap: 1rem;
     }
 
-    .badge-status {
-      padding: 0.5rem 0.8rem;
-      border-radius: 0.75rem;
-      font-size: 0.8rem;
-      font-weight: 500;
-      display: inline-block;
-      min-width: 80px;
-      text-align: center;
-    }
-
-    .badge-status.pending {
-      background: #fff3cd;
-      color: #856404;
-    }
-
-    .badge-status.shipped {
-      background: #e7f3fe;
-      color: #0d6efd;
-    }
-
-    .badge-status.delivered {
-      background: #e6f4ea;
-      color: #198754;
-    }
-
-    .badge-status.cancelled {
-      background: #f8d7da;
-      color: #842029;
-    }
-
     .item-list {
       list-style: none;
       padding: 0;
@@ -134,6 +104,37 @@
       max-width: 250px;
     }
 
+    /* Pagination Styling */
+    .pagination {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e9ecef;
+    }
+
+    .page-link {
+      border-radius: 0.75rem;
+      margin: 0 0.25rem;
+      font-weight: 500;
+      color: #495057;
+      border: 1px solid #dee2e6;
+    }
+
+    .page-link:hover {
+      background-color: #e9ecef;
+      border-color: #adb5bd;
+      color: #212529;
+    }
+
+    .page-item.active .page-link {
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+    }
+
+    .page-item.disabled .page-link {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     @media (max-width: 768px) {
       .cards-container {
         padding: 1rem;
@@ -150,6 +151,11 @@
 
       .input-group {
         max-width: 100%;
+      }
+
+      .pagination .page-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
       }
     }
   </style>
@@ -172,6 +178,28 @@
             <button id="clearSearchBtn" class="btn btn-outline-secondary"><i class="bi bi-x-circle"></i></button>
           </div>
         </div>
+             <!-- Pagination -->
+            <% if (typeof totalPages !== 'undefined' && totalPages > 1) { %>
+              <nav aria-label="Order pagination">
+                <ul class="pagination justify-content-center">
+                  <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                    <a class="page-link" href="/admin/orders?page=<%= currentPage - 1 %><%= typeof search !== 'undefined' && search ? '&search=' + encodeURIComponent(search) : '' %>" aria-label="Previous">
+                      <span aria-hidden="true">&laquo; Previous</span>
+                    </a>
+                  </li>
+                  <% for(let i = 1; i <= totalPages; i++) { %>
+                    <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                      <a class="page-link" href="/admin/orders?page=<%= i %><%= typeof search !== 'undefined' && search ? '&search=' + encodeURIComponent(search) : '' %>"><%= i %></a>
+                    </li>
+                  <% } %>
+                  <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                    <a class="page-link" href="/admin/orders?page=<%= currentPage + 1 %><%= typeof search !== 'undefined' && search ? '&search=' + encodeURIComponent(search) : '' %>" aria-label="Next">
+                      <span aria-hidden="true">Next &raquo;</span>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
+            <% } %>
         <div class="cards-container">
           <% if (orders && orders.length > 0) { %>
             <% orders.forEach(order => { %>
@@ -181,7 +209,6 @@
                     <h5 class="mb-0 fw-bold">Order #<%= order.orderId %></h5>
                     <small class="opacity-75"><%= new Date(order.createdAt).toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %></small>
                   </div>
-                  <span class="badge badge-status <%= order.status.toLowerCase() %>"><%= order.status %></span>
                 </div>
                 <div class="order-card-body">
                   <div class="row g-2">
@@ -217,6 +244,30 @@
                 </div>
               </div>
             <% }) %>
+
+            <!-- Pagination -->
+            <% if (typeof totalPages !== 'undefined' && totalPages > 1) { %>
+              <nav aria-label="Order pagination">
+                <ul class="pagination justify-content-center">
+                  <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                    <a class="page-link" href="/admin/orders?page=<%= currentPage - 1 %><%= typeof search !== 'undefined' && search ? '&search=' + encodeURIComponent(search) : '' %>" aria-label="Previous">
+                      <span aria-hidden="true">&laquo; Previous</span>
+                    </a>
+                  </li>
+                  <% for(let i = 1; i <= totalPages; i++) { %>
+                    <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                      <a class="page-link" href="/admin/orders?page=<%= i %><%= typeof search !== 'undefined' && search ? '&search=' + encodeURIComponent(search) : '' %>"><%= i %></a>
+                    </li>
+                  <% } %>
+                  <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                    <a class="page-link" href="/admin/orders?page=<%= currentPage + 1 %><%= typeof search !== 'undefined' && search ? '&search=' + encodeURIComponent(search) : '' %>" aria-label="Next">
+                      <span aria-hidden="true">Next &raquo;</span>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
+            <% } %>
+
           <% } else { %>
             <div class="text-center py-5">
               <i class="bi bi-inbox display-1 text-muted mb-3"></i>

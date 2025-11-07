@@ -78,7 +78,7 @@
             </div>
             <div class="mb-3">
               <label class="form-label">Pincode</label>
-              <input type="text" class="form-control" name="pincode"  />
+              <input type="text" class="form-control" name="pincode" placeholder="Enter 6-digit PIN code" maxlength="6" />
             </div>
           </div>
           <div class="modal-footer">
@@ -123,7 +123,7 @@
             </div>
             <div class="mb-3">
               <label class="form-label">Pincode</label>
-              <input type="text" class="form-control" id="updatePincode" name="pincode" required />
+              <input type="text" class="form-control" id="updatePincode" name="pincode" required placeholder="Enter 6-digit PIN code" maxlength="6" />
             </div>
           </div>
           <div class="modal-footer">
@@ -143,8 +143,45 @@
     const addressesEl = document.getElementById('userAddresses');
     const addresses = JSON.parse(addressesEl.getAttribute('data-addresses'));
 
-    // Add Address Form Submit
+    // Function to fetch city and state from PIN code using free API
+    async function fetchAddressDetails(pincode) {
+      try {
+        const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+        if (!response.ok) {
+          throw new Error('API request failed');
+        }
+        const data = await response.json();
+        if (data && data[0] && data[0].Status === 'Success' && data[0].PostOffice.length > 0) {
+          const postOffice = data[0].PostOffice[0]; // Take the first post office
+          return {
+            city: postOffice.District,
+            state: postOffice.State
+          };
+        }
+      } catch (error) {
+        console.error('Error fetching address details:', error);
+      }
+      return null;
+    }
+
+    // Auto-fill for Add Address Modal
     const addAddressForm = document.getElementById('addAddressForm');
+    const addPincodeInput = addAddressForm.querySelector('input[name="pincode"]');
+    addPincodeInput.addEventListener('blur', async function() {
+      const pincode = this.value.trim();
+      if (pincode.length === 6 && /^\d{6}$/.test(pincode)) {
+        const details = await fetchAddressDetails(pincode);
+        if (details) {
+          addAddressForm.querySelector('input[name="city"]').value = details.city || '';
+          addAddressForm.querySelector('input[name="state"]').value = details.state || '';
+        } else {
+          // Optionally clear fields or show message if no data found
+          console.warn('No address details found for PIN code:', pincode);
+        }
+      }
+    });
+
+    // Add Address Form Submit
     addAddressForm.addEventListener('submit', function (e) {
       e.preventDefault();
       const formData = new FormData(addAddressForm);
@@ -183,6 +220,22 @@
       document.getElementById('updateCity').value = address.city;
       document.getElementById('updateState').value = address.state;
       document.getElementById('updatePincode').value = address.pincode;
+    });
+
+    // Auto-fill for Update Address Modal
+    const updatePincodeInput = document.getElementById('updatePincode');
+    updatePincodeInput.addEventListener('blur', async function() {
+      const pincode = this.value.trim();
+      if (pincode.length === 6 && /^\d{6}$/.test(pincode)) {
+        const details = await fetchAddressDetails(pincode);
+        if (details) {
+          document.getElementById('updateCity').value = details.city || '';
+          document.getElementById('updateState').value = details.state || '';
+        } else {
+          // Optionally clear fields or show message if no data found
+          console.warn('No address details found for PIN code:', pincode);
+        }
+      }
     });
 
     // Update Address Form Submit

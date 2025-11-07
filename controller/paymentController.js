@@ -14,7 +14,7 @@ exports.razorpaySetup = async (req, res) => {
   try {
     if (!req.session.user) return res.status(401).json({ error: "Please log in to proceed" });
 
-    let { amount, selectedAddress, paymentMethod, items, subtotal, tax, deliveryCharge, total, couponCode } = req.body;
+    let { amount, selectedAddress, paymentMethod, items, subtotal, deliveryCharge, total, couponCode } = req.body;
     if (!amount || isNaN(amount) || amount <= 0) {
       return res.status(400).json({ error: "Invalid amount" });
     }
@@ -44,10 +44,12 @@ exports.razorpaySetup = async (req, res) => {
       };
     });
 
+    console.log(amount,currency)
     const razorpayOrder = await req.app.locals.razorpay.orders.create({
       amount, currency, receipt: `receipt_${Date.now()}`, notes: { userId }
     });
-
+    
+    console.log("razorPay is bugggggggggggggggggggggggg")
     const orderData = {
       orderId: `ORD${Math.floor(10000000 + Math.random() * 90000000)}`,
       userId,
@@ -56,12 +58,10 @@ exports.razorpaySetup = async (req, res) => {
       cartOriginal,
       cartDiscount,
       deliveryCharge: deliveryCharge || 0,
-      tax,
       total,
       couponCode: couponCode || "",
       paymentMethod,
       paymentStatus: "pending",
-      status: "Pending",
       selectedAddress,
       razorpayOrderId: razorpayOrder.id,
       receipt: razorpayOrder.receipt,
@@ -109,14 +109,11 @@ exports.verifyPayment = async (req, res) => {
       paymentStatus: "paid",
       razorpayPaymentId,
       razorpaySignature,
-      status: "pending",
     });
 
-    console.log("Order update result:", order);
 
      for (const item of order.items) {
   const changed = await productModel.updateStockAfterOrder(item.variantId, item.quantity);
-  console.log("stock updat:", changed);
 }
 
     res.json({

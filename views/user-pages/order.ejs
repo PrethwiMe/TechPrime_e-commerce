@@ -148,24 +148,13 @@
           <h1 class="h3 mb-1">My Orders</h1>
           <p class="text-muted">Track and manage your laptop orders</p>
         </div>
-        <div class="d-flex gap-2">
-          <button class="btn filter-chip active" data-filter="all"><i class="bi bi-card-list me-1"></i> All</button>
-          <button class="btn filter-chip" data-filter="pending"><i class="bi bi-hourglass-split me-1"></i> Pending</button>
-          <button class="btn filter-chip" data-filter="shipped"><i class="bi bi-truck me-1"></i> Shipped</button>
-          <button class="btn filter-chip" data-filter="delivered"><i class="bi bi-check2-circle me-1"></i> Delivered</button>
-          <button class="btn filter-chip" data-filter="cancelled"><i class="bi bi-x-circle me-1"></i> Cancelled</button>
-        </div>
       </header>
       <section id="ordersList" class="vstack gap-3">
         <% orders.forEach(order => { %>
-          <article class="card card-light order-card" data-status="<%= order.status.toLowerCase() %>">
+          <article class="card card-light order-card">
             <div class="card-body">
               <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
                 <div class="d-flex align-items-center gap-3 flex-wrap">
-                  <span class="badge badge-status <%= order.status.toLowerCase() %> text-uppercase">
-                    <i class="bi me-1 <%= order.status.toLowerCase() === 'pending' ? 'bi-hourglass-split' : order.status.toLowerCase() === 'shipped' ? 'bi-truck' : order.status.toLowerCase() === 'delivered' ? 'bi-check2-circle' : 'bi-x-circle' %>"></i>
-                    <%= order.status %>
-                  </span>
                   <span class="text-muted">Order ID</span>
                   <strong><%= order.orderId %></strong>
                   <span class="text-muted"><i class="bi bi-calendar-date me-1"></i> <%= new Date(order.createdAt).toLocaleDateString() %></span>
@@ -345,17 +334,6 @@
               if (container) {
                 document.getElementById(container).style.display = data[key] ? 'block' : 'none';
               }
-            });
-          });
-        });
-
-        document.querySelectorAll('.filter-chip').forEach(btn => {
-          btn.addEventListener('click', () => {
-            document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const filter = btn.dataset.filter;
-            document.querySelectorAll('.order-card').forEach(card => {
-              card.style.display = filter === 'all' || card.dataset.status === filter ? 'block' : 'none';
             });
           });
         });
