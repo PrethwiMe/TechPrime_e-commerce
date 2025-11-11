@@ -15,8 +15,16 @@
       --white-text: #ffffff;
       --light-bg: #f8f9fa;
     }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
     body {
       background-color: var(--light-bg);
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
     }
     
     /* Loading Spinner Styles */
@@ -75,10 +83,19 @@
     .main-content {
       opacity: 0;
       transition: opacity 0.5s ease;
+      min-height: 100vh;
     }
     
     .main-content.loaded {
       opacity: 1;
+    }
+    
+    /* Content Wrapper - Fixed for sidebar layout */
+    .content-wrapper {
+      margin-left: 250px;
+      padding: 20px;
+      width: calc(100% - 250px);
+      min-height: 100vh;
     }
     
     .balance-card {
@@ -88,15 +105,18 @@
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
       transition: transform 0.3s ease;
     }
+    
     .balance-card:hover {
       transform: translateY(-5px);
     }
+    
     .balance-amount {
       font-size: 3rem;
       font-weight: 700;
       color: var(--white-text);
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
+    
     .transaction-item {
       background: var(--white-text);
       border: none;
@@ -105,10 +125,12 @@
       transition: all 0.3s ease;
       margin-bottom: 15px;
     }
+    
     .transaction-item:hover {
       transform: translateY(-3px);
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
     }
+    
     .credit-badge {
       background: var(--success-gradient);
       color: var(--white-text);
@@ -116,6 +138,7 @@
       padding: 0.5rem 1rem;
       font-weight: 600;
     }
+    
     .debit-badge {
       background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
       color: var(--white-text);
@@ -123,24 +146,67 @@
       padding: 0.5rem 1rem;
       font-weight: 600;
     }
+    
     .header-section {
       background: var(--primary-gradient);
       color: var(--white-text);
       border-radius: 15px 15px 0 0;
       padding: 1.5rem;
     }
+    
     .no-transactions {
       color: #6c757d;
       text-align: center;
       padding: 3rem;
     }
+    
+    /* Pagination Styles */
+    .pagination {
+      margin: 1rem 0;
+    }
+    
+    .pagination .page-link {
+      color: #020202;
+      border-radius: 8px;
+      margin: 0 3px;
+    }
+    
+    .pagination .page-item.active .page-link {
+      background: var(--primary-gradient);
+      border-color: #020202;
+    }
+    
+    /* Responsive Design */
     @media (max-width: 768px) {
       .balance-amount {
         font-size: 2.5rem;
       }
+      
       .content-wrapper {
         margin-left: 0 !important;
+        width: 100% !important;
         padding: 10px;
+      }
+      
+      .transaction-item {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .transaction-item .text-end {
+        text-align: center !important;
+        margin-top: 1rem;
+        margin-left: 0 !important;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .balance-amount {
+        font-size: 2rem;
+      }
+      
+      .content-wrapper {
+        padding: 10px 5px;
       }
     }
   </style>
@@ -160,12 +226,12 @@
 
   <!-- Main Content -->
   <div class="main-content" id="mainContent">
-    <!-- Header and Sidebar -->
+    <!-- Header and Sidebar (These are included from partials) -->
     <%- include('partials/header') %>
     <%- include('partials/accountSidebar') %>
 
     <!-- Wallet Content Wrapper -->
-    <div class="content-wrapper" style="margin-left: 250px; padding: 20px;">
+    <div class="content-wrapper">
       <div class="container-fluid">
         <!-- Welcome Section -->
         <div class="row mb-4">
@@ -185,13 +251,13 @@
           <div class="col-12 col-md-8 col-lg-6">
             <div class="card balance-card p-4 text-center">
               <i class="fas fa-coins fa-3x mb-3 opacity-90 text-warning"></i>
-              <h1 class="balance-amount mb-2 ">
-                ₹<%= (wallet && wallet.length > 0 && wallet[0]?.walletAmount ? wallet[0].walletAmount.toLocaleString('en-IN') : '0') %>
+              <h1 class="balance-amount mb-2">
+                ₹<%= (wallet?.walletAmount ? wallet.walletAmount.toLocaleString('en-IN') : '0') %>
               </h1>
               <p class="lead mb-2">Available Wallet Balance</p>
               <small class="opacity-90">
                 <i class="fas fa-clock me-1"></i>
-                Last updated: <%= wallet && wallet.length > 0 && wallet[0]?.updatedDate ? new Date(wallet[0].updatedDate).toLocaleString('en-IN') : 'N/A' %>
+                Last updated: <%= wallet?.updatedDate ? new Date(wallet.updatedDate).toLocaleString('en-IN') : 'N/A' %>
               </small>
             </div>
           </div>
@@ -202,105 +268,96 @@
           <div class="col-12">
             <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
               <div class="header-section">
-                <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
                   <h3 class="mb-0 fw-bold">
                     <i class="fas fa-history me-2"></i>Transaction History
                   </h3>
-                  <% 
-                    var walletData = wallet && wallet.length > 0 ? wallet[0] : null;
-                    var combinedHistory = [];
-                    if (walletData) {
-                      if (walletData.refundHistory && walletData.refundHistory.length > 0) {
-                        walletData.refundHistory.forEach(function(txn) {
-                          combinedHistory.push({
-                            type: 'credit',
-                            amount: txn.refundAmount,
-                            date: txn.date,
-                            description: txn.orderId,
-                            status: txn.status
-                          });
-                        });
-                      }
-                      if (walletData.walletHistory && walletData.walletHistory.length > 0) {
-                        walletData.walletHistory.forEach(function(txn) {
-                          combinedHistory.push({
-                            type: 'debit',
-                            amount: txn.amount,
-                            date: txn.date,
-                            description: 'Order Payment',
-                            status: null
-                          });
-                        });
-                      }
-                      // Sort by date descending (newest first)
-                      combinedHistory.sort(function(a, b) {
-                        return new Date(b.date) - new Date(a.date);
-                      });
-                    }
-                  %>
-                  <% if (combinedHistory.length > 0) { %>
-                    <span class="badge bg-light text-dark fs-6 px-3 py-2 rounded-pill">
-                      <%= combinedHistory.length %> Transactions
-                    </span>
-                  <% } %>
+                  <span class="badge bg-light text-dark fs-6 px-3 py-2 rounded-pill">
+                    <%= refundHistory.length %> Transactions
+                  </span>
                 </div>
               </div>
               <div class="card-body p-0">
-                <% if (combinedHistory.length > 0) { %>
-                  <div class="p-4">
-                    <div class="row g-3">
-                      <% combinedHistory.forEach((txn) => { %>
-                        <div class="col-12">
-                          <div class="transaction-item p-4 d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center flex-grow-1">
-                              <% if (txn.type === 'credit') { %>
-                                <div class="bg-success bg-opacity-10 rounded-circle p-3 me-4">
-                                  <i class="fas fa-arrow-up text-success fa-lg"></i>
+                <div id="transactionsContainer">
+                  <% if (refundHistory && refundHistory.length > 0) { %>
+                    <div class="p-4">
+                      <div class="row g-3">
+                        <% refundHistory.forEach(function(txn) { %>
+                          <% 
+                            var isCredit = txn.refundAmount !== undefined;
+                            var type = isCredit ? 'credit' : 'debit';
+                            var amount = isCredit ? txn.refundAmount : txn.amount;
+                            var description = isCredit ? txn.orderId : 'Order Payment';
+                            var status = txn.status || null;
+                            var iconClass = type === 'credit' ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger';
+                            var icon = type === 'credit' ? 'fa-arrow-up' : 'fa-arrow-down';
+                            var amountSign = type === 'credit' ? '+' : '-';
+                            var amountColor = type === 'credit' ? 'text-success' : 'text-danger';
+                            var badgeClass = type === 'credit' ? 'credit-badge' : 'debit-badge';
+                            var badgeText = type === 'credit' ? '<i class="fas fa-check-circle me-1"></i>Credited' : '<i class="fas fa-minus-circle me-1"></i>Debited';
+                            var statusBadge = status ? `<small class="badge bg-success bg-opacity-25 text-success mt-1">${status}</small>` : '';
+                            var formattedDate = new Date(txn.date).toLocaleDateString('en-IN');
+                            var formattedTime = new Date(txn.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                          %>
+                          <div class="col-12">
+                            <div class="transaction-item p-4 d-flex align-items-center justify-content-between">
+                              <div class="d-flex align-items-center flex-grow-1">
+                                <div class="<%= iconClass %> rounded-circle p-3 me-4">
+                                  <i class="fas <%= icon %> fa-lg"></i>
                                 </div>
-                              <% } else { %>
-                                <div class="bg-danger bg-opacity-10 rounded-circle p-3 me-4">
-                                  <i class="fas fa-arrow-down text-danger fa-lg"></i>
-                                </div>
-                              <% } %>
-                              <div class="flex-grow-1">
-                                <h6 class="mb-1 fw-semibold text-dark"><%= txn.description %></h6>
-                                <small class="text-muted d-block">
-                                  <i class="fas fa-calendar-day me-1"></i>
-                                  <%= new Date(txn.date).toLocaleDateString('en-IN') %> • <%= new Date(txn.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) %>
-                                </small>
-                                <% if (txn.status) { %>
-                                  <small class="badge bg-success bg-opacity-25 text-success mt-1">
-                                    <%= txn.status %>
+                                <div class="flex-grow-1">
+                                  <h6 class="mb-1 fw-semibold text-dark"><%= description %></h6>
+                                  <small class="text-muted d-block">
+                                    <i class="fas fa-calendar-day me-1"></i>
+                                    <%= formattedDate %> • <%= formattedTime %>
                                   </small>
-                                <% } %>
+                                  <%- statusBadge %>
+                                </div>
+                              </div>
+                              <div class="text-end ms-3">
+                                <h4 class="mb-1 <%= amountColor %> fw-bold"><%= amountSign %>₹<%= amount.toLocaleString('en-IN') %></h4>
+                                <span class="<%= badgeClass %>"><%- badgeText %></span>
                               </div>
                             </div>
-                            <div class="text-end ms-3">
-                              <% if (txn.type === 'credit') { %>
-                                <h4 class="mb-1 text-success fw-bold">+₹<%= txn.amount.toLocaleString('en-IN') %></h4>
-                                <span class="credit-badge">
-                                  <i class="fas fa-check-circle me-1"></i>Credited
-                                </span>
-                              <% } else { %>
-                                <h4 class="mb-1 text-danger fw-bold">-₹<%= txn.amount.toLocaleString('en-IN') %></h4>
-                                <span class="debit-badge">
-                                  <i class="fas fa-minus-circle me-1"></i>Debited
-                                </span>
-                              <% } %>
-                            </div>
                           </div>
-                        </div>
-                      <% }) %>
+                        <% }); %>
+                      </div>
                     </div>
-                  </div>
-                <% } else { %>
-                  <div class="no-transactions">
-                    <i class="fas fa-inbox fa-4x mb-3"></i>
-                    <h4 class="mb-2">No transactions yet</h4>
-                    <p class="mb-0">Your wallet history will appear here once you receive refunds or credits.</p>
-                  </div>
-                <% } %>
+                  <% } else { %>
+                    <div class="no-transactions">
+                      <i class="fas fa-inbox fa-4x mb-3"></i>
+                      <h4 class="mb-2">No transactions yet</h4>
+                      <p class="mb-0">Your wallet history will appear here once you receive refunds or credits.</p>
+                    </div>
+                  <% } %>
+                </div>
               </div>
+              <!-- Server-Side Pagination Controls -->
+              <% if (totalPages > 1) { %>
+                <nav aria-label="Transaction pagination" class="px-3">
+                  <ul class="pagination justify-content-center mb-3">
+                    <% if (currentPage > 1) { %>
+                      <li class="page-item">
+                        <a class="page-link" href="?page=<%= currentPage - 1 %>" aria-label="Previous">
+                          <span aria-hidden="true">&laquo; Previous</span>
+                        </a>
+                      </li>
+                    <% } %>
+                    <% for (let i = 1; i <= totalPages; i++) { %>
+                      <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                        <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                      </li>
+                    <% } %>
+                    <% if (currentPage < totalPages) { %>
+                      <li class="page-item">
+                        <a class="page-link" href="?page=<%= currentPage + 1 %>" aria-label="Next">
+                          <span aria-hidden="true">Next &raquo;</span>
+                        </a>
+                      </li>
+                    <% } %>
+                  </ul>
+                </nav>
+              <% } %>
             </div>
           </div>
         </div>
@@ -312,21 +369,19 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   
   <script>
-    // Hide spinner and show content when page is fully loaded
+    // Initialize on load - Hide loading spinner
     window.addEventListener('load', function() {
       const loadingOverlay = document.getElementById('loadingOverlay');
       const mainContent = document.getElementById('mainContent');
       
-      // Add a minimum display time for better UX (optional)
+      // Hide spinner after brief delay for smooth transition
       setTimeout(function() {
         loadingOverlay.classList.add('hidden');
         mainContent.classList.add('loaded');
-        
-        // Remove overlay from DOM after transition
         setTimeout(function() {
           loadingOverlay.style.display = 'none';
         }, 300);
-      }, 500); // 500ms minimum loading time
+      }, 500);
     });
     
     // Fallback: Hide spinner if it takes too long
@@ -336,7 +391,7 @@
         loadingOverlay.classList.add('hidden');
         document.getElementById('mainContent').classList.add('loaded');
       }
-    }, 5000); // 5 second timeout
+    }, 2000);
   </script>
 </body>
 

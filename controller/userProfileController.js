@@ -802,12 +802,40 @@ exports.returnItem = async (req, res) => {
 //view wallet
 exports.viewWallet = async (req, res) => {
   const userId = req.session.user.userId;
-  try {
-    //image
-    let data = await userModel.userCheck({ _id: new ObjectId(userId) })
 
+  try {
+    const page = parseInt(req.query.page) || 1;   // default page = 1
+    const limit = 4;                              // items per page (change as needed)
+    const skip = (page - 1) * limit;
+
+    let data = await userModel.userCheck({ _id: new ObjectId(userId) });
     const walletData = await userProfileModel.getWalletData(userId);
-    res.render('user-pages/wallet.ejs', { wallet: walletData || {}, image: data || null, user: data || null, });
+    if (!walletData || walletData.length === 0) {
+      return res.render('user-pages/wallet.ejs', {
+        wallet: null,
+        refundHistory: [],
+        currentPage: page,
+        totalPages: 0,
+        image: data,
+        user: data
+      });
+    }
+
+    const history = walletData[0].refundHistory || [];
+    const walletHistory = walletData[0].walletHistory || [];
+
+    let fullRefundHistory = [...history, ...walletHistory]
+fullRefundHistory = fullRefundHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const paginatedRefunds = fullRefundHistory.slice(skip, skip + limit);
+    res.render('user-pages/wallet.ejs', {
+      wallet: walletData[0],
+      refundHistory: paginatedRefunds,
+      currentPage: page,
+      totalPages: Math.ceil(fullRefundHistory.length / limit),
+      image: data,
+      user: data
+    });
+
   } catch (error) {
     console.error("Error in viewWallet:", error);
     res.status(500).send("Internal Server Error");

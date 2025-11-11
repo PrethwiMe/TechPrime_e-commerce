@@ -3,15 +3,14 @@ const { getDB } = require('../config/mongodb');
 const { ObjectId } = require('mongodb');
 
 const isUserLoggedIn = async (req, res, next) => {
-  console.log("session data",req.session.user)
   try {
-//        req.session.user= {
-//   userId: '68a2c96ce00fc69e9deec4a9',
-//   firstName: 'John',
-//   email: 'john.doe1@example.com',
-//   phone: '9876543210',
-//   role: 'user'
-// }
+       req.session.user= {
+  userId: '689c69c53616ccec32a3d701',
+  firstName: 'prethwi',
+  email: 'admin@gmail.com',
+  phone: '7034271417',
+  role: 'user'
+}
 
     if (!req.session.user || !req.session.user.userId) {
       return next();
@@ -37,19 +36,16 @@ const isUserLoggedIn = async (req, res, next) => {
 };
 
 
-// Protect routes  logged users only
 const userConfirmed = async (req, res, next) => {
   try {
     
-//        req.session.user= {
-//   userId: '68a2c96ce00fc69e9deec4a9',
-//   firstName: 'John',
-//   email: 'john.doe1@example.com',
-//   phone: '9876543210',
-//   role: 'user'
-// }
-  console.log("session data",req.session.user)
-
+       req.session.user= {
+  userId: '689c69c53616ccec32a3d701',
+  firstName: 'prethwi',
+  email: 'admin@gmail.com',
+  phone: '7034271417',
+  role: 'user'
+}
 
     if (!req.session.user || !req.session.user.userId) {
       return res.redirect('/login');

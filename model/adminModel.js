@@ -601,27 +601,19 @@ exports.salesReportData = async () => {
     const db = await getDB();
 
   const pipeline = [
-  // Remove payment filter ✅
 
-  // Unwind items
   { $unwind: "$items" },
-
-  // Keep only delivered & not returned
   {
     $match: {
       "items.itemStatus": "Delivered",
       "items.itemReturn": { $ne: "return" }
     }
   },
-
-  // Convert userId to ObjectId
   {
     $addFields: {
       userObjectId: { $toObjectId: "$userId" }
     }
   },
-
-  // Lookup user
   {
     $lookup: {
       from: dbVariables.userCollection,
@@ -632,7 +624,6 @@ exports.salesReportData = async () => {
   },
   { $unwind: "$user" },
 
-  // Sort latest first
   { $sort: { updatedAt: -1 } }
 ];
 
