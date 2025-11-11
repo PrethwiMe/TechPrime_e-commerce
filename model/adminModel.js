@@ -600,44 +600,41 @@ exports.salesReportData = async () => {
   try {
     const db = await getDB();
 
-    const pipeline = [
-      // Match only paid or COD orders
-      {
-        $match: {
-          $or: [
-            { paymentStatus: "paid" },
-            { paymentMethod: "cod" }
-          ]
-        }
-      },
-      // Unwind items to filter at item level
-      { $unwind: "$items" },
-      // Exclude returned or cancelled items (case-insensitive)
-      {
-        $match: {
-          "items.itemReturn": { $ne: "return" },
-          "items.itemStatus": { $not: /^cancelled$/i }
-        }
-      },
-      // Convert userId to ObjectId for lookup
-      {
-        $addFields: {
-          userObjectId: { $toObjectId: "$userId" }
-        }
-      },
-      // Lookup user details
-      {
-        $lookup: {
-          from: dbVariables.userCollection,
-          localField: "userObjectId",
-          foreignField: "_id",
-          as: "user"
-        }
-      },
-      { $unwind: "$user" },
-      // Sort latest first
-      { $sort: { updatedAt: -1 } }
-    ];
+  const pipeline = [
+  // Remove payment filter ✅
+
+  // Unwind items
+  { $unwind: "$items" },
+
+  // Keep only delivered & not returned
+  {
+    $match: {
+      "items.itemStatus": "Delivered",
+      "items.itemReturn": { $ne: "return" }
+    }
+  },
+
+  // Convert userId to ObjectId
+  {
+    $addFields: {
+      userObjectId: { $toObjectId: "$userId" }
+    }
+  },
+
+  // Lookup user
+  {
+    $lookup: {
+      from: dbVariables.userCollection,
+      localField: "userObjectId",
+      foreignField: "_id",
+      as: "user"
+    }
+  },
+  { $unwind: "$user" },
+
+  // Sort latest first
+  { $sort: { updatedAt: -1 } }
+];
 
     const salesData = await db
       .collection(dbVariables.orderCollection)
