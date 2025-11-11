@@ -365,17 +365,14 @@ exports.googleSuccessRedirect = async (req, res) => {
   if (!req.user) {
     return res.redirect('/login');
   }
+     req.session.user = {
+  userId: String(req.user._id),
+  firstName: req.user.firstName,
+  email: req.user.email,
+  role: req.user.role,
+};
 
-
-
-      req.session.user = {
-      userId: String(req.user._id),
-      firstName: req.user.firstName,
-      email: req.user.email,
-      role: req.user.role ,
-    };
-
-
+     console.log('User session set:', req.session.user)
   const data = await productModel.allProductsDisplay();
   const products = data;
   const categories = await productModel.getAllCategories();
@@ -497,7 +494,6 @@ exports.loadProductDetails = async (req, res) => {
     let categoriesId = result[0].categoriesId   
     const { totalDocs, products } = await productModel.viewAllProducts()
 
-    console.log("dataas",JSON.stringify(result,null,2))
 //related products
 let filteredProducts = products.filter(product => {
   return product.categoriesId == categoriesId

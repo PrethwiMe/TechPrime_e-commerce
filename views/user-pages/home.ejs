@@ -437,7 +437,7 @@
                 showClass: { popup: "animate__animated animate__rotateIn" },
                 hideClass: { popup: "animate__animated animate__fadeOutUp" }
               }).then((result) => {
-                if (result.isConfirmed) window.location.href = "/wishlist";
+                if (result.isConfirmed) window.location.href = "/viewWishList";
               });
 
             } else if (res.loginRequired) {
@@ -479,3 +479,5 @@
 </body>
 </html>
 <%- include('partials/footer') %>
+
+

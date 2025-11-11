@@ -3,6 +3,8 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const  {getDB}  = require('./mongodb');
 const dbVariables = require('./databse');
 const userModel = require('../model/userModel')
+const { ObjectId } = require('mongodb');
+
 
 passport.serializeUser((user, done) => {
   done(null, user._id);
@@ -11,7 +13,8 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser(async (id, done) => {
   try {
     const db = getDB();
-    const user = await db.collection(dbVariables.userCollection).findOne({ _id: id });
+    const user = await db.collection(dbVariables.userCollection).findOne({ _id: new ObjectId(id) });
+    // console.log("passsporttttttttt",user)
     done(null, user);
   } catch (err) {
     done(err, null);

@@ -257,16 +257,16 @@ exports.checkoutView = async (req, res) => {
     const data = await userProfileModel.checkOutView(userId);
     const cartItems = Array.isArray(data.cartItems) ? data.cartItems : [];
 
-    
+
     if (!cartItems || cartItems.length === 0) {
       return res.redirect("/cart");
     }
-    
-    let subtotal = 0; 
+
+    let subtotal = 0;
     let totalDiscount = 0;
     cartItems.forEach((item) => {
       const unitPrice = item.variant.price;
-      const unitDiscount = item.offerValue || 0; 
+      const unitDiscount = item.offerValue || 0;
       item.originalPrice = unitPrice;
       item.discountedPrice = unitPrice - unitDiscount;
       item.appliedOffer = unitDiscount > 0;
@@ -276,9 +276,9 @@ exports.checkoutView = async (req, res) => {
 
     const netSubtotal = subtotal - totalDiscount;
 
-    console.log("netSubtotal",netSubtotal)
-    console.log("subtotal",subtotal)  
-    console.log("totalDiscount",totalDiscount)
+    console.log("netSubtotal", netSubtotal)
+    console.log("subtotal", subtotal)
+    console.log("totalDiscount", totalDiscount)
 
 
     let deliveryCharge = netSubtotal > 100000 ? 0 : 100;
@@ -348,7 +348,7 @@ exports.addToOrder = async (req, res) => {
       };
     });
 
-    
+
     const deliveryCharge = subtotal > 100000 ? 0 : 100;
     const total = subtotal + deliveryCharge;
 
@@ -425,28 +425,28 @@ exports.viewOrder = async (req, res) => {
     res.status(500).send("Server Error");
   }
 }
-exports.eachOrderData = async (req,res) => {
+exports.eachOrderData = async (req, res) => {
   const orderId = req.query.orderId
 
   let response = await productModel.eachOrderData(orderId)
 
 
-   const id = req.session.user.userId
-      const query = {
-        _id: new ObjectId(id)
-      }
-        let imagedata = await userModel.userCheck(query)
+  const id = req.session.user.userId
+  const query = {
+    _id: new ObjectId(id)
+  }
+  let imagedata = await userModel.userCheck(query)
 
-        res.render('user-pages/order-details.ejs',{image:imagedata,order:response})
+  res.render('user-pages/order-details.ejs', { image: imagedata, order: response })
 }
 //return status page
 exports.returnStatus = async (req, res) => {
-  console.log("params",req.params);
+  console.log("params", req.params);
   const userId = req.session.user.userId;
   const orderId = req.params.orderId;
-  console.log("userId",userId," orderId",orderId);
+  console.log("userId", userId, " orderId", orderId);
   let data = await userProfileModel.returnStatusData(userId, orderId);
-   res.render('user-pages/return-status.ejs', { returnData: data || null });
+  res.render('user-pages/return-status.ejs', { returnData: data || null });
 }
 //to download the pdf
 exports.invoice = async (req, res) => {
@@ -755,15 +755,15 @@ exports.couponLogic = async (req, res) => {
 
     const total = newSubtotal + deliveryCharge;
 
-    
-          //disable coupons
-          let disableCoupon = await userProfileModel.disableCoupon(code)
+
+    //disable coupons
+    let disableCoupon = await userProfileModel.disableCoupon(code)
 
     const updatedItems = items.map((item) => {
       const discountedPrice =
         coupon.discountType === "percentage"
           ? item.price - (item.price * coupon.discount) / 100
-          : item.price - coupon.discount / items.length; 
+          : item.price - coupon.discount / items.length;
 
 
       return {
@@ -792,9 +792,9 @@ exports.returnItem = async (req, res) => {
 
   let checkForReturn = await userProfileModel.checkReturnItem(orderData)
   if (checkForReturn) return res.status(400).json({ success: false, message: "You have already requested a return for this item." })
-  const response = await userProfileModel.returnEachItems(orderData)  
+  const response = await userProfileModel.returnEachItems(orderData)
   if (response) {
-    return res.status(200).json({ success: true, message: "Return request submitted successfully." })   
+    return res.status(200).json({ success: true, message: "Return request submitted successfully." })
   } else {
     return res.status(400).json({ success: false, message: "Failed to submit return request." })
   }
@@ -804,22 +804,23 @@ exports.viewWallet = async (req, res) => {
   const userId = req.session.user.userId;
   try {
     //image
-      let data = await userModel.userCheck({_id: new ObjectId(userId)} )
+    let data = await userModel.userCheck({ _id: new ObjectId(userId) })
 
     const walletData = await userProfileModel.getWalletData(userId);
     res.render('user-pages/wallet.ejs', { wallet: walletData || {}, image: data || null, user: data || null, });
   } catch (error) {
     console.error("Error in viewWallet:", error);
     res.status(500).send("Internal Server Error");
-  }}
-
-  exports.referrals = async(req,res) => {
-    let userId = req.session.user.userId
-
-          let data = await userModel.userCheck({_id: new ObjectId(userId)} )
-let dataForReferral = await userModel.getReferral(userId)
-    res.render('user-pages/referal.ejs', { image: data || null, user: data || null, data:dataForReferral || []});
   }
+}
+
+exports.referrals = async (req, res) => {
+  let userId = req.session.user.userId
+
+  let data = await userModel.userCheck({ _id: new ObjectId(userId) })
+  let dataForReferral = await userModel.getReferral(userId)
+  res.render('user-pages/referal.ejs', { image: data || null, user: data || null, data: dataForReferral || [] });
+}
 
 exports.genarateReferralCode = async (req, res) => {
   const length = 8;
@@ -830,7 +831,7 @@ exports.genarateReferralCode = async (req, res) => {
   }
   let userId = req.session.user.userId
   console.log("Referral code generated:", code);
-      const updateResult = await userProfileModel.updateReferralInDb(code, userId);
+  const updateResult = await userProfileModel.updateReferralInDb(code, userId);
 
-res.json({ success: true, referralCode: code, dbUpdate: updateResult });
+  res.json({ success: true, referralCode: code, dbUpdate: updateResult });
 };

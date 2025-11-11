@@ -3,6 +3,7 @@ const { getDB } = require('../config/mongodb');
 const { ObjectId } = require('mongodb');
 
 const isUserLoggedIn = async (req, res, next) => {
+  console.log("session data",req.session.user)
   try {
 //        req.session.user= {
 //   userId: '68a2c96ce00fc69e9deec4a9',
@@ -47,6 +48,8 @@ const userConfirmed = async (req, res, next) => {
 //   phone: '9876543210',
 //   role: 'user'
 // }
+  console.log("session data",req.session.user)
+
 
     if (!req.session.user || !req.session.user.userId) {
       return res.redirect('/login');

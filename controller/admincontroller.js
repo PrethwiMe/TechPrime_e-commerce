@@ -65,14 +65,19 @@ exports.dashBoardHandle = async (req, res) => {
   const ordersData = await adminModel.viewOrders();
   let orders = ordersData.ordersWithDetails.length
   let totalData = ordersData.ordersWithDetails;
+const totalSales = totalData
+  .filter(order => order.items.some(i => i.itemStatus?.toLowerCase() === 'delivered'))
+  .reduce((sum, order) => sum + order.total, 0)
 
-  const totalSales = totalData.filter(items => items.status.toLowerCase() === 'delivered').reduce((sum, order) => sum + order.total, 0);
-  const pendingOrders = totalData.filter(items => items.status.toLowerCase() === 'pending').length
+const pendingOrders = totalData
+  .filter(order => order.items.some(i => i.itemStatus?.toLowerCase() === 'pending'))
+  .length || 0
+
   console.log("total sales", totalSales);
   console.log("pending orders", pendingOrders);
   try {
     res.render('admin-pages/adminDashBoard', {
-      userCount: userCount, orders, totalSales, pendings: pendingOrders
+      userCount: userCount || null, orders: orders || null, totalSales : totalSales || null, pendings: pendingOrders || null
     })
   } catch (error) {
     res.send(error)
