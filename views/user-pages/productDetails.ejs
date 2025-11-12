@@ -11,10 +11,49 @@
     .main-img { width: 100%; height: 420px; object-fit: contain; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.4); margin-bottom: 20px; background: #fff; padding: 10px; }
     .thumbs img { height: 85px; object-fit: contain; border-radius: 8px; cursor: pointer; margin-right: 12px; transition: all 0.3s ease; background: #fff; padding: 5px; }
     .thumbs img:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(0,0,0,0.35); }
-    .zoom-container { position: relative; overflow: hidden; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.4); margin-bottom: 20px; background: #fff; padding: 10px; height: 420px; }
-    .zoom-container img { width: 100%; height: 100%; object-fit: contain; transition: opacity 0.15s ease; border-radius: 8px; background: #fff; }
-    .zoom-container:hover img { opacity: 0; }
-    .zoom-container:hover { background-repeat: no-repeat; background-size: 150% 150%; cursor: zoom-in; }
+    .zoom-container { 
+      position: relative; 
+      overflow: hidden; 
+      border-radius: 12px; 
+      box-shadow: 0 5px 25px rgba(0,0,0,0.4); 
+      margin-bottom: 20px; 
+      background: #fff; 
+      padding: 10px; 
+      height: 420px; 
+      background-size: 100% 100%; 
+      background-position: center; 
+      transition: background-size 0.2s ease; 
+    }
+    .zoom-container img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: contain; 
+      transition: opacity 0.15s ease; 
+      border-radius: 8px; 
+      background: #fff; 
+      position: relative; 
+      z-index: 2; 
+    }
+    .zoom-container::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #f0f0f0; /* Light gray placeholder */
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      z-index: 1;
+    }
+    .zoom-container.loading::before { opacity: 1; } /* Show during load */
+    .zoom-container:hover img { 
+      opacity: 0; 
+      transition: opacity 0.15s ease; 
+    }
+    .zoom-container:hover { 
+      background-repeat: no-repeat; 
+      background-size: 150% 150%; 
+      cursor: zoom-in;
+      transition: background-size 0.2s ease;
+    }
     .scroll-container { display: flex; gap: 20px; overflow-x: auto; scroll-behavior: smooth; padding-bottom: 15px; margin-bottom: 25px; }
     .slide-card { min-width: 220px; flex: 0 0 auto; border-radius: 12px; background: #fff; color: #000; text-align: center; padding: 18px; border: 1px solid #ddd; transition: all 0.3s ease; cursor: pointer; }
     .slide-card img { height: 150px; object-fit: contain; margin-bottom: 12px; transition: transform 0.3s ease; }
@@ -55,11 +94,11 @@
         <div id="zoomContainer" class="zoom-container">
           <img id="mainImage" class="main-img" src="<%= (product && product.images && product.images.length) ? product.images[0] : '/images/fallback.jpg' %>" 
                alt="<%= product && product.name ? (typeof product.name === 'string' ? product.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product') : 'Product Image' %>" 
-               onerror="if(this.src !== '/images/fallback.jpg'){ this.src='/images/fallback.jpg'; }" />
+               onerror="handleImageError(this, 'mainImage')" />
         </div>
         <div class="d-flex thumbs">
-          <% (product && product.images || []).forEach(img => { %>
-            <img src="<%= img %>" alt="Thumbnail" onerror="if(this.src !== '/images/fallback.jpg'){ this.src='/images/fallback.jpg'; }" onclick="setMainImage(this.src)" />
+          <% (product && product.images || []).forEach((img, idx) => { %>
+            <img src="<%= img %>" alt="Thumbnail" class="thumb-img-<%= idx %>" onerror="handleImageError(this, 'thumb-<%= idx %>')" onclick="setMainImage(this.src)" />
           <% }) %>
         </div>
       </div>
@@ -145,12 +184,12 @@
         <a href="/search" class="btn-dark-custom btn-sm">View All Products</a>
       </div>
       <div class="scroll-container">
-        <% (relatedProducts || []).forEach(p => { %>
+        <% (relatedProducts || []).forEach((p, idx) => { %>
           <div class="slide-card">
             <a href="/all-product/product-details/<%= p._id || '' %>" class="text-decoration-none">
-              <img src="<%= (p.images && p.images[0]) || '/images/fallback.jpg' %>" 
+              <img class="related-img-<%= idx %>" src="<%= (p.images && p.images[0]) || '/images/fallback.jpg' %>" 
                    alt="<%= (p.name && typeof p.name === 'string') ? p.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product' %>" 
-                   onerror="if(this.src !== '/images/fallback.jpg'){ this.src='/images/fallback.jpg'; }" />
+                   onerror="handleImageError(this, 'related-<%= idx %>')" />
               <p class="fw-semibold"><%= (p.name && typeof p.name === 'string') ? p.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></p>
               <span class="fw-bold">₹<%= p.originalPrice || '' %></span>
             </a>
@@ -166,12 +205,12 @@
         <a href="/search" class="btn-dark-custom btn-sm">View All Products</a>
       </div>
       <div class="scroll-container">
-        <% (products || []).forEach(p => { %>
+        <% (products || []).forEach((p, idx) => { %>
           <div class="slide-card">
             <a href="/all-product/product-details/<%= p._id || '' %>" class="text-decoration-none">
-              <img src="<%= (p.images && p.images[0]) || '/images/fallback.jpg' %>" 
+              <img class="flash-img-<%= idx %>" src="<%= (p.images && p.images[0]) || '/images/fallback.jpg' %>" 
                    alt="<%= (p.name && typeof p.name === 'string') ? p.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'Product' %>" 
-                   onerror="if(this.src !== '/images/fallback.jpg'){ this.src='/images/fallback.jpg'; }" />
+                   onerror="handleImageError(this, 'flash-<%= idx %>')" />
               <p class="fw-semibold"><%= (p.name && typeof p.name === 'string') ? p.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '' %></p>
               <span class="fw-bold">₹<%= p.originalPrice || '' %></span>
             </a>
@@ -211,39 +250,149 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <script>
-    // ---------- Debug bootstrap ----------
-    console.groupCollapsed('Product Details — debug log');
-    console.time('page-total');
-    window.addEventListener('error', e => console.error('Uncaught error:', e.message, e.filename + ':' + e.lineno));
-    window.addEventListener('unhandledrejection', e => console.error('Unhandled promise rejection:', e.reason));
+    // ---------- Fixed Complete Debug Setup (No Prototype Overrides) ----------
+    console.groupCollapsed('Product Details — FIXED DEBUG LOG');
+    console.time('page-total-load');
+    console.timeStamp('Debug: Script start');
 
-    // Safely embed product data (simpler, less error-prone)
+    // Global error and rejection handlers (enhanced with object stringification)
+    window.addEventListener('error', e => {
+      const errObj = {
+        message: e.message || 'Unknown error',
+        filename: e.filename,
+        lineno: e.lineno,
+        colno: e.colno,
+        error: e.error ? (e.error.stack || e.error.toString()) : 'No error object',
+        timestamp: new Date().toISOString()
+      };
+      console.error('🚨 Uncaught Error:', errObj);
+    });
+    window.addEventListener('unhandledrejection', e => {
+      console.error('🚨 Unhandled Promise Rejection:', {
+        reason: e.reason ? (e.reason.stack || e.reason.toString()) : 'Unknown reason',
+        timestamp: new Date().toISOString()
+      });
+    });
+
+    // Performance marks
+    if (performance) {
+      performance.mark('debug-script-init');
+    }
+
+    // Safe fetch interceptor
+    const originalFetch = window.fetch;
+    window.fetch = function(...args) {
+      console.time(`fetch-${args[0]?.url || 'unknown'}`);
+      console.debug('🔄 Fetch started:', { url: args[0], method: args[1]?.method || 'GET', timestamp: new Date().toISOString() });
+      return originalFetch.apply(this, args).then(response => {
+        console.timeEnd(`fetch-${args[0]?.url || 'unknown'}`);
+        console.debug('✅ Fetch completed:', { url: args[0], status: response.status, timestamp: new Date().toISOString() });
+        return response;
+      }).catch(err => {
+        console.timeEnd(`fetch-${args[0]?.url || 'unknown'}`);
+        console.error('❌ Fetch failed:', { url: args[0], error: err.toString(), timestamp: new Date().toISOString() });
+        throw err;
+      });
+    };
+
+    // Manual image monitoring function (safe, per-image)
+    let imageLoadCount = 0;
+    let imageErrorCount = 0;
+    function handleImageLoad(img, id) {
+      imageLoadCount++;
+      console.debug('✅ Image loaded:', { id, src: img.src, naturalWidth: img.naturalWidth, naturalHeight: img.naturalHeight, timestamp: new Date().toISOString() });
+    }
+    function handleImageError(img, id) {
+      imageErrorCount++;
+      console.error('❌ Image load error:', { id, src: img.src, timestamp: new Date().toISOString() });
+      if (img.src !== '/images/fallback.jpg') {
+        img.src = '/images/fallback.jpg';
+        console.debug('🔄 Fallback applied:', { id, timestamp: new Date().toISOString() });
+      }
+    }
+    function attachImageListeners(imgSelector, idPrefix) {
+      const imgs = document.querySelectorAll(imgSelector);
+      imgs.forEach((img, idx) => {
+        img.addEventListener('load', () => handleImageLoad(img, `${idPrefix}-${idx}`), { once: true });
+        img.addEventListener('error', () => handleImageError(img, `${idPrefix}-${idx}`), { once: true });
+      });
+      console.debug('🔍 Attached listeners to images:', { selector: imgSelector, count: imgs.length, timestamp: new Date().toISOString() });
+    }
+
+    // DOM mutation observer (throttled: only large changes)
+    let mutationCount = 0;
+    const observer = new MutationObserver((mutations) => {
+      const totalAdded = mutations.reduce((sum, m) => sum + (m.addedNodes ? m.addedNodes.length : 0), 0);
+      if (totalAdded > 5) {  // Threshold to avoid spam
+        mutationCount++;
+        console.warn('🔄 Large DOM Mutation Detected (potential loop?: count=' + mutationCount + ')', {
+          totalAdded,
+          timestamp: new Date().toISOString()
+        });
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Resource timing
+    if (performance.getEntriesByType) {
+      setTimeout(() => {
+        const resources = performance.getEntriesByType('resource');
+        console.table(resources.slice(-10).map(r => ({  // Last 10 only
+          name: r.name,
+          initiatorType: r.initiatorType,
+          duration: r.duration.toFixed(2) + 'ms',
+          startTime: r.startTime.toFixed(2) + 'ms'
+        })));
+        console.debug('📊 Resource summary:', { total: resources.length, slowest: Math.max(...resources.map(r => r.duration)).toFixed(2) + 'ms' });
+      }, 2000);
+    }
+
+    // Memory monitoring
+    if (performance.memory) {
+      setInterval(() => {
+        const mem = performance.memory;
+        console.debug('💾 Memory Usage:', {
+          used: (mem.usedJSHeapSize / 1024 / 1024).toFixed(2) + 'MB',
+          total: (mem.totalJSHeapSize / 1024 / 1024).toFixed(2) + 'MB',
+          limit: (mem.jsHeapSizeLimit / 1024 / 1024).toFixed(2) + 'MB',
+          timestamp: new Date().toISOString()
+        });
+      }, 5000);
+    }
+
+    // Embed data
     try {
       window.PRODUCT = <%- JSON.stringify(product || {}) %>;
       window.DUMMY_REVIEWS = <%- JSON.stringify(dummyReviews || []) %>;
-      console.debug('Embedded PRODUCT and DUMMY_REVIEWS', { product: PRODUCT, dummyReviews: DUMMY_REVIEWS });
+      console.debug('📦 Embedded data:', { 
+        productKeys: Object.keys(PRODUCT).length, 
+        reviewsLen: DUMMY_REVIEWS.length,
+        timestamp: new Date().toISOString()
+      });
     } catch (err) {
-      console.error('Failed to embed JSON safely:', err);
-      window.PRODUCT = {};
-      window.DUMMY_REVIEWS = [];
+      console.error('❌ Embed failed:', err.toString());
+      window.PRODUCT = {}; window.DUMMY_REVIEWS = [];
     }
 
     // DOM elements
-    const variantsWrap = document.getElementById('variantsWrap');
-    const priceEl = document.getElementById('currentPrice');
-    const stockBadgeEl = document.getElementById('stockBadge');
-    const tdProcessor = document.getElementById('tdProcessor');
-    const tdRam = document.getElementById('tdRam');
-    const tdStorage = document.getElementById('tdStorage');
-    const tdGraphics = document.getElementById('tdGraphics');
-    const tdDisplay = document.getElementById('tdDisplay');
-    const tdColor = document.getElementById('tdColor');
-    const addToCartBtn = document.getElementById('addToCartBtn');
-    const wishlistBtn = document.getElementById('wishlistBtn');
-    const zoomContainer = document.getElementById('zoomContainer');
-    const mainImage = document.getElementById('mainImage');
+    const elements = {
+      variantsWrap: document.getElementById('variantsWrap'),
+      priceEl: document.getElementById('currentPrice'),
+      stockBadgeEl: document.getElementById('stockBadge'),
+      tdProcessor: document.getElementById('tdProcessor'),
+      tdRam: document.getElementById('tdRam'),
+      tdStorage: document.getElementById('tdStorage'),
+      tdGraphics: document.getElementById('tdGraphics'),
+      tdDisplay: document.getElementById('tdDisplay'),
+      tdColor: document.getElementById('tdColor'),
+      addToCartBtn: document.getElementById('addToCartBtn'),
+      wishlistBtn: document.getElementById('wishlistBtn'),
+      zoomContainer: document.getElementById('zoomContainer'),
+      mainImage: document.getElementById('mainImage')
+    };
+    console.debug('🔍 DOM Elements:', Object.fromEntries(Object.entries(elements).map(([k,v]) => [k, !!v])), { timestamp: new Date().toISOString() });
 
-    // Utility: debounce
+    // Utilities
     function debounce(func, wait) {
       let timeout;
       return function (...args) {
@@ -252,100 +401,159 @@
       };
     }
 
+    // Preload with logging
+    function preloadBackground(src, callback) {
+      console.time(`preload-${src.split('/').pop()}`);
+      console.debug('⏳ Preloading:', src);
+      const img = new Image();
+      img.onload = () => {
+        console.timeEnd(`preload-${src.split('/').pop()}`);
+        if (elements.zoomContainer) {
+          elements.zoomContainer.style.backgroundImage = `url('${src}')`;
+          elements.zoomContainer.classList.remove('loading');
+          console.debug('✅ Background set');
+        }
+        callback?.();
+      };
+      img.onerror = () => {
+        console.timeEnd(`preload-${src.split('/').pop()}`);
+        console.error('❌ Preload error:', src);
+        if (elements.zoomContainer) {
+          elements.zoomContainer.style.backgroundImage = `url('/images/fallback.jpg')`;
+          elements.zoomContainer.classList.remove('loading');
+        }
+        callback?.();
+      };
+      img.src = src;
+    }
+
     function setMainImage(src) {
-      console.debug('setMainImage called with', src);
-      if (!src) {
-        mainImage.src = '/images/fallback.jpg';
-        if (zoomContainer) zoomContainer.style.backgroundImage = `url('/images/fallback.jpg')`;
-        return;
+      console.time('setMainImage');
+      console.debug('🖼️ setMainImage:', src);
+      try {
+        if (!src) {
+          elements.mainImage.src = '/images/fallback.jpg';
+          if (elements.zoomContainer) {
+            elements.zoomContainer.classList.add('loading');
+            preloadBackground('/images/fallback.jpg');
+          }
+          return;
+        }
+        elements.mainImage.src = src;
+        if (elements.zoomContainer) {
+          elements.zoomContainer.classList.add('loading');
+          preloadBackground(src);
+        }
+      } catch (err) {
+        console.error('❌ setMainImage error:', err);
+      } finally {
+        console.timeEnd('setMainImage');
       }
-      mainImage.src = src;
-      if (zoomContainer) zoomContainer.style.backgroundImage = `url('${src}')`;
     }
 
     function selectVariant(index) {
-      const variants = (window.PRODUCT && PRODUCT.combProduct) || [];
-      if (!variants.length) return;
-      const i = Math.max(0, Math.min(index, variants.length - 1));
-      const v = variants[i];
-
-      // Active UI
-      if (variantsWrap) [...variantsWrap.querySelectorAll('.variant-card')].forEach(c => c.classList.remove('active'));
-      const activeCard = variantsWrap && variantsWrap.querySelector(`.variant-card[data-variant-index="${i}"]`);
-      if (activeCard) activeCard.classList.add('active');
-
-      // Price & stock
-      if (priceEl) priceEl.textContent = '₹' + (v.price ?? '');
-      if (stockBadgeEl) stockBadgeEl.textContent = (v.stock ?? 0) + ' in stock';
-
-      // Specs
-      if (tdProcessor) tdProcessor.textContent = v.processor ?? '—';
-      if (tdRam) tdRam.textContent = v.ram ?? '—';
-      if (tdStorage) tdStorage.textContent = v.storage ?? '—';
-      if (tdGraphics) tdGraphics.textContent = v.graphics ?? '—';
-      if (tdDisplay) tdDisplay.textContent = v.display ?? '—';
-      if (tdColor) tdColor.textContent = v.color ?? '—';
-
-      // Update buttons' variantId
-      if (addToCartBtn) addToCartBtn.setAttribute('data-variant-id', v._id || '');
-      if (wishlistBtn) wishlistBtn.setAttribute('data-variant-id', v._id || '');
-
-      console.debug('Variant selected', { index: i, variant: v });
+      console.time('selectVariant');
+      console.debug('⚙️ selectVariant:', index);
+      try {
+        const variants = window.PRODUCT?.combProduct || [];
+        if (!variants.length) return console.warn('⚠️ No variants');
+        const i = Math.max(0, Math.min(index, variants.length - 1));
+        const v = variants[i];
+        // UI/Specs updates (as before, but with elements check)
+        if (elements.variantsWrap) {
+          [...elements.variantsWrap.querySelectorAll('.variant-card')].forEach(c => c.classList.remove('active'));
+          const activeCard = elements.variantsWrap.querySelector(`[data-variant-index="${i}"]`);
+          if (activeCard) activeCard.classList.add('active');
+        }
+        if (elements.priceEl) elements.priceEl.textContent = '₹' + (v.price ?? '');
+        if (elements.stockBadgeEl) elements.stockBadgeEl.textContent = (v.stock ?? 0) + ' in stock';
+        [elements.tdProcessor, elements.tdRam, elements.tdStorage, elements.tdGraphics, elements.tdDisplay, elements.tdColor]
+          ?.forEach((el, j) => { if (el) el.textContent = [v.processor, v.ram, v.storage, v.graphics, v.display, v.color][j] ?? '—'; });
+        if (elements.addToCartBtn) elements.addToCartBtn.setAttribute('data-variant-id', v._id || '');
+        if (elements.wishlistBtn) elements.wishlistBtn.setAttribute('data-variant-id', v._id || '');
+        console.debug('✅ Variant:', i);
+      } catch (err) {
+        console.error('❌ selectVariant error:', err);
+      } finally {
+        console.timeEnd('selectVariant');
+      }
     }
 
     function bindVariantClicks() {
-      if (!variantsWrap) return;
-      variantsWrap.addEventListener('click', e => {
+      if (!elements.variantsWrap) return console.warn('⚠️ No variantsWrap');
+      let clicks = 0;
+      elements.variantsWrap.addEventListener('click', e => {
+        clicks++;
         const card = e.target.closest('.variant-card');
-        if (!card) return;
-        const idx = Number(card.getAttribute('data-variant-index'));
-        if (!Number.isNaN(idx)) selectVariant(idx);
+        if (card) selectVariant(Number(card.dataset.variantIndex));
+        console.debug('🖱️ Variant click:', clicks);
       });
     }
 
-    // Zoom mousemove with reasonable debounce
-    if (zoomContainer) {
-      zoomContainer.addEventListener('mousemove', debounce(e => {
-        const rect = zoomContainer.getBoundingClientRect();
+    // Mousemove (debounced)
+    let moveCount = 0;
+    if (elements.zoomContainer) {
+      elements.zoomContainer.addEventListener('mousemove', debounce(e => {
+        moveCount++;
+        const rect = elements.zoomContainer.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / rect.width) * 100;
         const y = ((e.clientY - rect.top) / rect.height) * 100;
-        zoomContainer.style.backgroundPosition = x + '% ' + y + '%';
+        elements.zoomContainer.style.backgroundPosition = `${x}% ${y}%`;
+        console.debug('🖱️ Mousemove:', moveCount);  // Throttle logs if needed
       }, 100));
     }
 
-    mainImage && mainImage.addEventListener('load', () => {
-      console.debug('mainImage loaded', { src: mainImage.src, naturalWidth: mainImage.naturalWidth });
-      setMainImage(mainImage.src);
-    });
+    // Main image listener (manual)
+    if (elements.mainImage) {
+      elements.mainImage.addEventListener('load', () => {
+        console.debug('🖼️ Main loaded');
+        if (elements.zoomContainer) elements.zoomContainer.classList.remove('loading');
+        setMainImage(elements.mainImage.src);
+      }, { once: true });
+      elements.mainImage.addEventListener('error', () => handleImageError(elements.mainImage, 'mainImage'), { once: true });
+    }
 
+    // DOMContentLoaded (wrapped)
     document.addEventListener('DOMContentLoaded', () => {
       console.time('DOMContentLoaded');
       try {
-        if (PRODUCT.images?.length) setMainImage(PRODUCT.images[0]);
-        if (PRODUCT.combProduct?.length) selectVariant(0);
+        console.assert(!!elements.zoomContainer, 'zoomContainer missing');
+        attachImageListeners('#mainImage', 'main');  // Specific
+        attachImageListeners('.thumbs img', 'thumb');
+        attachImageListeners('.related-img', 'related');
+        attachImageListeners('.flash-img', 'flash');
+        if (window.PRODUCT.images?.length) setMainImage(window.PRODUCT.images[0]);
+        if (window.PRODUCT.combProduct?.length) selectVariant(0);
         bindVariantClicks();
-        console.debug('DOMContentLoaded init done');
+        console.debug('✅ Init complete');
       } catch (err) {
-        console.error('Error during DOMContentLoaded init:', err);
+        console.error('❌ Init error:', err);
       }
       console.timeEnd('DOMContentLoaded');
     });
 
-    // Add to Cart functionality with timeout + logging
-    if (addToCartBtn) {
-      addToCartBtn.addEventListener('click', async () => {
-        console.debug('AddToCart clicked');
-        const productId = addToCartBtn.getAttribute('data-product-id');
-        const variantId = addToCartBtn.getAttribute('data-variant-id');
-        const productName = addToCartBtn.getAttribute('data-product-name');
+    // Add to Cart functionality with timeout + enhanced logging
+    if (elements.addToCartBtn) {
+      let cartClickCount = 0;
+      elements.addToCartBtn.addEventListener('click', async () => {
+        cartClickCount++;
+        console.time('addToCart-full');
+        console.debug('🛒 AddToCart clicked:', { count: cartClickCount, timestamp: new Date().toISOString() });
+        const productId = elements.addToCartBtn.getAttribute('data-product-id');
+        const variantId = elements.addToCartBtn.getAttribute('data-variant-id');
+        const productName = elements.addToCartBtn.getAttribute('data-product-name');
 
         if (!variantId) {
+          console.warn('⚠️ No variantId for addToCart', { timestamp: new Date().toISOString() });
           Swal.fire({ title: 'Select a Variant', text: 'Please select a variant before adding to cart.', icon: 'warning', confirmButtonText: 'OK' });
           return;
         }
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => { controller.abort(); console.warn('addToCart fetch aborted due to timeout'); }, 5000);
+        const timeoutId = setTimeout(() => { 
+          controller.abort(); 
+          console.warn('⏰ addToCart fetch aborted due to 5s timeout', { timestamp: new Date().toISOString() }); 
+        }, 5000);
 
         try {
           console.time('fetch-addToCart');
@@ -360,16 +568,19 @@
 
           if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
           const data = await res.json();
-          console.debug('addToCart response', data);
+          console.debug('🛒 addToCart response:', data);
 
           if (data.loginRequired) {
+            console.warn('🔐 Login required for addToCart', { timestamp: new Date().toISOString() });
             Swal.fire({ icon: 'warning', title: 'Login Required', text: data.message || 'Please login to continue.', showCancelButton: true, confirmButtonText: 'Login', cancelButtonText: 'Cancel' }).then(r => { if (r.isConfirmed) window.location.href = '/login'; });
             return;
           }
 
           if (data.success) {
+            console.debug('✅ addToCart success', { timestamp: new Date().toISOString() });
             Swal.fire({ icon: 'success', title: 'Added to Cart!', text: 'Your product has been added.', showCancelButton: true, confirmButtonText: 'Go to Cart 🛒', cancelButtonText: 'Continue Shopping', timer: 3000, timerProgressBar: true }).then(result => { if (result.isConfirmed) window.location.href = '/cart'; });
           } else {
+            console.warn('⚠️ addToCart failed:', data.message);
             let errorTitle = 'Error';
             let errorText = data.message || 'Failed to update the cart.';
             if (data.message === 'Variant not found') { errorTitle = 'Variant Unavailable'; errorText = 'The selected variant is not available.'; }
@@ -380,28 +591,37 @@
           }
         } catch (err) {
           clearTimeout(timeoutId);
-          console.error('Fetch error (addToCart):', err);
-                    Swal.fire({ icon: "warning", title: "Oops...", text: "Login to continue..!", confirmButtonText: 'OK' });
-
+          console.error('❌ Fetch error (addToCart):', err);
+          Swal.fire({ icon: "warning", title: "Oops...", text: "Login to continue..!", confirmButtonText: 'OK' });
         }
+        console.timeEnd('addToCart-full');
       });
+    } else {
+      console.warn('⚠️ addToCartBtn not found', { timestamp: new Date().toISOString() });
     }
 
-    // Wishlist functionality
-    if (wishlistBtn) {
-      wishlistBtn.addEventListener('click', async () => {
-        console.debug('Wishlist clicked');
-        const productId = wishlistBtn.getAttribute('data-product-id');
-        const variantId = wishlistBtn.getAttribute('data-variant-id');
-        const productName = wishlistBtn.getAttribute('data-product-name');
+    // Wishlist functionality with enhanced logging
+    if (elements.wishlistBtn) {
+      let wishlistClickCount = 0;
+      elements.wishlistBtn.addEventListener('click', async () => {
+        wishlistClickCount++;
+        console.time('wishlist-full');
+        console.debug('❤️ Wishlist clicked:', { count: wishlistClickCount, timestamp: new Date().toISOString() });
+        const productId = elements.wishlistBtn.getAttribute('data-product-id');
+        const variantId = elements.wishlistBtn.getAttribute('data-variant-id');
+        const productName = elements.wishlistBtn.getAttribute('data-product-name');
 
         if (!variantId) {
+          console.warn('⚠️ No variantId for wishlist', { timestamp: new Date().toISOString() });
           Swal.fire({ title: 'Select a Variant', text: 'Please select a variant before adding to wishlist.', icon: 'warning', confirmButtonText: 'OK' });
           return;
         }
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => { controller.abort(); console.warn('wishlist fetch aborted due to timeout'); }, 5000);
+        const timeoutId = setTimeout(() => { 
+          controller.abort(); 
+          console.warn('⏰ wishlist fetch aborted due to 5s timeout', { timestamp: new Date().toISOString() }); 
+        }, 5000);
 
         try {
           console.time('fetch-wishlist');
@@ -416,9 +636,10 @@
 
           if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
           const data = await res.json();
-          console.debug('wishlist response', data);
+          console.debug('❤️ wishlist response:', data);
 
           if (data.loginRequired) {
+            console.warn('🔐 Login required for wishlist', { timestamp: new Date().toISOString() });
             Swal.fire({ icon: 'warning', title: 'Login Required', text: data.message || 'Please login to add to wishlist.', showCancelButton: true, confirmButtonText: 'Login', cancelButtonText: 'Cancel' }).then(r => { if (r.isConfirmed) window.location.href = '/login'; });
             return;
           }
@@ -426,6 +647,7 @@
           if (data.success) {
             Swal.fire({ icon: 'success', title: 'Added to Wishlist!', text: 'Your product has been added to your wishlist.', showCancelButton: true, confirmButtonText: 'Go to Wishlist', cancelButtonText: 'Continue Shopping', timer: 3000, timerProgressBar: true }).then(result => { if (result.isConfirmed) window.location.href = '/viewWishList'; });
           } else {
+            console.warn('⚠️ wishlist failed:', data.message);
             let errorTitle = 'Error';
             let errorText = data.message || 'Failed to add to wishlist.';
             if (data.message === 'Variant not found') { errorTitle = 'Variant Unavailable'; errorText = 'The selected variant is not available.'; }
@@ -435,15 +657,18 @@
           }
         } catch (err) {
           clearTimeout(timeoutId);
-          console.error('Fetch error (wishlist):', err);
-                    Swal.fire({ icon: "warning", title: "Oops...", text: "Login to continue..!", confirmButtonText: 'OK' });
+          console.error('❌ Fetch error (wishlist):', err);
+          Swal.fire({ icon: "warning", title: "Oops...", text: "Login to continue..!", confirmButtonText: 'OK' });
         }
       });
+    } else {
+      console.warn('⚠️ wishlistBtn not found', { timestamp: new Date().toISOString() });
     }
 
-    // Reviews toggle
+    // Reviews toggle with logging
     try {
       const reviewCards = document.querySelectorAll('.review-card');
+      console.debug('📝 Reviews init:', { cardCount: reviewCards.length, timestamp: new Date().toISOString() });
       if (window.DUMMY_REVIEWS && window.DUMMY_REVIEWS.length) {
         reviewCards.forEach(card => {
           const readMore = card.querySelector('.read-more');
@@ -456,22 +681,24 @@
 
             readMore.addEventListener('click', () => {
               const expanded = card.classList.toggle('expanded');
-              if (expanded) { reviewText.textContent = fullText; readMore.textContent = 'Show less'; }
-              else { reviewText.textContent = shortText; readMore.textContent = 'Read more'; }
+              if (expanded) { 
+                reviewText.textContent = fullText; 
+                readMore.textContent = 'Show less'; 
+              } else { 
+                reviewText.textContent = shortText; 
+                readMore.textContent = 'Read more'; 
+              }
             });
           }
         });
       }
     } catch (err) {
-      console.error('Reviews init error:', err);
+      console.error('❌ Reviews init error:', err);
     }
 
-    // Finalize debug
-    window.addEventListener('load', () => {
-      console.timeEnd('page-total');
-      console.debug('window.load fired — all resources finished (images, subresources).');
-      console.groupEnd();
-    });
+ 
+
+    // Bootstrap debug end
   </script>
 </body>
 </html>

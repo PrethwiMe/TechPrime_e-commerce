@@ -116,6 +116,8 @@ router.get('/account/wallet',userConfirmed,userProfileController.viewWallet)
 router.get('/account/referrals',userConfirmed,userProfileController.referrals)
 //genarate referral code
 router.post('/account/referral/codeGenarate',userConfirmed,userProfileController.genarateReferralCode)
+//coupons
+router.get('/account/coupons',userConfirmed,userProfileController.couponPage)
 
 module.exports = router;
   

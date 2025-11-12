@@ -295,7 +295,6 @@ exports.cancelOrderModal = async (orderId) => {
   const update = await db.collection(dbVariables.orderCollection).updateOne({ orderId: orderId }, { $set: { status: "Cancelled" } })
   return update
 }
-
 exports.returnData = async (data) => {
   const db = await getDB();
 
@@ -365,7 +364,6 @@ exports.showOrderVerify = async (dbOrderId) => {
   return await db.collection(dbVariables.orderCollection).findOne(
     { orderId: dbOrderId });
 };
-
 exports.orderUpdate = async (razorpayOrderId, data) => {
   const db = await getDB();
 
@@ -397,14 +395,12 @@ exports.orderUpdate = async (razorpayOrderId, data) => {
   );
   return result;
 };
-
 exports.checkCoupon = async (data) => {
   const db = await getDB()
   const response = await db.collection(dbVariables.couponCollection).findOne({ code: data })
   return response;
 }
 exports.getOrderByOrderId = async (userId, code) => {
-
   const db = await getDB();
   const order = await db.collection(dbVariables.orderCollection).findOne({ orderId: code, userId: userId })
   return order
@@ -438,8 +434,6 @@ exports.returnEachItems = async (data) => {
     const db = await getDB();
 
     const timeNow = new Date();
-
-
     const result = await db.collection(dbVariables.orderCollection).findOne(
       { orderId: orderId, "items.variantId": variantId },
       {
@@ -490,7 +484,6 @@ exports.returnEachItems = async (data) => {
     return { success: false, message: "Something went wrong" };
   }
 };
-
 exports.getWalletData = async (userId) => {
   try {
     const db = await getDB();
@@ -501,7 +494,6 @@ exports.getWalletData = async (userId) => {
     return null;
   }
 };
-
 exports.checkReturnItem = async (data) => {
   const { orderId, variantId } = data;
   try {
@@ -542,7 +534,6 @@ exports.returnStatusData = async (userId, orderId) => {
   }
 };
 exports.getWalletAmount = async (userId) => {
-
   try {
 
     const db = await getDB();
@@ -555,9 +546,7 @@ exports.getWalletAmount = async (userId) => {
   }
 
 }
-
 exports.deductWalletAmount = async (userId, amount) => {
-
   try {
 
     const db = await getDB();
@@ -572,7 +561,6 @@ exports.deductWalletAmount = async (userId, amount) => {
   }
 }
 exports.updateWalletHistory = async (userId, amount) => {
-
   const db = await getDB();
   const users = await db.collection(dbVariables.walletCollection).findOne({ userId: userId })
   if (!users) return "No wallet found"
@@ -665,10 +653,14 @@ exports.updateReferralInDb = async (code, userId) => {
     return { success: false, error };
   }
 }
-
 exports.disableCoupon = async (code) => {
 
   const db = await getDB()
   const changeState = await db.collection(dbVariables.couponCollection).updateOne({code:code},{$set:{isActive:false}})
   return changeState
 }
+exports.getCoupon = async () => {
+  let db = await getDB();
+  let collectionIs = await db.collection(dbVariables.couponCollection).find({isActive:true}).toArray()
+return collectionIs
+ }

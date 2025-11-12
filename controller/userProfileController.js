@@ -863,3 +863,9 @@ exports.genarateReferralCode = async (req, res) => {
 
   res.json({ success: true, referralCode: code, dbUpdate: updateResult });
 };
+
+exports.couponPage = async (req,res) => {
+  let data = await userProfileModel.getCoupon()
+  console.log(data)
+   res.render('user-pages/coupons.ejs',{coupons : data})
+}

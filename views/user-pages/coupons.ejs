@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coupons | TechCart</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .coupon-hero {
+      background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
+      color: white;
+      padding: 60px 0;
+      border-radius: 14px;
+      margin-bottom: 40px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .coupon-hero h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .coupon-hero p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .coupon-card {
+      background: white;
+      border-radius: 12px;
+      padding: 0;
+      margin-bottom: 25px;
+      box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      overflow: hidden;
+      border: 2px solid transparent;
+      position: relative;
+    }
+
+    .coupon-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      border-color: #000;
+    }
+
+    .coupon-left {
+      background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+      color: white;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+
+    .coupon-left::after {
+      content: '';
+      position: absolute;
+      right: -10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      background: #f8f9fa;
+      border-radius: 50%;
+    }
+
+    .discount-badge {
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .discount-text {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .coupon-right {
+      padding: 25px 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .coupon-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #000;
+      margin-bottom: 8px;
+    }
+
+    .coupon-description {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 15px;
+      line-height: 1.5;
+    }
+
+    .coupon-code-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+
+    .coupon-code {
+      background: #f8f9fa;
+      border: 2px dashed #000;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 1px;
+      flex: 1;
+      text-align: center;
+    }
+
+    .copy-btn {
+      background: #000;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .copy-btn:hover {
+      background: #333;
+      transform: translateY(-2px);
+    }
+
+    .copy-btn.copied {
+      background: #28a745;
+    }
+
+    .copy-btn:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .copy-btn:disabled:hover {
+      transform: none;
+    }
+
+    .coupon-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: #888;
+      padding-top: 12px;
+      border-top: 1px solid #eee;
+    }
+
+    .expiry-date {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .min-purchase {
+      font-weight: 600;
+      color: #000;
+    }
+
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 30px;
+      border-left: 5px solid #000;
+      padding-left: 12px;
+    }
+
+    .no-coupons {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .no-coupons-icon {
+      font-size: 4rem;
+      color: #ddd;
+      margin-bottom: 20px;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: white;
+      border: 2px solid #e0e0e0;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: #666;
+    }
+
+    .filter-btn:hover {
+      border-color: #000;
+      color: #000;
+    }
+
+    .filter-btn.active {
+      background: #000;
+      color: white;
+      border-color: #000;
+    }
+
+    @media (max-width: 768px) {
+      .coupon-hero h1 {
+        font-size: 1.8rem;
+      }
+
+      .coupon-left {
+        padding: 20px;
+      }
+
+      .discount-badge {
+        font-size: 2rem;
+      }
+
+      .coupon-right {
+        padding: 20px;
+      }
+
+      .coupon-code-container {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .coupon-code {
+        width: 100%;
+      }
+
+      .copy-btn {
+        width: 100%;
+      }
+
+      .coupon-meta {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+      }
+    }
+
+    @keyframes pulse-border {
+      0%, 100% {
+        border-color: #000;
+      }
+      50% {
+        border-color: #666;
+      }
+    }
+
+    .featured-coupon {
+      animation: pulse-border 2s infinite;
+    }
+
+    .featured-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: #ffd700;
+      color: #000;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      z-index: 10;
+    }
+
+    .expired-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #dc3545;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .coupon-card.expired {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/header') %>
+
+  <div class="container my-5">
+    <!-- Hero Section -->
+    <div class="coupon-hero text-center animate__animated animate__fadeInDown">
+      <h1>🎉 Exclusive Coupons & Deals</h1>
+      <p>Save big on your favorite tech products!</p>
+    </div>
+
+  
+
+    <!-- Coupons Section -->
+    <div class="section-title animate__animated animate__fadeInLeft">Available Coupons</div>
+
+    <% if (coupons && coupons.length > 0) { %>
+    <div class="row" id="couponsContainer">
+      <% coupons.forEach((coupon, index) => { 
+        const now = new Date();
+        const validUntil = new Date(coupon.validUntil);
+        const isExpired = validUntil < now || !coupon.isActive;
+        const isFeatured = coupon.discount >= 50 || coupon.discount >= 1000;
+      %>
+      <div class="col-lg-6 animate__animated animate__fadeInUp coupon-item" 
+           data-type="<%= coupon.discountType %>" 
+           style="animation-delay: <%= (index * 0.1) %>s">
+        <div class="coupon-card <%= isFeatured ? 'featured-coupon' : '' %> <%= isExpired ? 'expired' : '' %>">
+          <% if (isFeatured && !isExpired) { %>
+          <span class="featured-badge">⭐ Featured</span>
+          <% } %>
+          
+          <% if (isExpired) { %>
+          <div class="expired-overlay">EXPIRED</div>
+          <% } %>
+
+          <div class="row g-0">
+            <div class="col-md-4 coupon-left">
+              <div class="discount-badge">
+                <%= coupon.discountType === 'percentage' ? coupon.discount + '%' : '₹' + coupon.discount %>
+              </div>
+              <div class="discount-text">Off</div>
+            </div>
+            <div class="col-md-8 coupon-right">
+              <div>
+                <div class="coupon-title">
+                  <%= coupon.discountType === 'percentage' 
+                    ? `Get ${coupon.discount}% Off` 
+                    : `Flat ₹${coupon.discount} Discount` %>
+                </div>
+                <div class="coupon-description">
+                  <%= coupon.discountType === 'percentage' 
+                    ? `Save ${coupon.discount}% on your purchase. Valid on minimum order of ₹${coupon.minimumPurchase}.`
+                    : `Get flat ₹${coupon.discount} off on orders above ₹${coupon.minimumPurchase}. Limited time offer!` %>
+                </div>
+                <div class="coupon-code-container">
+                  <div class="coupon-code"><%= coupon.code %></div>
+                  <button class="copy-btn" onclick="copyCoupon(this, '<%= coupon.code %>')" <%= isExpired ? 'disabled' : '' %>>
+                    <%= isExpired ? 'Expired' : 'Copy' %>
+                  </button>
+                </div>
+              </div>
+              <div class="coupon-meta">
+                <div class="expiry-date">
+                  <span>⏰</span>
+                  <span>Valid till: <%= new Date(coupon.validUntil).toLocaleDateString('en-IN', {day: 'numeric', month: 'short', year: 'numeric'}) %></span>
+                </div>
+                <div class="min-purchase">Min: ₹<%= coupon.minimumPurchase || 0 %></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <% }); %>
+    </div>
+    <% } else { %>
+    <!-- Empty State -->
+    <div class="no-coupons animate__animated animate__fadeIn">
+      <div class="no-coupons-icon">🎫</div>
+      <h3>No Active Coupons</h3>
+      <p>Check back soon for exciting deals and discounts!</p>
+      <a href="/search" class="btn btn-dark mt-3">Browse Products</a>
+    </div>
+    <% } %>
+  </div>
+
+  <%- include('partials/footer') %>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+    function copyCoupon(button, code) {
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        button.classList.add('copied');
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Coupon Copied!',
+          html: `Code <strong>"${code}"</strong> copied to clipboard.<br>Apply it at checkout to save!`,
+          timer: 2500,
+          showConfirmButton: true,
+          confirmButtonText: 'Shop Now',
+          showCancelButton: true,
+          cancelButtonText: 'OK',
+          showClass: { popup: 'animate__animated animate__fadeInUp' },
+          hideClass: { popup: 'animate__animated animate__fadeOutDown' }
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = '/search';
+          }
+        });
+
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.classList.remove('copied');
+        }, 2500);
+      }).catch(err => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Copy Failed',
+          text: 'Please try copying manually',
+          showClass: { popup: 'animate__animated animate__fadeInUp' },
+          hideClass: { popup: 'animate__animated animate__fadeOutDown' }
+        });
+      });
+    }
+
+    function filterCoupons(type) {
+      const buttons = document.querySelectorAll('.filter-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const coupons = document.querySelectorAll('.coupon-item');
+      coupons.forEach(coupon => {
+        if (type === 'all' || coupon.dataset.type === type) {
+          coupon.style.display = 'block';
+          coupon.classList.add('animate__fadeIn');
+        } else {
+          coupon.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</body>
+</html>

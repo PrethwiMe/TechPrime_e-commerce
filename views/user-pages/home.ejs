@@ -169,6 +169,11 @@
       border-radius: 10px;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     }
+
+    /* ✅ Custom animation duration for SweetAlert popups - smooth but fast */
+    .swal2-popup .animate__animated {
+      animation-duration: 0.4s !important;
+    }
   </style>
 </head>
 
@@ -375,8 +380,8 @@
                 confirmButtonText: "Go to Cart",
                 showCancelButton: true,
                 cancelButtonText: "Continue Shopping",
-                showClass: { popup: "animate__animated animate__rotateIn" },
-                hideClass: { popup: "animate__animated animate__fadeOutUp" }
+                showClass: { popup: "animate__animated animate__fadeInUp" },
+                hideClass: { popup: "animate__animated animate__fadeOutDown" }
               }).then((result) => {
                 if (result.isConfirmed) window.location.href = "/cart";
               });
@@ -387,8 +392,8 @@
                 title: "Login Required",
                 text: res.message || "Please login to continue.",
                 confirmButtonText: "Login",
-                showClass: { popup: "animate__animated animate__zoomInDown" },
-                hideClass: { popup: "animate__animated animate__zoomOutUp" }
+                showClass: { popup: "animate__animated animate__fadeInUp" },
+                hideClass: { popup: "animate__animated animate__fadeOutDown" }
               }).then((result) => {
                 if (result.isConfirmed) window.location.href = "/login";
               });
@@ -398,8 +403,8 @@
                 icon: "error",
                 title: "Failed",
                 text: res.message || "Could not add product to cart.",
-                showClass: { popup: "animate__animated animate__shakeX" },
-                hideClass: { popup: "animate__animated animate__fadeOut" }
+                showClass: { popup: "animate__animated animate__fadeInUp" },
+                hideClass: { popup: "animate__animated animate__fadeOutDown" }
               });
             }
           } catch (err) {
@@ -408,8 +413,8 @@
               title: "Login Required",
               text: "Please login to continue",
               confirmButtonText: "Login",
-              showClass: { popup: "animate__animated animate__zoomIn" },
-              hideClass: { popup: "animate__animated animate__zoomOut" }
+              showClass: { popup: "animate__animated animate__fadeInUp" },
+              hideClass: { popup: "animate__animated animate__fadeOutDown" }
             }).then((result) => {
               if (result.isConfirmed) window.location.href = "/login";
             });
@@ -434,8 +439,8 @@
                 confirmButtonText: "Go to Wishlist",
                 showCancelButton: true,
                 cancelButtonText: "Continue Shopping",
-                showClass: { popup: "animate__animated animate__rotateIn" },
-                hideClass: { popup: "animate__animated animate__fadeOutUp" }
+                showClass: { popup: "animate__animated animate__fadeInUp" },
+                hideClass: { popup: "animate__animated animate__fadeOutDown" }
               }).then((result) => {
                 if (result.isConfirmed) window.location.href = "/viewWishList";
               });
@@ -446,8 +451,8 @@
                 title: "Login Required",
                 text: res.message || "Please login to continue.",
                 confirmButtonText: "Login",
-                showClass: { popup: "animate__animated animate__zoomInDown" },
-                hideClass: { popup: "animate__animated animate__zoomOutUp" }
+                showClass: { popup: "animate__animated animate__fadeInUp" },
+                hideClass: { popup: "animate__animated animate__fadeOutDown" }
               }).then((result) => {
                 if (result.isConfirmed) window.location.href = "/login";
               });
@@ -456,8 +461,8 @@
                 icon: "error",
                 title: "Failed",
                 text: res.message || "Could not add to wishlist.",
-                showClass: { popup: "animate__animated animate__shakeX" },
-                hideClass: { popup: "animate__animated animate__fadeOut" }
+                showClass: { popup: "animate__animated animate__fadeInUp" },
+                hideClass: { popup: "animate__animated animate__fadeOutDown" }
               });
             }
           } catch (err) {
@@ -466,8 +471,8 @@
               title: "Login Required",
               text: "Please login to continue",
               confirmButtonText: "Login",
-              showClass: { popup: "animate__animated animate__zoomIn" },
-              hideClass: { popup: "animate__animated animate__zoomOut" }
+              showClass: { popup: "animate__animated animate__fadeInUp" },
+              hideClass: { popup: "animate__animated animate__fadeOutDown" }
             }).then((result) => {
               if (result.isConfirmed) window.location.href = "/login";
             });
@@ -479,5 +484,3 @@
 </body>
 </html>
 <%- include('partials/footer') %>
-
-
