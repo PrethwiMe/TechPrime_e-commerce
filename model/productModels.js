@@ -52,13 +52,23 @@ exports.statusOfCategory = async (categoryId) => {
   if (!category) return null;
 
   const newStatus = !category.isActive;
-
   const updateResult = await db
     .collection(dbVariables.categoriesCollection)
     .updateOne(
       { _id: new ObjectId(categoryId) },
       { $set: { isActive: newStatus } }
     );
+
+    if (updateResult) {
+      let cateId = category._id.toString()
+
+      let products = await db.collection(dbVariables.productCollection).find({categoriesId:cateId}).toArray()
+  for(let val of products){
+
+
+    let updateProduct = await db.collection(dbVariables.productCollection).updateMany({categoriesId: cateId},{$set:{isActive:newStatus}})
+  }      
+    }
 
   return updateResult;
 };

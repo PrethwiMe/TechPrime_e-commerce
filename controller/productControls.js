@@ -166,6 +166,7 @@ exports.viewCatagories = async (req, res) => {
 exports.controleCategories = async (req, res) => {
   console.log("call reached here");
   console.log(req.params.id);
+  
 
   try {
     let result = await productModel.statusOfCategory(req.params.id);
