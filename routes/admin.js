@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 const adminController = require('../controller/admincontroller')
 const productController = require('../controller/productControls')
-const upload = require('../middleware/multer')
+const {upload} = require('../middleware/multer')
 const sessionHandle = require('../middleware/adminMiddleWare')
 
 /* GET admin base route */

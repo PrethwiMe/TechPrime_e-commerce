@@ -179,9 +179,11 @@ exports.updateProduct = async (productId, updateData) => {
   );
 };
 exports.updateVariantByProductId = async (productId,variantId, variantData) => {
+
+  console.log("update varient",productId,variantId, variantData)
   const db = getDB();
   return db.collection(dbVariables.variantCollection).updateOne(
-    { productId:new ObjectId( productId ), _id:variantId},
+    { productId:new ObjectId( productId ), _id:new ObjectId(variantId)},
     { $set: variantData }
   );
 };

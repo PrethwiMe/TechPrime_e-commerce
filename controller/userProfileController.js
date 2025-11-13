@@ -9,7 +9,6 @@ const upload = require('../middleware/multer');
 const { getDB } = require('../config/mongodb');
 const { cloudinary, uploadToCloudinary } = require('../middleware/cloudinary')
 const streamifier = require("streamifier");
-const streamUpload = require("../middleware/streamHelper");
 const { json } = require('express');
 const PDFDocument = require("pdfkit");
 const path = require("path");

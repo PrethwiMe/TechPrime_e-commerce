@@ -340,8 +340,88 @@ const offerValidation = (data) => {
   return schema.validate(data, { abortEarly: false });
 };
 
+/* =====================
+   PRODUCT EDIT VALIDATION
+   ===================== */
+const productEditValidation = (data) => {
+  const schema = Joi.object({
+    name: Joi.string()
+      .min(3)
+      .max(100)
+      .required()
+      .messages({
+        "string.min": "Product name must have at least 3 characters",
+        "string.max": "Product name cannot exceed 100 characters",
+        "any.required": "Product name is required"
+      }),
+
+    companyDetails: Joi.string()
+      .max(100)
+      .optional()
+      .allow('')
+      .messages({
+        "string.max": "Company details cannot exceed 100 characters",
+      }),
+
+    description: Joi.string()
+      .min(10)
+      .max(1000)
+      .required()
+      .messages({
+        "string.min": "Description must have at least 10 characters",
+        "string.max": "Description cannot exceed 1000 characters",
+        "any.required": "Description is required"
+      }),
+
+    originalPrice: Joi.number()
+      .min(1)
+      .required()
+      .messages({
+        "number.base": "Original price must be a number",
+        "number.min": "Original price must be at least 1",
+        "any.required": "Original price is required"
+      }),
+
+    categoriesId: Joi.string()
+      .length(24)
+      .required()
+      .messages({
+        "string.length": "Category ID must be a valid 24-character ObjectId",
+        "any.required": "Category ID is required"
+      }),
+
+    packageItems: Joi.string().optional().allow(''),
+
+    OS: Joi.string().optional().allow(''),
+
+    dimension: Joi.string().optional().allow(''),
+
+    series: Joi.string().optional().allow(''),
+
+    isActive: Joi.alternatives()
+      .try(Joi.boolean(), Joi.string().valid("true", "false"))
+      .default(true)
+      .messages({
+        "any.only": "isActive must be true or false"
+      }),
+
+    images: Joi.array()
+      .items(Joi.string().uri().required())
+      .length(3)
+      .required()
+      .messages({
+        "array.length": "Exactly 3 image URLs are required",
+        "string.uri": "Each image must be a valid URL",
+        "any.required": "Images are required"
+      }),
+  });
+
+  return schema.validate(data, { abortEarly: false });
+};
+
 
 module.exports = {
+  productEditValidation,
   signupValidation,
   loginValidation,
   addressValidation,

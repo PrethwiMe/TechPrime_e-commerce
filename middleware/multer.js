@@ -1,28 +1,37 @@
+// config/cloudinary.js
+const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
-const path = require('path');
+const streamifier = require('streamifier');
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'public/uploads/products');
-  },
-  filename: function (req, file, cb) {
-    const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, uniqueName + ext);
-  }
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// 2️ Multer memory storage (store file in buffer, not disk)
+const storage = multer.memoryStorage();
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 2MB
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB 
   fileFilter: (req, file, cb) => {
     const allowed = ['image/jpeg', 'image/png', 'image/webp'];
-    if (allowed.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only jpeg, png, webp allowed'), false);
-    }
-  }
+    if (allowed.includes(file.mimetype)) cb(null, true);
+    else cb(new Error('Only jpeg, png, webp allowed'), false);
+  },
 });
 
-module.exports = upload;
+const uploadToCloudinary = (fileBuffer, folderName) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: folderName },
+      (error, result) => {
+        if (result) resolve(result);
+        else reject(error);
+      }
+    );
+    streamifier.createReadStream(fileBuffer).pipe(stream);
+  });
+};
+
+module.exports = { cloudinary, upload, uploadToCloudinary };
