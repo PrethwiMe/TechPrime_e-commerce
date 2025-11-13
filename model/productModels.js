@@ -24,11 +24,13 @@ exports.updateProductVarientsData= async (productId, variantIds) => {
   );
 }
 // Fetch all categories
-exports.getAllCategories = async () => {
+exports.getAllCategories = async (data) => {
+
+   const filter = data || {}
   const db = await getDB();
   const categories = await db
     .collection(dbVariables.categoriesCollection)
-    .find()
+    .find(filter)
     .sort({ _id: -1 })
     .toArray();
   return categories;

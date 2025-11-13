@@ -32,6 +32,7 @@
       border-radius: 10px;
       margin: 8px;
       transition: background-color 0.3s ease, transform 0.2s ease;
+      cursor: pointer;
     }
 
     .category-btn:hover {
@@ -85,6 +86,12 @@
       margin-left: 8px;
     }
 
+    .out-of-stock {
+      color: #dc3545;
+      font-weight: 700;
+      font-size: 1.15rem;
+    }
+
     .card-title {
       font-size: 1rem;
       font-weight: 600;
@@ -104,11 +111,18 @@
       transition: all 0.3s ease;
     }
 
-    .btn-dark-custom:hover {
+    .btn-dark-custom:hover:not(:disabled) {
       background-color: #333;
       border-color: #111;
       transform: translateY(-2px);
       color: #fff;
+    }
+
+    .btn-dark-custom:disabled {
+      background-color: #6c757d;
+      border-color: #6c757d;
+      cursor: not-allowed;
+      opacity: 0.65;
     }
 
     .scroll-container {
@@ -194,6 +208,8 @@
       </div>
       <div class="scroll-container">
         <% products.forEach(product => { %>
+          <% const firstVariant = product.fullProduct ? product.fullProduct[0] : null; %>
+          <% const hasStock = firstVariant && firstVariant.stock > 0; %>
         <div class="product-card">
           <div class="card h-100 text-center">
             <a href="/all-product/product-details/<%= product._id %>" class="text-decoration-none text-dark">
@@ -203,15 +219,28 @@
               <h6 class="card-title "><%= product.name %></h6>
               <p class="mb-1"><%= product.OS%></p>
               <p class="mb-1"><%= product.companyDetails%></p>
+              <% if (hasStock) { %>
               <div class="price mb-3">
-                <span>₹<%= product.originalPrice %></span>
+                <span>₹<%= firstVariant.price %></span>
+                <% if (firstVariant.price < product.originalPrice) { %>
+                <span class="old-price">₹<%= product.originalPrice %></span>
+                <% } %>
               </div>
+              <% } else { %>
+              <div class="out-of-stock mb-3">
+                Out of Stock
+              </div>
+              <% } %>
               <div class="d-flex justify-content-between">
+                <% if (hasStock) { %>
                 <button class="btn-dark-custom add-to-cart"
                   data-id="<%= product._id %>"
-                  data-variant="<%= product.fullProduct[0]?._id %>"
+                  data-variant="<%= firstVariant._id %>"
                   data-name="<%= product.name %>"
                   data-img="<%= product.images[0] %>">Add to Cart</button>
+                <% } else { %>
+                <button class="btn-dark-custom" disabled>Out of Stock</button>
+                <% } %>
                 <button class="btn-dark-custom add-to-wishlist"
                   data-id="<%= product._id %>"
                   data-name="<%= product.name %>">&#9829;</button>
@@ -229,7 +258,7 @@
       <div class="d-flex flex-wrap">
         <% if(categories && categories.length){ %>
         <% categories.forEach(cat => { %>
-        <button class="category-btn text-capitalize"><%= cat.name %></button>
+        <button class="category-btn text-capitalize" onclick="window.location.href='/search?categories=<%= cat._id %>'"><%= cat.name %></button>
         <% }); %>
         <% } else { %>
         <p>No categories found</p>
@@ -248,6 +277,8 @@
       </div>
       <div class="scroll-container">
         <% products.slice().reverse().forEach(product => { %>
+          <% const firstVariant = product.fullProduct ? product.fullProduct[0] : null; %>
+          <% const hasStock = firstVariant && firstVariant.stock > 0; %>
         <div class="product-card">
           <div class="card h-100 text-center">
             <a href="/all-product/product-details/<%= product._id %>" class="text-decoration-none text-dark">
@@ -257,15 +288,28 @@
               <h6 class="card-title "><%= product.name %></h6>
               <p class="mb-1"><%= product.OS%></p>
               <p class=""><%= product.companyDetails%></p>
+              <% if (hasStock) { %>
               <div class="price mb-3">
-                <span>₹<%= product.originalPrice %></span>
+                <span>₹<%= firstVariant.price %></span>
+                <% if (firstVariant.price < product.originalPrice) { %>
+                <span class="old-price">₹<%= product.originalPrice %></span>
+                <% } %>
               </div>
+              <% } else { %>
+              <div class="out-of-stock mb-3">
+                Out of Stock
+              </div>
+              <% } %>
               <div class="d-flex justify-content-between">
+                <% if (hasStock) { %>
                 <button class="btn-dark-custom add-to-cart"
                   data-id="<%= product._id %>"
-                  data-variant="<%= product.fullProduct[0]?._id %>"
+                  data-variant="<%= firstVariant._id %>"
                   data-name="<%= product.name %>"
                   data-img="<%= product.images[0] %>">Add to Cart</button>
+                <% } else { %>
+                <button class="btn-dark-custom" disabled>Out of Stock</button>
+                <% } %>
                 <button class="btn-dark-custom add-to-wishlist"
                   data-id="<%= product._id %>"
                   data-name="<%= product.name %>">&#9829;</button>
@@ -288,6 +332,8 @@
       </div>
       <div class="scroll-container">
         <% products.forEach(product => { %>
+          <% const firstVariant = product.fullProduct ? product.fullProduct[0] : null; %>
+          <% const hasStock = firstVariant && firstVariant.stock > 0; %>
         <div class="product-card">
           <div class="card h-100 text-center">
             <a href="/all-product/product-details/<%= product._id %>" class="text-decoration-none text-dark">
@@ -297,15 +343,28 @@
               <h6 class="card-title "><%= product.name %></h6>
               <p class="mb-1"><%= product.OS%></p>
               <p class="mb-1"><%= product.companyDetails%></p>
+              <% if (hasStock) { %>
               <div class="price mb-3">
-                <span>₹<%= product.originalPrice %></span>
+                <span>₹<%= firstVariant.price %></span>
+                <% if (firstVariant.price < product.originalPrice) { %>
+                <span class="old-price">₹<%= product.originalPrice %></span>
+                <% } %>
               </div>
+              <% } else { %>
+              <div class="out-of-stock mb-3">
+                Out of Stock
+              </div>
+              <% } %>
               <div class="d-flex justify-content-between">
+                <% if (hasStock) { %>
                 <button class="btn-dark-custom add-to-cart"
                   data-id="<%= product._id %>"
-                  data-variant="<%= product.fullProduct[0]?._id %>"
+                  data-variant="<%= firstVariant._id %>"
                   data-name="<%= product.name %>"
                   data-img="<%= product.images[0] %>">Add to Cart</button>
+                <% } else { %>
+                <button class="btn-dark-custom" disabled>Out of Stock</button>
+                <% } %>
                 <button class="btn-dark-custom add-to-wishlist"
                   data-id="<%= product._id %>"
                   data-name="<%= product.name %>">&#9829;</button>

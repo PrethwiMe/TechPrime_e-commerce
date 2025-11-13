@@ -289,7 +289,6 @@ exports.editProductPage = async (req, res) => {
   res.render('admin-pages/editProduct', { product, categories })
 
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 let imageUploadStats = {
   totalAttempts: 0,
   failedAttempts: 0,
@@ -319,7 +318,7 @@ exports.handleEditProduct = async (req, res) => {
       const slotKey = `slot${i}`;
       if (req.files && req.files[slotKey] && req.files[slotKey].length > 0) {
         const file = req.files[slotKey][0];
-        const result = await uploadToCloudinary(file.buffer, 'products');
+        const result = await uploadToCloudinary(file.buffer, 'techcart/products');
         allImages.push(result.secure_url);
       } else if (req.body[slotKey]) {
         allImages.push(req.body[slotKey]);

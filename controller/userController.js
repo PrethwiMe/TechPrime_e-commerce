@@ -16,11 +16,13 @@ const { json } = require('express');
 exports.loadHome = async (req, res) => {
   try {
 
-   
-
     const data = await productModel.allProductsDisplay();
+
     const products = data;
-    const categories = await productModel.getAllCategories();
+    let filter = {
+      isActive:true
+    }
+    const categories = await productModel.getAllCategories(filter);
       res.render('user-pages/home', {
       products,
       categories
@@ -424,9 +426,9 @@ exports.searchProduct = async (req, res) => {
 //Sort + Search +Filter 
 exports.sortAndSearchProducts = async (req, res) => {
   const searchKey = req.query.searchKey || '';
-
   try {
     const { sort, searchKey, minPrice, maxPrice, categories } = req.body;
+    console.log("categories", categories)
     let query = { isActive: true };
 
     if (searchKey && searchKey.trim() !== "") {

@@ -178,7 +178,10 @@
             <p class="text-muted">No variants available.</p>
           <% } %>
           <div class="text-end">
-            <button type="submit" class="btn btn-success px-4" id="submitBtn">Update Product</button>
+            <button type="submit" class="btn btn-success px-4" id="submitBtn">
+              <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+              Update Product
+            </button>
           </div>
         </form>
       </div>
@@ -213,6 +216,7 @@
     let cropper, currentFile, currentSlot;
     const submitBtn = document.getElementById("submitBtn");
     const form = document.getElementById("productForm");
+    const spinner = submitBtn.querySelector('.spinner-border');
 
     // Track filled slots for validation
     let filledSlots = new Set();
@@ -225,10 +229,10 @@
       const totalFilled = filledSlots.size;
       if (totalFilled !== 3) {
         submitBtn.disabled = true;
-        submitBtn.textContent = `Update Product (Need Exactly 3 Images - Currently: ${totalFilled})`;
+        submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>Update Product (Need Exactly 3 Images - Currently: ${totalFilled})`;
       } else {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Update Product';
+        submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>Update Product`;
       }
     }
 
@@ -326,6 +330,12 @@
         return;
       }
 
+      // Show loading state
+      submitBtn.disabled = true;
+      spinner.classList.remove('d-none');
+      const originalText = submitBtn.textContent;
+      submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating Product...`;
+
       const formData = new FormData(form);
       // Append other form fields
       const otherInputs = form.querySelectorAll('input:not(.existing-input), textarea, select');
@@ -364,10 +374,15 @@
             window.location.href = "/admin/products";
           });
         } else {
-          Swal.fire({ icon: "error", title: "Error", text: res.data.message || "Unknown error" });
+          throw new Error(res.data.message || "Unknown error");
         }
       } catch (err) {
         Swal.fire({ icon: "error", title: "Error", text: err.response?.data?.message || err.message });
+      } finally {
+        // Hide loading state
+        submitBtn.disabled = false;
+        spinner.classList.add('d-none');
+        submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>${originalText}`;
       }
     });
   </script>

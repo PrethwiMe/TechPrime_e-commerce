@@ -44,7 +44,7 @@ router.get('/auth/google/callback',userController.googleCallback,userController.
 router.get('/logout', userController.logoutUser);
 //search
 
-router.get('/search', userController.searchProduct);
+router.get('/search', userController.searchProduct)
 //  filter + sort + search 
 router.post('/search/data', userController.sortAndSearchProducts);
 router.get('/all-product/product-details/:id',userController.loadProductDetails)

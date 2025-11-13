@@ -312,7 +312,6 @@ exports.addOffers = async (req, res) => {
     const response = await adminModel.offerAdd(value);
 
     if (response.exists) {
-      // Duplicate found
       return res.status(409).json({
         success: false,
         message: response.message
@@ -320,14 +319,11 @@ exports.addOffers = async (req, res) => {
     }
 
     if (response.inserted) {
-      // Insert successful
       return res.status(201).json({
         success: true,
         message: "Offer added successfully"
       });
     }
-
-    // Fallback
     return res.status(500).json({
       success: false,
       message: "Failed to add offer"
