@@ -1,49 +1,136 @@
-<div class="d-flex">
-  <!-- Sidebar (left) -->
-  <%- include('partials/sidebar') %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="/stylesheets/adminDashboard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="d-flex">
+    <%- include('partials/sidebar') %>
+    <div class="flex-grow-1">
+      <%- include('partials/topBar') %>
+      <div class="p-4">
+        <h2 class="dashboard-title">Dashboard</h2>
 
-  <!-- Main content area (right) -->
-  <div class="flex-grow-1">
-    <!-- Topbar -->
-    <%- include('partials/topBar') %>
+        <div class="filter-section mb-4 p-3 bg-light rounded">
+          <form method="GET" action="/admin/dashboard" id="filterForm">
+            <div class="row">
+              <div class="col-md-3">
+                <label>Status:</label>
+                <select name="status" class="form-control">
+                  <option value="">All</option>
+                  <option value="Pending" <%= filters.status === 'Pending' ? 'selected' : '' %>>Pending</option>
+                  <option value="Delivered" <%= filters.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                  <option value="Cancelled" <%= filters.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label>Start Date:</label>
+                <input type="date" name="startDate" class="form-control" value="<%= filters.startDate || '' %>">
+              </div>
+              <div class="col-md-3">
+                <label>End Date:</label>
+                <input type="date" name="endDate" class="form-control" value="<%= filters.endDate || '' %>">
+              </div>
+              <div class="col-md-3">
+                <button type="submit" class="btn btn-primary mt-4">Filter</button>
+              </div>
+            </div>
+          </form>
+        </div>
 
-    <!-- Page content -->
-    <div class="p-4">
-      <link rel="stylesheet" href="/stylesheets/adminDashboard.css" />
-      <h2 class="dashboard-title">Dashboard</h2>
+        <div class="dashboard-metrics">
+          <div class="metric-box"><h4>Total Users</h4><p><%= userCount %></p></div>
+          <div class="metric-box"><h4>Total Orders</h4><p><%= orders %></p></div>
+          <div class="metric-box"><h4>Total Sales</h4><p>₹<%= (totalSales || 0).toLocaleString() %></p></div>
+          <div class="metric-box"><h4>Total Pending</h4><p><%= pendings %></p></div>
+        </div>
 
-      <div class="dashboard-metrics">
-        <div class="metric-box">
-          <h4>Total Users</h4>
-          <p><%= userCount  %></p>
+        <div class="dashboard-chart mb-4">
+          <div class="chart-header">
+            <h5>Sales Details (Filtered)</h5>
+          </div>
+          <div class="chart-area">
+            <canvas id="salesChart"></canvas>
+          </div>
         </div>
-        <div class="metric-box">
-          <h4>Total Orders</h4>
-          <p><%= orders  %></p>
-        </div>
-        <div class="metric-box">
-          <h4>Total Sales</h4>
-          <p><%= totalSales  %></p>
-        </div>
-        <div class="metric-box">
-          <h4>Total Pending</h4>
-          <p><%= pendings %></p>
-        </div>
-      </div>
 
-      <div class="dashboard-chart">
-        <div class="chart-header">
-          <h5>Sales Details</h5>
-          <select>
-            <option>October</option>
-            <option>November</option>
-            <option>December</option>
-          </select>
-        </div>
-        <div class="chart-area">
-          <img src="/images/fakechart.png" alt="Sales Graph" />
+        <div class="orders-table-section">
+          <h5>Recent Orders (<%= filteredOrders.length %> results)</h5>
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th>Date</th>
+                <th>Buyer</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTableBody">
+            </tbody>
+          </table>
+          <div id="pagination" class="d-flex justify-content-center"></div>
         </div>
       </div>
     </div>
   </div>
-</div>
+
+  <script>
+    const filteredOrders = <%- JSON.stringify(filteredOrders) %>;
+    const monthlySales = <%- JSON.stringify(monthlySales) %>;
+
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: monthlySales.map(m => m.month),
+        datasets: [{
+          label: 'Sales (₹)',
+          data: monthlySales.map(m => parseFloat(m.sales)),
+          borderColor: 'rgb(75, 192, 192)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          tension: 0.1
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true, ticks: { callback: value => '₹' + value.toLocaleString() } } }
+      }
+    });
+
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    function renderTable(page) {
+      const start = (page - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const pageOrders = filteredOrders.slice(start, end);
+
+      let tbody = '';
+      pageOrders.forEach(order => {
+        const status = order.items[0]?.itemStatus || 'Unknown';
+        const date = new Date(order.createdAt).toLocaleDateString();
+        tbody += `<tr>
+          <td>${order.orderId}</td>
+          <td><span class="badge ${status.toLowerCase()}">${status}</span></td>
+          <td>₹${order.total.toLocaleString()}</td>
+          <td>${date}</td>
+          <td>${order.buyer?.fullName || 'N/A'}</td>
+        </tr>`;
+      });
+      document.getElementById('ordersTableBody').innerHTML = tbody;
+
+      const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+      let pagination = '';
+      for (let i = 1; i <= totalPages; i++) {
+        pagination += `<button class="btn btn-sm ${i === page ? 'btn-primary' : 'btn-outline-primary'} mx-1" onclick="renderTable(${i})">${i}</button>`;
+      }
+      document.getElementById('pagination').innerHTML = pagination;
+    }
+    renderTable(currentPage);
+  </script>
+</body>
+</html>

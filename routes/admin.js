@@ -11,6 +11,7 @@ router.get('/', sessionHandle.isUserLoggedIn, adminController.sentAdminPage);
 router.post('/getLoginData', sessionHandle.isUserLoggedIn, adminController.loginfunction)
 // dashBoard
 router.get('/dashboard', sessionHandle.adminConfirmed, adminController.dashBoardHandle);
+
 //logout
 router.get('/logout', adminController.handleLogout);
 //users-list

@@ -1,3 +1,4 @@
+const moment = require('moment');
 const adminModel = require('../model/adminModel')
 //hasing modules
 const bcrypt = require('bcrypt');
@@ -59,30 +60,75 @@ exports.loginfunction = async (req, res) => {
 };
 //viewDashboard  after Login
 exports.dashBoardHandle = async (req, res) => {
-
-  let toatlUsers = await adminModel.userDataFetch()
-  let userCount = toatlUsers.length
+  let totalUsers = await adminModel.userDataFetch();
+  let userCount = totalUsers.length;
   const ordersData = await adminModel.viewOrders();
-  let orders = ordersData.ordersWithDetails.length
   let totalData = ordersData.ordersWithDetails;
-const totalSales = totalData
-  .filter(order => order.items.some(i => i.itemStatus?.toLowerCase() === 'delivered'))
-  .reduce((sum, order) => sum + order.total, 0)
 
-const pendingOrders = totalData
-  .filter(order => order.items.some(i => i.itemStatus?.toLowerCase() === 'pending'))
-  .length || 0
+  const { status, startDate, endDate } = req.query;
+  let filteredData = totalData;
 
-  console.log("total sales", totalSales);
-  console.log("pending orders", pendingOrders);
+  if (status) {
+    filteredData = filteredData.filter(order => 
+      order.items.some(i => i.itemStatus?.toLowerCase() === status.toLowerCase())
+    );
+  }
+
+  if (startDate || endDate) {
+    const start = startDate ? moment(startDate).startOf('day').toDate() : null;
+    const end = endDate ? moment(endDate).endOf('day').toDate() : null;
+    filteredData = filteredData.filter(order => {
+      const orderDate = new Date(order.createdAt);
+      return (!start || orderDate >= start) && (!end || orderDate <= end);
+    });
+  }
+
+  let orders = filteredData.length;
+  const totalSales = filteredData
+    .filter(order => order.items.some(i => i.itemStatus?.toLowerCase() === 'delivered'))
+    .reduce((sum, order) => sum + order.total, 0) || 0;
+  const pendingOrders = filteredData
+    .filter(order => order.items.some(i => i.itemStatus?.toLowerCase() === 'pending'))
+    .length || 0;
+
+  const now = moment();
+  const months = [
+    { name: 'October', year: 2025 },
+    { name: 'November', year: 2025 },
+    { name: 'December', year: 2025 }
+  ];
+  const monthlySales = months.map(monthObj => {
+    const monthMoment = moment(`${monthObj.year}-${monthObj.name.slice(0, 3)}`, 'YYYY-MMM');
+    const startOfMonth = monthMoment.clone().startOf('month').toDate();
+    const endOfMonth = monthMoment.clone().endOf('month').toDate();
+
+    const monthData = filteredData.filter(order => {
+      const orderDate = new Date(order.createdAt);
+      return order.items.some(i => i.itemStatus?.toLowerCase() === 'delivered') &&
+             orderDate >= startOfMonth && orderDate <= endOfMonth;
+    });
+    const monthSales = monthData.reduce((sum, order) => sum + order.total, 0);
+
+    return { month: monthObj.name, sales: monthSales.toFixed(2) };
+  });
+
+  filteredData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
   try {
     res.render('admin-pages/adminDashBoard', {
-      userCount: userCount || null, orders: orders || null, totalSales : totalSales || null, pendings: pendingOrders || null
-    })
+      userCount: userCount || 0,
+      orders: orders || 0,
+      totalSales: totalSales || 0,
+      pendings: pendingOrders || 0,
+      monthlySales: monthlySales,
+      filteredOrders: filteredData,
+      filters: { status, startDate, endDate }
+    });
   } catch (error) {
-    res.send(error)
+    res.send(error);
   }
-}
+};
+
 //logout session destroy
 exports.handleLogout = function (req, res) {
   req.session.destroy((err) => {
