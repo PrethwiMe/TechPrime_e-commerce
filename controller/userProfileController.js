@@ -23,7 +23,7 @@ const { handleWalletPayment } = require("../utils/walletUtils");
 const { cancelOrderUtils } = require("../utils/cancelUtils");
 const crypto = require('crypto');
 const axios = require("axios");
-
+let countOfCoupon = 0;
 
 exports.viewProfile = async (req, res) => {
   const userId = req.session.user
@@ -250,6 +250,9 @@ exports.updatePassword = async (req, res) => {
 };
 //check
 exports.checkoutView = async (req, res) => {
+
+  countOfCoupon = 0
+
   try {
     const userId = req.session.user.userId;
 
@@ -716,6 +719,9 @@ exports.cancelItem = async (req, res) => {
 
 exports.couponLogic = async (req, res) => {
   try {
+
+    if (countOfCoupon == 1) return res.json({ success: false, message: "coupon already appliedd...!" });
+ 
     const { code, subtotal, items } = req.body;
     const subTotalNum = Number(subtotal) || 0;
 
@@ -753,7 +759,8 @@ exports.couponLogic = async (req, res) => {
     const deliveryCharge = newSubtotal > 100000 ? 0 : 100;
 
     const total = newSubtotal + deliveryCharge;
-
+    //prevent multiple clicks
+countOfCoupon = 1
 
     //disable coupons
     let disableCoupon = await userProfileModel.disableCoupon(code)
@@ -868,3 +875,4 @@ exports.couponPage = async (req,res) => {
   console.log(data)
    res.render('user-pages/coupons.ejs',{coupons : data})
 }
+

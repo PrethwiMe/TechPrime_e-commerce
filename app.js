@@ -97,6 +97,28 @@ app.use((req, res, next) => {
   next();
 });
 
+// Limit input characters (global middleware)
+app.use((req, res, next) => {
+
+  // Google OAuth callback sends NO req.body — must skip
+  if (req.path.startsWith('/auth/google/callback')) {
+    return next();
+  }
+
+  if (req.body && typeof req.body === "object") {
+    for (const [key, value] of Object.entries(req.body)) {
+      if (typeof value === "string" && value.length > 100) {
+        return res.status(400).json({
+          error: `Field "${key}" exceeds 100 characters limit.`
+        });
+      }
+    }
+  }
+
+  next();
+});
+
+
 var userRouter = require('./routes/user');
 var adminRouter = require('./routes/admin');
 app.use('/', userRouter);
@@ -111,27 +133,6 @@ app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-
-// Middleware: block fields with more than 100 characters
-app.use((req, res, next) => {
-  if (req.path.startsWith('/auth/google/callback')) {
-    return next();
-  }
-
-  if (req.body && typeof req.body === "object") {
-    console.log(req.body);
-    for (const [key, value] of Object.entries(req.body)) {
-      if (typeof value === "string" && value.length > 100) {
-        return res.status(400).json({ 
-          error: `Field "${key}" exceeds 100 characters limit.` 
-        });
-      }
-    }
-  }
-  next();
-});
-
 
   // render the error page
   res.status(err.status || 500);

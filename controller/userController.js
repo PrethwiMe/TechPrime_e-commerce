@@ -378,7 +378,7 @@ exports.googleSuccessRedirect = async (req, res) => {
   const data = await productModel.allProductsDisplay();
   const products = data;
   const categories = await productModel.getAllCategories();
-  res.render('user-pages/home', { user: req.user, products, categories });
+res.redirect('/')
 };
 // Logout
 exports.logoutUser = (req, res) => {
