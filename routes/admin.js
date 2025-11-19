@@ -61,7 +61,7 @@ router.get('/returnPage',sessionHandle.adminConfirmed,adminController.returnOrde
 //approve return product
 router.post('/return-product',sessionHandle.adminConfirmed,adminController.handleReturnProduct)
 //view offerpage
-router.get('/offers',sessionHandle.adminConfirmed,adminController.viewOffer)
+router.get('/offers/:number?',sessionHandle.adminConfirmed,adminController.viewOffer)
 ///offers/add
 router.post('/offers/add',sessionHandle.adminConfirmed,adminController.addOffers)
 //disable offer

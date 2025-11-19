@@ -29,7 +29,6 @@
             </tr>
           </thead>
           <tbody>
-            <!-- Date Formatting Helper -->
             <% 
               const formatDate = (date) => {
                 if (!date) return '-';
@@ -60,6 +59,7 @@
                     <%= item.appliesTo.charAt(0).toUpperCase() + item.appliesTo.slice(1) %>
                   </span>
                 </td>
+
                 <td>
                   <% if (item.appliesTo === 'product') { 
                     const product = products.find(p => p._id.toString() === item.productId?.toString()); %>
@@ -69,9 +69,11 @@
                     <%= category ? category.name : 'Category Not Found' %>
                   <% } %>
                 </td>
-                <td><span class="offer-value">₹<%= item.offerValue %></span></td>
-                <td><span class="date-badge"><i class="bi bi-calendar-event"></i> <%= formatDate(item.startDate) %></span></td>
-                <td><span class="date-badge"><i class="bi bi-calendar-event"></i> <%= formatDate(item.endDate) %></span></td>
+
+                <td>₹<%= item.offerValue %></td>
+                <td><i class="bi bi-calendar-event"></i> <%= formatDate(item.startDate) %></td>
+                <td><i class="bi bi-calendar-event"></i> <%= formatDate(item.endDate) %></td>
+
                 <td>
                   <button class="btn btn-sm btn-danger delete-btn" data-id="<%= item._id %>">
                     <i class="bi bi-trash-fill"></i> Delete
@@ -83,6 +85,32 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Pagination -->
+      <nav class="pagination-container mt-3">
+        <ul class="pagination justify-content-center">
+
+          <% if (page > 1) { %>
+            <li class="page-item">
+              <a class="page-link" href="/admin/offers/<%= page - 1 %>">Previous</a>
+            </li>
+          <% } %>
+
+          <% for (let i = 1; i <= totalPages; i++) { %>
+            <li class="page-item <%= i === page ? 'active' : '' %>">
+              <a class="page-link" href="/admin/offers/<%= i %>"><%= i %></a>
+            </li>
+          <% } %>
+
+          <% if (page < totalPages) { %>
+            <li class="page-item">
+              <a class="page-link" href="/admin/offers/<%= page + 1 %>">Next</a>
+            </li>
+          <% } %>
+
+        </ul>
+      </nav>
+
     </div>
   </div>
 </div>
@@ -95,6 +123,7 @@
         <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Add Offer</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
+
       <div class="modal-body bg-light">
         <div class="mb-3">
           <label for="appliesTo" class="form-label">Applies To</label>
@@ -117,19 +146,23 @@
             <% }) %>
           </select>
         </div>
+
         <div class="mb-3">
           <label for="offerValueAdd" class="form-label">Offer Value (₹)</label>
           <input type="number" id="offerValueAdd" class="form-control" min="1" required>
         </div>
+
         <div class="mb-3">
           <label for="startDateAdd" class="form-label">Start Date</label>
           <input type="date" id="startDateAdd" class="form-control" required>
         </div>
+
         <div class="mb-3">
           <label for="endDateAdd" class="form-label">End Date</label>
           <input type="date" id="endDateAdd" class="form-control" required>
         </div>
       </div>
+
       <div class="modal-footer bg-light">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         <button type="submit" class="btn btn-primary">Save Offer</button>
@@ -142,20 +175,18 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-  // Toggle dropdowns based on Applies To selection
-  function toggleTarget(mode) {
+  function toggleTarget() {
     const appliesTo = document.getElementById('appliesTo').value;
     document.getElementById('productDropdownAdd').style.display = appliesTo === 'product' ? 'block' : 'none';
     document.getElementById('categoryDropdownAdd').style.display = appliesTo === 'category' ? 'block' : 'none';
   }
 
-  // Trigger toggle on page load in case default value is set
   document.addEventListener('DOMContentLoaded', () => {
-    toggleTarget('add');
+    toggleTarget();
   });
 
-  // Submit Add Offer Form
   document.getElementById('addOfferForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -191,7 +222,6 @@
     }
   });
 
-  // Delete Offer
   document.querySelectorAll('.delete-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = btn.dataset.id;

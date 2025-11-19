@@ -7,6 +7,8 @@ const productModel = require('../model/productModels');
 const { offerValidation, couponValidation } = require('../utils/validation')
 const ExcelJS = require("exceljs");
 const PDFDocument = require("pdfkit");
+const { Status, Message } = require('../utils/constants')
+
 
 
 
@@ -75,7 +77,7 @@ exports.dashBoardHandle = async (req, res) => {
 
     if (status) {
       filteredOrders = filteredOrders.filter(order =>
-        order.items.some(item => 
+        order.items.some(item =>
           item.itemStatus?.toLowerCase() === status.toLowerCase()
         )
       );
@@ -123,7 +125,7 @@ exports.dashBoardHandle = async (req, res) => {
           .reduce((sum, o) => sum + o.total, 0);
         chartData.push(daySales);
       }
-    } 
+    }
     else if (period === 'weekly') {
       // Last 12 weeks
       for (let i = 11; i >= 0; i--) {
@@ -151,7 +153,7 @@ exports.dashBoardHandle = async (req, res) => {
           .reduce((sum, o) => sum + o.total, 0);
         chartData.push(yearSales);
       }
-    } 
+    }
     else {
       // Monthly (default) - last 12 months)
       for (let i = 11; i >= 0; i--) {
@@ -324,10 +326,10 @@ exports.orderPage = async (req, res) => {
   }
 };
 //view each product
-exports.viewEachOrder = async(req,res)=>{
+exports.viewEachOrder = async (req, res) => {
   let id = req.params.Id
   const response = await adminModel.getEachOrder(id)
-  res.render('admin-pages/EachOrder.ejs',{order:response})
+  res.render('admin-pages/EachOrder.ejs', { order: response })
 }
 //edit order page
 exports.editOrderStatus = async (req, res) => {
@@ -420,20 +422,25 @@ exports.handleReturnProduct = async (req, res) => {
 //viewOffer
 exports.viewOffer = async (req, res) => {
   try {
+
     const categories = await productModel.getAllCategories() || [];
     const allProducts = await productModel.viewAllProducts();
     const products = allProducts?.products || [];
     const offer = await adminModel.offerView();
-    // console.log(JSON.stringify(offer,null,2));
-    //     console.log(JSON.stringify(allProducts,null,2));
-    //         console.log(JSON.stringify(categories,null,2));
-
-
+    // paginate
+    let totalDocs = offer.length
+    console.log("offere lenght", offer.length)
+    let limit = 5
+    let page = req.params.number
+    const { skip, totalPages } = paginate({ totalDocs, page, limit });
+    const paginatedOffers = offer.slice(skip, skip + limit)
 
     res.render("admin-pages/offers.ejs", {
-      offer: offer || [],
+      offer: paginatedOffers || [],
       categories,
       products,
+      page,
+      totalPages,
       error: req.query.error || null,
       success: req.query.success || null
     });
@@ -630,7 +637,7 @@ exports.salesReportPage = async (req, res) => {
     } else if (filter === 'month') {
       startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-    } 
+    }
     // Custom date filter
     else if (filter === 'custom') {
       const { start, end } = req.query;
@@ -662,7 +669,7 @@ exports.salesReportPage = async (req, res) => {
 
     console.log("Start Date:", startDate);
     console.log("End Date:", endDate);
-    console.log("datas is : ",salesData.length)
+    console.log("datas is : ", salesData.length)
     res.render('admin-pages/salesReport.ejs', {
       sales: filteredSales || [],
       search: req.query.search || '',
@@ -673,9 +680,6 @@ exports.salesReportPage = async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 };
-
-
-
 exports.generateSalesReportPDF = async (req, res) => {
   try {
     console.log("PDF generation requested:", req.body);
@@ -710,8 +714,7 @@ exports.generateSalesReportPDF = async (req, res) => {
       .fontSize(12)
       .fillColor("gray")
       .text(
-        `Report Period: ${
-          filter === "custom" ? `${start || "N/A"} → ${end || "N/A"}` : filter || "All"
+        `Report Period: ${filter === "custom" ? `${start || "N/A"} → ${end || "N/A"}` : filter || "All"
         }`,
         { align: "center" }
       )
@@ -738,8 +741,8 @@ exports.generateSalesReportPDF = async (req, res) => {
       doc.fillColor("white").fontSize(9).font("Helvetica-Bold");
       let x = tableLeft + 5;
       headers.forEach((h, i) => {
-        doc.text(h, x, y, { 
-          width: columnWidths[i] - 10, 
+        doc.text(h, x, y, {
+          width: columnWidths[i] - 10,
           align: "left",
           lineBreak: false,
           ellipsis: true
@@ -787,8 +790,8 @@ exports.generateSalesReportPDF = async (req, res) => {
 
       let x = tableLeft + 5;
       rowData.forEach((cell, i) => {
-        const textOptions = { 
-          width: columnWidths[i] - 10, 
+        const textOptions = {
+          width: columnWidths[i] - 10,
           align: "left",
           lineBreak: false,
           ellipsis: true
@@ -824,9 +827,9 @@ exports.generateSalesReportPDF = async (req, res) => {
     summaryData.forEach(([label, value]) => {
       doc.fillColor("#334155").text(label, tableLeft + 10, y);
       doc.fillColor("#0F172A").font("Helvetica-Bold").text(
-        String(value), 
-        tableLeft + tableWidth - 150, 
-        y, 
+        String(value),
+        tableLeft + tableWidth - 150,
+        y,
         { width: 140, align: "right" }
       );
       doc.font("Helvetica");
@@ -877,9 +880,8 @@ exports.generateSalesReport = async (req, res) => {
     // Period
     sheet.mergeCells("A2:H2");
     const periodCell = sheet.getCell("A2");
-    periodCell.value = `Report Period: ${
-      filter === "custom" ? `${start || "N/A"} → ${end || "N/A"}` : filter || "All"
-    }`;
+    periodCell.value = `Report Period: ${filter === "custom" ? `${start || "N/A"} → ${end || "N/A"}` : filter || "All"
+      }`;
     periodCell.font = { italic: true, color: { argb: "FF475569" } };
     periodCell.alignment = { horizontal: "center" };
 

@@ -10,6 +10,8 @@ const { ObjectId } = require('mongodb');
 const{productValidation} = require('../utils/validation')
 const {uploadToCloudinary} = require('../middleware/multer')
 const { productEditValidation } = require('../utils/validation');
+const { Status, Message } = require('../utils/constants')
+
 // add product
 exports.renderAddProduct = async (req, res) => {
   try {
