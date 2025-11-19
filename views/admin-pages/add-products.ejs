@@ -36,22 +36,24 @@
             <!-- Error message alert -->
             <div id="errorAlert" class="alert alert-danger d-none"></div>
 
-            <form id="productForm" action="/admin/add-product" method="POST" enctype="multipart/form-data">
+            <form id="productForm" action="/admin/add-product" method="POST" enctype="multipart/form-data" novalidate>
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <label class="form-label">Product Name</label>
-                        <input type="text" name="name" class="form-control" />
+                        <label class="form-label">Product Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control"  />
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Company Details</label>
-                        <input type="text" name="companyDetails" class="form-control" />
+                        <label class="form-label">Company Details <span class="text-danger">*</span></label>
+                        <input type="text" name="companyDetails" class="form-control"  />
                     </div>
                 </div>
+
                 <div class="mb-3">
-                    <label class="form-label">Description</label>
-                    <textarea name="description" class="form-control" rows="3"></textarea>
+                    <label class="form-label">Description <span class="text-danger">*</span></label>
+                    <textarea name="description" class="form-control" rows="3" ></textarea>
                 </div>
-                <label class="form-label">Upload Product Images</label>
+
+                <label class="form-label">Upload Product Images <span class="text-danger">(Exactly 3 )</span></label>
                 <input type="file" id="imageUploader" class="form-control" accept="image/*" />
                 <small class="text-muted">You will crop each image before upload</small>
                 <div class="d-flex flex-wrap gap-3 mt-3" id="imagePreviewContainer"></div>
@@ -59,69 +61,74 @@
 
                 <div class="row mb-3">
                     <div class="col-md-4">
-                        <label class="form-label">Original Price</label>
-                        <input type="number" name="originalPrice" class="form-control" />
+                        <label class="form-label">Original Price <span class="text-danger">*</span></label>
+                        <input type="number" name="originalPrice" class="form-control" min="1" step="0.01"  />
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Category</label>
-                        <select name="categoriesId" class="form-select">
+                        <label class="form-label">Category <span class="text-danger">*</span></label>
+                        <select name="categoriesId" class="form-select" >
+                            <option value="" disabled selected>-- Select Category --</option>
                             <% categories.forEach(cat => { %>
                                 <option value="<%= cat._id %>"><%= cat.name %></option>
                             <% }) %>
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Package Items</label>
-                        <input type="text" name="packageItems" class="form-control" />
+                        <label class="form-label">Package Items <span class="text-danger">*</span></label>
+                        <input type="text" name="packageItems" class="form-control"  />
                     </div>
                 </div>
 
                 <div class="row mb-3">
                     <div class="col-md-3">
-                        <label class="form-label">Operating System</label>
-                        <input type="text" name="OS" class="form-control" />
+                        <label class="form-label">Operating System <span class="text-danger">*</span></label>
+                        <input type="text" name="OS" class="form-control"  />
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Dimensions</label>
-                        <input type="text" name="dimension" class="form-control" />
+                        <label class="form-label">Dimensions <span class="text-danger">*</span></label>
+                        <input type="text" name="dimension" class="form-control"  />
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Series</label>
-                        <input type="text" name="series" class="form-control" />
+                        <label class="form-label">Series <span class="text-danger">*</span></label>
+                        <input type="text" name="series" class="form-control"  />
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Active Status</label>
                         <select name="isActive" class="form-select">
-                            <option value="true">Active</option>
+                            <option value="true" selected>Active</option>
                             <option value="false">Inactive</option>
                         </select>
                     </div>
                 </div>
 
-             <hr class="my-4" />
-<h4 class="fw-bold">Variant Details</h4>
-<div id="variantsContainer">
-  <div class="variant-block border rounded p-3 mb-3">
-    <div class="row mb-3">
-      <div class="col-md-3"><label class="form-label">Processor</label><input type="text" name="variant[0][processor]" class="form-control" /></div>
-      <div class="col-md-3"><label class="form-label">RAM</label><input type="text" name="variant[0][ram]" class="form-control" /></div>
-      <div class="col-md-3"><label class="form-label">Storage</label><input type="text" name="variant[0][storage]" class="form-control" /></div>
-      <div class="col-md-3"><label class="form-label">Graphics</label><input type="text" name="variant[0][graphics]" class="form-control" /></div>
-    </div>
-    <div class="row mb-4">
-      <div class="col-md-3"><label class="form-label">Color</label><input type="text" name="variant[0][color]" class="form-control" /></div>
-      <div class="col-md-3"><label class="form-label">Display</label><input type="text" name="variant[0][display]" class="form-control" /></div>
-      <div class="col-md-3"><label class="form-label">Price</label><input type="number" name="variant[0][price]" class="form-control" /></div>
-      <div class="col-md-3"><label class="form-label">Stock</label><input type="number" name="variant[0][stock]" class="form-control" /></div>
-    </div>
-    <button type="button" class="btn btn-danger btn-sm remove-variant d-none">Remove Variant</button>
-  </div>
-</div>
-<div class="mb-3"><button type="button" id="addVariantBtn" class="btn btn-primary btn-sm">Add Variant</button></div>
-
+                <hr class="my-4" />
+                <h4 class="fw-bold">Variant Details</h4>
+                <div id="variantsContainer">
+                    <div class="variant-block border rounded p-3 mb-3">
+                        <div class="row mb-3">
+                            <div class="col-md-3"><label class="form-label">Processor <span class="text-danger">*</span></label><input type="text" name="variant[0][processor]" class="form-control"  /></div>
+                            <div class="col-md-3"><label class="form-label">RAM <span class="text-danger">*</span></label><input type="text" name="variant[0][ram]" class="form-control"  /></div>
+                            <div class="col-md-3"><label class="form-label">Storage <span class="text-danger">*</span></label><input type="text" name="variant[0][storage]" class="form-control"  /></div>
+                            <div class="col-md-3"><label class="form-label">Graphics <span class="text-danger">*</span></label><input type="text" name="variant[0][graphics]" class="form-control"  /></div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-3"><label class="form-label">Color <span class="text-danger">*</span></label><input type="text" name="variant[0][color]" class="form-control"  /></div>
+                            <div class="col-md-3"><label class="form-label">Display <span class="text-danger">*</span></label><input type="text" name="variant[0][display]" class="form-control"  /></div>
+                            <div class="col-md-3"><label class="form-label">Price <span class="text-danger">*</span></label><input type="number" name="variant[0][price]" class="form-control" min="0"  /></div>
+                            <div class="col-md-3"><label class="form-label">Stock <span class="text-danger">*</span></label><input type="number" name="variant[0][stock]" class="form-control" min="0"  /></div>
+                        </div>
+                        <button type="button" class="btn btn-danger btn-sm remove-variant d-none">Remove Variant</button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <button type="button" id="addVariantBtn" class="btn btn-primary btn-sm">Add Variant</button>
+                </div>
 
                 <div class="text-end">
-                    <button type="submit" class="btn btn-success px-4">Add Product</button>
+                    <button type="submit" id="submitBtn" class="btn btn-success px-5">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        <span class="btn-text">Add Product</span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -129,37 +136,36 @@
 </div>
 
 <!-- Success Modal -->
-<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header bg-success text-white">
-        <h5 class="modal-title" id="successModalLabel">Product Added</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-         Your product has been added successfully.
-      </div>
-      <div class="modal-footer">
-        <button type="button" id="goProductsBtn" class="btn btn-success">Go to Products</button>
-      </div>
+<div class="modal fade" id="successModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Product Added</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Your product has been added successfully.
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="goProductsBtn" class="btn btn-success">Go to Products</button>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
-
 <!-- Crop Modal -->
-<div class="modal fade" id="cropModal" tabindex="-1" aria-labelledby="cropModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 95vw; height: 95vh; max-height: 95vh;">
+<div class="modal fade" id="cropModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 95vw; height: 95vh;">
         <div class="modal-content" style="height: 100%;">
             <div class="modal-header">
-                <h5 class="modal-title" id="cropModalLabel">Crop Image</h5>
+                <h5 class="modal-title">Crop Image</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0">
-                <img id="imageToCrop" alt="Crop" style="height: auto; max-height: 100%; width: auto; max-width: 100%;" />
+                <img id="imageToCrop" alt="Crop" />
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" id="cropBtn">Crop</button>
+                <button type="button" class="btn btn-primary" id="cropBtn">Crop & Save</button>
             </div>
         </div>
     </div>
@@ -173,21 +179,23 @@ const variantsContainer = document.getElementById('variantsContainer');
 const addVariantBtn = document.getElementById('addVariantBtn');
 
 addVariantBtn.addEventListener('click', () => {
-  const index = variantsContainer.querySelectorAll('.variant-block').length;
-  const newVariant = variantsContainer.firstElementChild.cloneNode(true);
-  newVariant.querySelectorAll('input').forEach(input => {
-    const name = input.name.replace(/\[\d+\]/, `[${index}]`);
-    input.name = name;
-    input.value = '';
-  });
-  newVariant.querySelector('.remove-variant').classList.remove('d-none');
-  variantsContainer.appendChild(newVariant);
+    const index = variantsContainer.querySelectorAll('.variant-block').length;
+    const newVariant = variantsContainer.firstElementChild.cloneNode(true);
+    newVariant.querySelectorAll('input').forEach(input => {
+        const name = input.name.replace(/\[\d+\]/, `[${index}]`);
+        input.name = name;
+        input.value = '';
+    });
+    newVariant.querySelector('.remove-variant').classList.remove('d-none');
+    variantsContainer.appendChild(newVariant);
 });
 
 variantsContainer.addEventListener('click', (e) => {
-  if (e.target.classList.contains('remove-variant')) {
-    e.target.closest('.variant-block').remove();
-  }
+    if (e.target.classList.contains('remove-variant')) {
+        if (variantsContainer.children.length > 1) {
+            e.target.closest('.variant-block').remove();
+        }
+    }
 });
 
 /* ---------------- CROPPER ---------------- */
@@ -218,7 +226,6 @@ cropModal._element.addEventListener('shown.bs.modal', () => {
         responsive: true,
         dragMode: 'move',
         background: false,
-        guides: true,
         cropBoxResizable: true,
         movable: true,
         zoomable: true,
@@ -227,10 +234,10 @@ cropModal._element.addEventListener('shown.bs.modal', () => {
 
 document.getElementById('cropBtn').addEventListener('click', () => {
     if (!cropper) return;
-    cropper.getCroppedCanvas().toBlob(blob => {
+    cropper.getCroppedCanvas({ width: 800, height: 800 }).toBlob(blob => {
         const preview = document.createElement('img');
         preview.src = URL.createObjectURL(blob);
-        preview.className = 'rounded border m-2';
+        preview.className = 'rounded border';
         preview.style.width = '150px';
         preview.style.height = '150px';
         preview.style.objectFit = 'cover';
@@ -243,99 +250,103 @@ document.getElementById('cropBtn').addEventListener('click', () => {
             hiddenInput.name = 'images';
             hiddenInput.value = reader.result;
             croppedImagesContainer.appendChild(hiddenInput);
+
             cropper.destroy();
             cropModal.hide();
             uploader.value = '';
         };
         reader.readAsDataURL(blob);
-    }, 'image/jpeg');
+    }, 'image/jpeg', 0.95);
 });
 
-/* ---------------- FORM SUBMIT WITH VALIDATION ---------------- */
-document.getElementById('productForm').addEventListener('submit', async (e) => {
+/* ---------------- FORM SUBMIT WITH LOADING & VALIDATION ---------------- */
+const form = document.getElementById('productForm');
+const submitBtn = document.getElementById('submitBtn');
+const spinner = submitBtn.querySelector('.spinner-border');
+const btnText = submitBtn.querySelector('.btn-text');
+
+form.addEventListener('submit', async (e) => {
     e.preventDefault();
     errorAlert.classList.add('d-none');
     errorAlert.innerHTML = '';
 
-    const errors = [];
-    const form = e.target;
-    const getValue = (name) => form.querySelector(`[name="${name}"]`)?.value.trim();
+    // Disable button & show loading
+    submitBtn.disabled = true;
+    spinner.classList.remove('d-none');
+    btnText.textContent = 'Adding Product...';
 
-    // Validate images (exactly 3 cropped)
+    const errors = [];
+
+    // Check exactly 3 images
     const base64Inputs = croppedImagesContainer.querySelectorAll('input[name="images"]');
     if (base64Inputs.length !== 3) {
-        errors.push('Please upload exactly 3 images.');
+        errors.push('Please upload and crop exactly 3 images.');
     }
 
-    // Validate required text fields
-    if (!getValue('name')) errors.push('Product name is required.');
-    if (!getValue('companyDetails')) errors.push('Company details are required.');
-    if (!getValue('description')) errors.push('Description is required.');
-    if (!getValue('categoriesId')) errors.push('Category ID is required.');
-    if (!getValue('packageItems')) errors.push('Package items are required.');
-    if (!getValue('OS')) errors.push('OS is required.');
-    if (!getValue('dimension')) errors.push('Dimension is required.');
-    if (!getValue('series')) errors.push('Series is required.');
-
-    // Validate original price
-    const priceVal = parseFloat(getValue('originalPrice'));
-    if (!priceVal || isNaN(priceVal) || priceVal <= 0) {
-        errors.push('Original price must be a positive number.');
+    // Use HTML5 validation + custom checks
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        submitBtn.disabled = false;
+        spinner.classList.add('d-none');
+        btnText.textContent = 'Add Product';
+        return;
     }
 
     // Validate variants
     const variantBlocks = variantsContainer.querySelectorAll('.variant-block');
-    if (!variantBlocks.length) {
+    if (variantBlocks.length === 0) {
         errors.push('At least one variant is required.');
     } else {
         variantBlocks.forEach((block, idx) => {
-            const fields = ['processor', 'ram', 'storage', 'graphics', 'color', 'display', 'price', 'stock'];
-            fields.forEach(field => {
-                const input = block.querySelector(`[name^="variant"][name$="[${field}]"]`);
-                const val = input?.value.trim();
-                if (!val) errors.push(`Variant ${idx + 1} ${field} is required.`);
-                if ((field === 'price' || field === 'stock') && (isNaN(val) || parseFloat(val) < 0)) {
-                    errors.push(`Variant ${idx + 1} ${field} must be a valid number.`);
-                }
-            });
+            const price = block.querySelector('input[name$="[price]"]').value;
+            const stock = block.querySelector('input[name$="[stock]"]').value;
+            if (parseFloat(price) < 0) errors.push(`Variant ${idx + 1}: Price must be ≥ 0`);
+            if (parseFloat(stock) < 0) errors.push(`Variant ${idx + 1}: Stock must be ≥ 0`);
         });
     }
 
-    // If any errors → show & stop
-if (errors.length) {
-    errorAlert.innerHTML = `<div>${errors[0]}</div>`; // show only first error
-    errorAlert.classList.remove('d-none');
-    return;
-}
+    if (errors.length > 0) {
+        errorAlert.innerHTML = `<ul class="mb-0"><li>${errors.join('</li><li>')}</li></ul>`;
+        errorAlert.classList.remove('d-none');
+        submitBtn.disabled = false;
+        spinner.classList.add('d-none');
+        btnText.textContent = 'Add Product';
+        return;
+    }
 
-
-    // Prepare form data for backend
+    // Prepare FormData with cropped images
     const formData = new FormData(form);
     let count = 0;
     for (let input of base64Inputs) {
         const base64 = input.value;
         const blob = await (await fetch(base64)).blob();
-        formData.append('images', blob, `image${++count}.jpg`);
+        formData.append('images', blob, `product_image_${++count}.jpg`);
     }
 
     try {
-        const res = await fetch(form.action, { method: 'POST', body: formData });
-        const result = await res.json();
-        if (result.success) {
-             const successModal = new bootstrap.Modal(document.getElementById('successModal'));
-        successModal.show();
-
-        document.getElementById('goProductsBtn').addEventListener('click', () => {
-            window.location.href = "/admin/products";
+        const res = await fetch(form.action, {
+            method: 'POST',
+            body: formData
         });
+        const result = await res.json();
 
+        if (result.success) {
+            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            successModal.show();
+            document.getElementById('goProductsBtn').onclick = () => {
+                window.location.href = "/admin/products";
+            };
         } else {
-            errorAlert.textContent = result.error || "Upload failed.";
+            errorAlert.textContent = result.error || "Failed to add product.";
             errorAlert.classList.remove('d-none');
         }
     } catch (err) {
-        errorAlert.textContent = "Upload error: " + err.message;
+        errorAlert.textContent = "Network error: " + err.message;
         errorAlert.classList.remove('d-none');
+    } finally {
+        submitBtn.disabled = false;
+        spinner.classList.add('d-none');
+        btnText.textContent = 'Add Product';
     }
 });
 </script>

@@ -46,7 +46,10 @@ exports.insetCategories = async (data) => {
 };
 //category status
 exports.statusOfCategory = async (categoryId) => {
+
+
   const db =  getDB();
+
   const category = await db
     .collection(dbVariables.categoriesCollection)
     .findOne({ _id: new ObjectId(categoryId) });
@@ -56,10 +59,7 @@ exports.statusOfCategory = async (categoryId) => {
   const newStatus = !category.isActive;
   const updateResult = await db
     .collection(dbVariables.categoriesCollection)
-    .updateOne(
-      { _id: new ObjectId(categoryId) },
-      { $set: { isActive: newStatus } }
-    );
+    .updateOne({ _id: new ObjectId(categoryId) },{ $set: { isActive: newStatus } });
 
     if (updateResult) {
       let cateId = category._id.toString()

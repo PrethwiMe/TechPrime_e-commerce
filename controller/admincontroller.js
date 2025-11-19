@@ -59,76 +59,182 @@ exports.loginfunction = async (req, res) => {
 
 };
 //viewDashboard  after Login
+
 exports.dashBoardHandle = async (req, res) => {
-  let totalUsers = await adminModel.userDataFetch();
-  let userCount = totalUsers.length;
-  const ordersData = await adminModel.viewOrders();
-  let totalData = ordersData.ordersWithDetails;
-
-  const { status, startDate, endDate } = req.query;
-  let filteredData = totalData;
-
-  if (status) {
-    filteredData = filteredData.filter(order => 
-      order.items.some(i => i.itemStatus?.toLowerCase() === status.toLowerCase())
-    );
-  }
-
-  if (startDate || endDate) {
-    const start = startDate ? moment(startDate).startOf('day').toDate() : null;
-    const end = endDate ? moment(endDate).endOf('day').toDate() : null;
-    filteredData = filteredData.filter(order => {
-      const orderDate = new Date(order.createdAt);
-      return (!start || orderDate >= start) && (!end || orderDate <= end);
-    });
-  }
-
-  let orders = filteredData.length;
-  const totalSales = filteredData
-    .filter(order => order.items.some(i => i.itemStatus?.toLowerCase() === 'delivered'))
-    .reduce((sum, order) => sum + order.total, 0) || 0;
-  const pendingOrders = filteredData
-    .filter(order => order.items.some(i => i.itemStatus?.toLowerCase() === 'pending'))
-    .length || 0;
-
-  const now = moment();
-  const months = [
-    { name: 'October', year: 2025 },
-    { name: 'November', year: 2025 },
-    { name: 'December', year: 2025 }
-  ];
-  const monthlySales = months.map(monthObj => {
-    const monthMoment = moment(`${monthObj.year}-${monthObj.name.slice(0, 3)}`, 'YYYY-MMM');
-    const startOfMonth = monthMoment.clone().startOf('month').toDate();
-    const endOfMonth = monthMoment.clone().endOf('month').toDate();
-
-    const monthData = filteredData.filter(order => {
-      const orderDate = new Date(order.createdAt);
-      return order.items.some(i => i.itemStatus?.toLowerCase() === 'delivered') &&
-             orderDate >= startOfMonth && orderDate <= endOfMonth;
-    });
-    const monthSales = monthData.reduce((sum, order) => sum + order.total, 0);
-
-    return { month: monthObj.name, sales: monthSales.toFixed(2) };
-  });
-
-  filteredData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
   try {
-    res.render('admin-pages/adminDashBoard', {
-      userCount: userCount || 0,
-      orders: orders || 0,
-      totalSales: totalSales || 0,
-      pendings: pendingOrders || 0,
-      monthlySales: monthlySales,
-      filteredOrders: filteredData,
-      filters: { status, startDate, endDate }
+    const totalUsers = await adminModel.userDataFetch();
+    const userCount = totalUsers.length;
+
+    const ordersData = await adminModel.viewOrders();
+    const allOrders = ordersData.ordersWithDetails || [];
+
+    const { period = 'monthly', status, startDate, endDate } = req.query;
+
+    // === FILTER ORDERS ===
+    let filteredOrders = [...allOrders];
+
+    if (status) {
+      filteredOrders = filteredOrders.filter(order =>
+        order.items.some(item => 
+          item.itemStatus?.toLowerCase() === status.toLowerCase()
+        )
+      );
+    }
+
+    if (startDate || endDate) {
+      const start = startDate ? moment(startDate).startOf('day').toDate() : null;
+      const end = endDate ? moment(endDate).endOf('day').toDate() : null;
+      filteredOrders = filteredOrders.filter(order => {
+        const orderDate = new Date(order.createdAt);
+        return (!start || orderDate >= start) && (!end || orderDate <= end);
+      });
+    }
+
+    // === SALES CALCULATIONS ===
+    const deliveredOrders = filteredOrders.filter(order =>
+      order.items.some(i => i.itemStatus?.toLowerCase() === 'delivered')
+    );
+
+    const totalSales = deliveredOrders.reduce((sum, order) => sum + order.total, 0);
+
+    const pendingOrdersCount = filteredOrders.filter(order =>
+      order.items.some(i => i.itemStatus?.toLowerCase() === 'pending')
+    ).length;
+
+    // === CHART DATA BY PERIOD ===
+    let chartLabels = [];
+    let chartData = [];
+
+    const now = moment();
+
+    if (period === 'daily') {
+      // Last 30 days
+      for (let i = 29; i >= 0; i--) {
+        const date = now.clone().subtract(i, 'days');
+        const dayStart = date.startOf('day').toDate();
+        const dayEnd = date.endOf('day').toDate();
+        chartLabels.push(date.format('MMM DD'));
+
+        const daySales = deliveredOrders
+          .filter(o => {
+            const od = new Date(o.createdAt);
+            return od >= dayStart && od <= dayEnd;
+          })
+          .reduce((sum, o) => sum + o.total, 0);
+        chartData.push(daySales);
+      }
+    } 
+    else if (period === 'weekly') {
+      // Last 12 weeks
+      for (let i = 11; i >= 0; i--) {
+        const weekStart = now.clone().subtract(i, 'weeks').startOf('week');
+        const weekEnd = weekStart.clone().endOf('week');
+        chartLabels.push(`Week ${weekStart.week()}`);
+
+        const weekSales = deliveredOrders
+          .filter(o => {
+            const od = new Date(o.createdAt);
+            return od >= weekStart.toDate() && od <= weekEnd.toDate();
+          })
+          .reduce((sum, o) => sum + o.total, 0);
+        chartData.push(weekSales);
+      }
+    }
+    else if (period === 'yearly') {
+      // Last 3 years
+      for (let i = 2; i >= 0; i--) {
+        const year = now.clone().subtract(i, 'years').year();
+        chartLabels.push(year.toString());
+
+        const yearSales = deliveredOrders
+          .filter(o => new Date(o.createdAt).getFullYear() === year)
+          .reduce((sum, o) => sum + o.total, 0);
+        chartData.push(yearSales);
+      }
+    } 
+    else {
+      // Monthly (default) - last 12 months)
+      for (let i = 11; i >= 0; i--) {
+        const month = now.clone().subtract(i, 'months');
+        const monthStart = month.startOf('month').toDate();
+        const monthEnd = month.endOf('month').toDate();
+        chartLabels.push(month.format('MMM YYYY'));
+
+        const monthSales = deliveredOrders
+          .filter(o => {
+            const od = new Date(o.createdAt);
+            return od >= monthStart && od <= monthEnd;
+          })
+          .reduce((sum, o) => sum + o.total, 0);
+        chartData.push(monthSales);
+      }
+    }
+
+    // === TOP 10 BEST SELLING PRODUCTS ===
+    const productMap = {};
+    deliveredOrders.forEach(order => {
+      order.items.forEach(item => {
+        if (item.itemStatus?.toLowerCase() === 'delivered') {
+          const key = `${item.productName} (${item.variantDetails?.processor || ''} | ${item.variantDetails?.ram || ''} | ${item.variantDetails?.storage || ''})`.trim();
+          if (!productMap[key]) {
+            productMap[key] = {
+              name: item.productName,
+              variant: `${item.variantDetails?.processor || ''} • ${item.variantDetails?.ram || ''} • ${item.variantDetails?.storage || ''}`.trim(),
+              image: item.firstImage || '',
+              quantity: 0,
+              revenue: 0
+            };
+          }
+          productMap[key].quantity += item.quantity;
+          productMap[key].revenue += item.subtotal;
+        }
+      });
     });
-  } catch (error) {
-    res.send(error);
+
+    const topProducts = Object.values(productMap)
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 10);
+
+    // === TOP 10 BEST SELLING BRANDS ===
+    const brandMap = {};
+    deliveredOrders.forEach(order => {
+      order.items.forEach(item => {
+        if (item.itemStatus?.toLowerCase() === 'delivered') {
+          const brand = item.productCompany || 'Unknown';
+          if (!brandMap[brand]) brandMap[brand] = { quantity: 0, revenue: 0 };
+          brandMap[brand].quantity += item.quantity;
+          brandMap[brand].revenue += item.subtotal;
+        }
+      });
+    });
+
+    const topBrands = Object.entries(brandMap)
+      .map(([name, data]) => ({ name, ...data, name }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 10);
+
+    // Sort recent orders
+    filteredOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.render('admin-pages/adminDashBoard', {
+      userCount,
+      totalOrders: filteredOrders.length,
+      totalSales,
+      pendingOrders: pendingOrdersCount,
+      chartLabels: JSON.stringify(chartLabels),
+      chartData: JSON.stringify(chartData),
+      period,
+      topProducts,
+      topBrands,
+      filteredOrders,
+      filters: { status, startDate, endDate, period }
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
   }
 };
-
 //logout session destroy
 exports.handleLogout = function (req, res) {
   req.session.destroy((err) => {

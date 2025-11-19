@@ -49,7 +49,6 @@ exports.handleAddProduct = async (req, res) => {
     for (const file of req.files) {
       const result = await uploadToCloudinary(file.buffer, 'techcart/products'); 
       imagePaths.push(result.secure_url); 
-      console.log("result      ::",result)
     }
 
 
@@ -179,7 +178,6 @@ exports.viewCatagories = async (req, res) => {
 }
 //controll categories
 exports.controleCategories = async (req, res) => {
-  console.log("call reached here");
   console.log(req.params.id);
   
 
