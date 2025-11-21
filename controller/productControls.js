@@ -5,11 +5,11 @@ const productModel = require('../model/productModels');
 const { getDB } = require('../config/mongodb');
 const dbVariables = require('../config/databse');
 const paginate = require('../utils/paginate');
-const { error } = require('console');
+const { error, log } = require('console');
 const { ObjectId } = require('mongodb');
-const{productValidation} = require('../utils/validation')
+const{productValidation,addVariantsValidation} = require('../utils/validation')
 const {uploadToCloudinary} = require('../middleware/multer')
-const { productEditValidation } = require('../utils/validation');
+const { productEditValidation,variantEditValidation,addVariantValidation } = require('../utils/validation');
 const { Status, Message } = require('../utils/constants')
 
 // add product
@@ -25,14 +25,8 @@ exports.renderAddProduct = async (req, res) => {
   }
 };
 
-//adding product
-
 exports.handleAddProduct = async (req, res) => {
   try {
-    if (!req.files || req.files.length !== 3) {
-      return res.json({ error: 'Please upload exactly 3 images.' });
-    }
-
     const {
       name,
       companyDetails,
@@ -44,52 +38,82 @@ exports.handleAddProduct = async (req, res) => {
       dimension,
       series,
       isActive,
-      variant
+      variant,
     } = req.body;
 
-    const imagePaths = [];
-    for (const file of req.files) {
-      const result = await uploadToCloudinary(file.buffer, 'techcart/products'); 
-      imagePaths.push(result.secure_url); 
-    }
-
-
+   
     const productDataForValidation = {
       name,
       description,
       price: parseFloat(originalPrice),
-      stock: variant && variant.length > 0 ? parseInt(variant[0].stock) : 0,
+      stock: variant?.length ? parseInt(variant[0].stock) : 0,
       categoryId: categoriesId,
-      brand: companyDetails || '',
-      images: imagePaths
+      brand: companyDetails || "",
+      packageItems,
+      OS,
+      dimension,
+      series,
+      images: ["dummy1", "dummy2", "dummy3"], 
     };
 
-    const { error } = productValidation(productDataForValidation);
-    if (error) {
-      const messages = error.details.map(d => d.message);
-      return res.json({ error: messages });
+    const { error: baseError } = productValidation(productDataForValidation);
+    if (baseError) {
+      return res.json({ error: baseError.details.map((d) => d.message) });
     }
 
+
+    if (variant && Array.isArray(variant)) {
+      for (let v of variant) {
+        const variantData = {
+          productId: "dummy",
+          processor: v.processor,
+          ram: v.ram,
+          storage: v.storage,
+          graphics: v.graphics,
+          color: v.color,
+          display: v.display,
+          price: parseFloat(v.price),
+          stock: parseInt(v.stock),
+          created: new Date(),
+        };
+
+        const { error: variantErr } = addVariantValidation(variantData);
+        if (variantErr) {
+          return res.json({ error: variantErr.details.map((d) => d.message) });
+        }
+      }
+    }
+
+    if (!req.files || req.files.length !== 3) {
+      return res.json({ error: "Please upload exactly 3 images." });
+    }
+
+
+    const imagePaths = [];
+    for (const file of req.files) {
+      const result = await uploadToCloudinary(file.buffer, "techcart/products");
+      imagePaths.push(result.secure_url);
+    }
+
+   
     const productData = {
       name,
       companyDetails,
       description,
-      images: imagePaths, 
+      images: imagePaths,
       originalPrice: parseFloat(originalPrice),
       categoriesId,
       packageItems,
       OS,
       dimension,
       series,
-      isActive: isActive === 'true',
-      createdAt: new Date()
+      isActive: isActive === "true",
+      createdAt: new Date(),
     };
 
-    // ✅ Insert product
     const productResult = await productModel.insertProduct(productData);
     const productId = productResult.insertedId;
 
-    // ✅ Handle variants
     const variantIds = [];
     if (variant && Array.isArray(variant)) {
       for (let v of variant) {
@@ -103,39 +127,35 @@ exports.handleAddProduct = async (req, res) => {
           display: v.display,
           price: parseFloat(v.price),
           stock: parseInt(v.stock),
-          created:new Date()
+          created: new Date(),
         };
+
         const variantResult = await productModel.insertVariant(variantData);
         variantIds.push(variantResult.insertedId);
       }
     }
 
+  
     await productModel.updateProductVarientsData(productId, variantIds);
 
     return res.json({
       success: true,
-      message: '✅ Product and variants added successfully!',
       productId,
       variantIds,
-      images: imagePaths
+      images: imagePaths,
     });
-
   } catch (err) {
-    console.error('Product Upload Error:', err);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Product Upload Error:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
 exports.renderAddCategories = (req, res) => {
   res.render('admin-pages/categories', { error: null })
 }
-
-
-
 //add catagories
 exports.addCategories = async (req, res) => {
   try {
-    console.log("Request Body:", req.body);
     let { name, description } = req.body;
     const isActive = req.body.isActive === true;
 
@@ -171,7 +191,6 @@ exports.addCategories = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
-
 //view categories
 exports.viewCatagories = async (req, res) => {
   let categories = await productModel.getAllCategories()
@@ -180,9 +199,6 @@ exports.viewCatagories = async (req, res) => {
 }
 //controll categories
 exports.controleCategories = async (req, res) => {
-  console.log(req.params.id);
-  
-
   try {
     let result = await productModel.statusOfCategory(req.params.id);
 
@@ -223,10 +239,37 @@ exports.displayProducts = async (req, res) => {
       search
     });
   } catch (error) {
-    console.log(error);
-    res.status(500).send("Server error while loading products.");
+    return res.status(Status.INTERNAL_SERVER_ERROR).json({status:Status.INTERNAL_SERVER_ERROR,message:Message.INTERNAL_ERROR})
   }
 };
+//add varients
+exports.addVarients = async(req,res) => {
+  let varients;
+  let count=0;
+  const productId = req.params.productId
+let getProductData = await productModel.addVarient(productId)
+ varients =await productModel.getVarients(getProductData._id)
+
+res.render('admin-pages/addVariants.ejs',{product:getProductData || null, variants:varients || null })
+}
+
+// add More Variants
+exports.addMoreVariants = async (req,res) => {
+  try {
+
+    const { error, value } = addVariantsValidation(req.body);
+    if(error) return res.status(Status.BAD_REQUEST).json({status:Status.BAD_REQUEST,message:error.details[0].message})
+    const { productId,variants} = req.body
+    for(let val of variants){
+      await productModel.addMoreVarients(productId,val)
+    }
+    res.status(Status.OK).json({status:Status.OK,message:Message.CREATED})
+  } catch (error) {
+    res.status(Status.INTERNAL_SERVER_ERROR)
+    .json({status:Status.INTERNAL_SERVER_ERROR,message:Message.INTERNAL_ERROR})
+  }
+}
+
 //product enable or disable tiggle
 exports.productStatus = async (req, res) => {
   let id = req.params.productId
@@ -271,10 +314,9 @@ exports.productSearch = async (req, res) => {
       search,
     });
   } catch (error) {
-    console.log(error);
+    return res.status(Status.INTERNAL_SERVER_ERROR).json({status:Status.INTERNAL_SERVER_ERROR,message:Message.INTERNAL_ERROR})
   }
 }
-
 exports.editProductPage = async (req, res) => {
   let productId = req.params.productId;
 
@@ -283,35 +325,38 @@ exports.editProductPage = async (req, res) => {
 
   let product = result[0]
 
-
   let categories = await productModel.showCate()
 
   res.render('admin-pages/editProduct', { product, categories })
 
 }
-let imageUploadStats = {
-  totalAttempts: 0,
-  failedAttempts: 0,
-  failures: [] //
-};
+// let imageUploadStats = {
+//   totalAttempts: 0,
+//   failedAttempts: 0,
+//   failures: [] //
+// };
 
 exports.handleEditProduct = async (req, res) => {
   try {
-    console.log("req.body", JSON.stringify(req.body, null, 2));
 
     const productId = req.params.productId;
-    const cleanValue = (val) => (Array.isArray(val) ? val[0] : val);
 
-    const name = cleanValue(req.body.name);
-    const companyDetails = cleanValue(req.body.companyDetails);
-    const description = cleanValue(req.body.description);
-    const originalPrice = cleanValue(req.body.originalPrice);
-    const categoriesId = cleanValue(req.body.categoriesId);
-    const packageItems = cleanValue(req.body.packageItems);
-    const OS = cleanValue(req.body.OS);
-    const dimension = cleanValue(req.body.dimension);
-    const series = cleanValue(req.body.series);
-    const isActive = cleanValue(req.body.isActive);
+    const clean = (val) => {
+      if (val === null || val === undefined) return '';
+      if (Array.isArray(val)) return String(val[0] || '').trim();
+      return String(val).trim();
+    };
+
+    const name           = clean(req.body.name);
+    const companyDetails  = clean(req.body.companyDetails);
+    const description     = clean(req.body.description);
+    const originalPrice   = parseFloat(clean(req.body.originalPrice)) || 0;
+    const categoriesId    = clean(req.body.categoriesId);
+    const packageItems    = clean(req.body.packageItems);
+    const OS              = clean(req.body.OS);
+    const dimension       = clean(req.body.dimension);
+    const series          = clean(req.body.series);
+    const isActive        = clean(req.body.isActive) === 'true';
 
     const allImages = [];
     for (let i = 0; i < 3; i++) {
@@ -321,7 +366,7 @@ exports.handleEditProduct = async (req, res) => {
         const result = await uploadToCloudinary(file.buffer, 'techcart/products');
         allImages.push(result.secure_url);
       } else if (req.body[slotKey]) {
-        allImages.push(req.body[slotKey]);
+        allImages.push(req.body[slotKey]); 
       } else {
         return res.status(400).json({ success: false, message: `Image slot ${i + 1} is required.` });
       }
@@ -331,18 +376,19 @@ exports.handleEditProduct = async (req, res) => {
       name,
       companyDetails,
       description,
-      originalPrice: parseFloat(originalPrice),
+      originalPrice,
       categoriesId,
       packageItems,
       OS,
       dimension,
       series,
-      isActive: isActive === 'true' || isActive === true,
+      isActive,
       images: allImages,
     };
+
     const { error } = productEditValidation(productData);
     if (error) {
-      const messages = error.details.map((d) => d.message);
+      const messages = error.details.map(d => d.message);
       return res.status(400).json({ success: false, error: messages });
     }
 
@@ -352,25 +398,31 @@ exports.handleEditProduct = async (req, res) => {
     });
 
     if (req.body.variants && Array.isArray(req.body.variants)) {
-      const variants = req.body.variants[0]; 
-      const count = variants._id?.length || 0;
+      for (const variant of req.body.variants) {
+        const variantId = clean(variant._id);
+        if (!variantId) continue; 
 
-      for (let i = 0; i < count; i++) {
-        const variantId = cleanValue(variants._id[i]);
         const variantData = {
-          processor: cleanValue(variants.processor[i]),
-          ram: cleanValue(variants.ram[i]),
-          storage: cleanValue(variants.storage[i]),
-          graphics: cleanValue(variants.graphics[i]),
-          color: cleanValue(variants.color[i]),
-          display: cleanValue(variants.display[i]),
-          price: parseFloat(cleanValue(variants.price[i])),
-          stock: parseInt(cleanValue(variants.stock[i])),
+          processor: clean(variant.processor),
+          ram:       clean(variant.ram),
+          storage:   clean(variant.storage),
+          graphics:  clean(variant.graphics),
+          color:     clean(variant.color),
+          display:   clean(variant.display),
+          price:     parseFloat(clean(variant.price)) || 0,
+          stock:     parseInt(clean(variant.stock), 10) || 0,
         };
 
-      let reuslt =   await productModel.updateVariantByProductId(productId, variantId, variantData);
+        const{error,value} = variantEditValidation(variantData)
+        if (error) {
+
+         return res.status(Status.BAD_REQUEST).json({status:Status.BAD_REQUEST,message:error.details[0].message})
+        }
+
+        await productModel.updateVariantByProductId(productId, variantId, variantData);
       }
     }
+
     return res.status(200).json({ success: true, message: 'Product and variants updated successfully' });
 
   } catch (error) {
@@ -378,10 +430,8 @@ exports.handleEditProduct = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
-
 //edit categories vieew
 exports.editCategories = async (req, res) => {
-  console.log(req.params.Id);
 
   try {
     let data = await productModel.showEditCategory(req.params.Id);
@@ -400,7 +450,6 @@ exports.editCategories = async (req, res) => {
     res.redirect('/admin/view-categories');
   }
 };
-
 exports.editDataCategories = async (req, res) => {
 
   const { name, description, _id } = req.body;

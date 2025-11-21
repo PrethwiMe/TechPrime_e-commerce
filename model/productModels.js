@@ -1,6 +1,7 @@
 const { ObjectId } = require('mongodb');
 const { getDB } = require('../config/mongodb');
 const dbVariables = require('../config/databse');
+const { configDotenv } = require('dotenv');
 
 //  Insert product
 exports.insertProduct = async (productData) => {
@@ -180,14 +181,10 @@ exports.updateProduct = async (productId, updateData) => {
     { $set: updateData }
   );
 };
-exports.updateVariantByProductId = async (productId,variantId, variantData) => {
-
-  console.log("update varient",productId,variantId, variantData)
+exports.updateVariantByProductId = async (productId, variantId, variantData) => {
   const db = getDB();
-  return db.collection(dbVariables.variantCollection).updateOne(
-    { productId:new ObjectId( productId ), _id:new ObjectId(variantId)},
-    { $set: variantData }
-  );
+ let updateVariant = db.collection(dbVariables.variantCollection).updateOne( { _id: new ObjectId(variantId) }, { $set: variantData });
+  return true
 };
 exports.showEditCategory = async (categoryId) =>{
 
@@ -335,4 +332,36 @@ exports.changeItemStatus = async (userId,orderId,status,variantId) => {
   );
   console.log("Changed Status:", changed);
   return changed;
+}
+exports.addVarient =async (productId) => {
+  const db = await getDB()
+  const getProductCollection = await db.collection(dbVariables.productCollection).findOne({_id:new ObjectId(productId)});
+  return getProductCollection;
+}
+//get varients
+exports.getVarients = async (id) => {
+  const db = await getDB();
+  const getVarients = await db.collection(dbVariables.variantCollection).find({productId:id}).toArray();
+  return getVarients
+}
+// add varients
+exports.addMoreVarients = async (productId,val) => {
+try {
+  const db = await getDB()
+let data = {
+  productId: new ObjectId(productId),
+  ...val
+}
+  const varients = await db.collection(dbVariables.variantCollection).insertOne(data)
+  if (varients.insertedId) {
+    const variant = varients.insertedId;
+    const updateProduct = await db.collection(dbVariables.productCollection).updateOne({_id:new ObjectId(productId)},{$push:{ variantIds:variant}})
+  }
+  
+  return varients
+} catch (error) {
+  console.log(error)
+  throw error
+}
+
 }

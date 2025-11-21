@@ -87,10 +87,6 @@ exports.razorpaySetup = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-
-//////////////////////////
-
 exports.verifyPayment = async (req, res) => {
   try {
     const { razorpayPaymentId, razorpayOrderId, razorpaySignature, dbOrderId } = req.body;
@@ -127,8 +123,6 @@ exports.verifyPayment = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
-
-
 exports.repeatPayment = async (req, res) => {
   try {
     const { orderId } = req.body;

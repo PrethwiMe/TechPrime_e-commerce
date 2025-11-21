@@ -428,18 +428,19 @@ exports.viewOffer = async (req, res) => {
     const products = allProducts?.products || [];
     const offer = await adminModel.offerView();
     // paginate
+    let page = parseInt(req.params.number) || 1; 
+    if (page < 1) page = 1;
     let totalDocs = offer.length
-    console.log("offere lenght", offer.length)
     let limit = 5
-    let page = req.params.number
     const { skip, totalPages } = paginate({ totalDocs, page, limit });
     const paginatedOffers = offer.slice(skip, skip + limit)
-
+console.log("skip",skip)
     res.render("admin-pages/offers.ejs", {
       offer: paginatedOffers || [],
       categories,
       products,
       page,
+      totalDocs,
       totalPages,
       error: req.query.error || null,
       success: req.query.success || null

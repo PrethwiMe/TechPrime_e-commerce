@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TechCart - Home</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <!-- ✅ Animate.css for swirl effects -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
   <style>
     body {
@@ -174,7 +173,6 @@
       }
     }
 
-    /* ✅ Fly to cart effect */
     .flying-img {
       position: absolute;
       z-index: 9999;
@@ -184,7 +182,6 @@
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     }
 
-    /* ✅ Custom animation duration for SweetAlert popups - smooth but fast */
     .swal2-popup .animate__animated {
       animation-duration: 0.4s !important;
     }
@@ -207,43 +204,55 @@
         <a href="/search" class="btn btn-dark btn-sm">View All Products</a>
       </div>
       <div class="scroll-container">
-        <% products.forEach(product => { %>
-          <% const firstVariant = product.fullProduct ? product.fullProduct[0] : null; %>
-          <% const hasStock = firstVariant && firstVariant.stock > 0; %>
+        <% 
+          products.forEach(product => { 
+            // Find in-stock variants
+            const inStockVariants = product.fullProduct?.filter(v => v.stock > 0) || [];
+            const hasStock = inStockVariants.length > 0;
+            let displayVariant = null;
+            if (hasStock) {
+              // Get cheapest in-stock variant
+              displayVariant = inStockVariants.reduce((prev, curr) => 
+                (prev.price < curr.price) ? prev : curr
+              );
+            }
+        %>
         <div class="product-card">
           <div class="card h-100 text-center">
             <a href="/all-product/product-details/<%= product._id %>" class="text-decoration-none text-dark">
-              <img src="<%= product.images[0] %>" alt="<%= product.name %>" />
+              <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="w-100" />
             </a>
             <div class="card-body">
-              <h6 class="card-title "><%= product.name %></h6>
-              <p class="mb-1"><%= product.OS%></p>
-              <p class="mb-1"><%= product.companyDetails%></p>
+              <h6 class="card-title"><%= product.name %></h6>
+              <p class="mb-1"><%= product.OS %></p>
+              <p class="mb-1"><%= product.companyDetails %></p>
+
               <% if (hasStock) { %>
-              <div class="price mb-3">
-                <span>₹<%= firstVariant.price %></span>
-                <% if (firstVariant.price < product.originalPrice) { %>
-                <span class="old-price">₹<%= product.originalPrice %></span>
-                <% } %>
-              </div>
+                <div class="price mb-3">
+                  <span>₹<%= displayVariant.price.toLocaleString('en-IN') %></span>
+                  <% if (displayVariant.price < product.originalPrice) { %>
+                    <span class="old-price">₹<%= product.originalPrice.toLocaleString('en-IN') %></span>
+                  <% } %>
+                </div>
               <% } else { %>
-              <div class="out-of-stock mb-3">
-                Out of Stock
-              </div>
+                <div class="out-of-stock mb-3">Out of Stock</div>
               <% } %>
-              <div class="d-flex justify-content-between">
+
+              <div class="d-flex justify-content-between gap-2">
                 <% if (hasStock) { %>
-                <button class="btn-dark-custom add-to-cart"
-                  data-id="<%= product._id %>"
-                  data-variant="<%= firstVariant._id %>"
-                  data-name="<%= product.name %>"
-                  data-img="<%= product.images[0] %>">Add to Cart</button>
+                  <button class="btn-dark-custom add-to-cart flex-fill"
+                    data-id="<%= product._id %>"
+                    data-variant="<%= displayVariant._id %>"
+                    data-name="<%= product.name %>"
+                    data-img="<%= product.images[0] %>">
+                    Add to Cart
+                  </button>
                 <% } else { %>
-                <button class="btn-dark-custom" disabled>Out of Stock</button>
+                  <button class="btn-dark-custom flex-fill" disabled>Out of Stock</button>
                 <% } %>
                 <button class="btn-dark-custom add-to-wishlist"
                   data-id="<%= product._id %>"
-                  data-name="<%= product.name %>">&#9829;</button>
+                  data-name="<%= product.name %>">♡</button>
               </div>
             </div>
           </div>
@@ -255,13 +264,16 @@
     <!-- Categories -->
     <div class="section-container">
       <div class="section-title mb-3">Categories</div>
-      <div class="d-flex flex-wrap">
+      <div class="d-flex flex-wrap justify-content-center">
         <% if(categories && categories.length){ %>
-        <% categories.forEach(cat => { %>
-        <button class="category-btn text-capitalize" onclick="window.location.href='/search?categories=<%= cat._id %>'"><%= cat.name %></button>
-        <% }); %>
+          <% categories.forEach(cat => { %>
+            <button class="category-btn text-capitalize" 
+                    onclick="window.location.href='/search?categories=<%= cat._id %>'">
+              <%= cat.name %>
+            </button>
+          <% }); %>
         <% } else { %>
-        <p>No categories found</p>
+          <p>No categories found</p>
         <% } %>
       </div>
     </div>
@@ -276,43 +288,53 @@
         <a href="/search" class="btn btn-dark btn-sm">View All</a>
       </div>
       <div class="scroll-container">
-        <% products.slice().reverse().forEach(product => { %>
-          <% const firstVariant = product.fullProduct ? product.fullProduct[0] : null; %>
-          <% const hasStock = firstVariant && firstVariant.stock > 0; %>
+        <% 
+          products.slice().reverse().forEach(product => { 
+            const inStockVariants = product.fullProduct?.filter(v => v.stock > 0) || [];
+            const hasStock = inStockVariants.length > 0;
+            let displayVariant = null;
+            if (hasStock) {
+              displayVariant = inStockVariants.reduce((prev, curr) => 
+                (prev.price < curr.price) ? prev : curr
+              );
+            }
+        %>
         <div class="product-card">
           <div class="card h-100 text-center">
             <a href="/all-product/product-details/<%= product._id %>" class="text-decoration-none text-dark">
-              <img src="<%= product.images[0] %>" alt="<%= product.name %>" />
+              <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="w-100" />
             </a>
             <div class="card-body">
-              <h6 class="card-title "><%= product.name %></h6>
-              <p class="mb-1"><%= product.OS%></p>
-              <p class=""><%= product.companyDetails%></p>
+              <h6 class="card-title"><%= product.name %></h6>
+              <p class="mb-1"><%= product.OS %></p>
+              <p class="mb-1"><%= product.companyDetails %></p>
+
               <% if (hasStock) { %>
-              <div class="price mb-3">
-                <span>₹<%= firstVariant.price %></span>
-                <% if (firstVariant.price < product.originalPrice) { %>
-                <span class="old-price">₹<%= product.originalPrice %></span>
-                <% } %>
-              </div>
+                <div class="price mb-3">
+                  <span>₹<%= displayVariant.price.toLocaleString('en-IN') %></span>
+                  <% if (displayVariant.price < product.originalPrice) { %>
+                    <span class="old-price">₹<%= product.originalPrice.toLocaleString('en-IN') %></span>
+                  <% } %>
+                </div>
               <% } else { %>
-              <div class="out-of-stock mb-3">
-                Out of Stock
-              </div>
+                <div class="out-of-stock mb-3">Out of Stock</div>
               <% } %>
-              <div class="d-flex justify-content-between">
+
+              <div class="d-flex justify-content-between gap-2">
                 <% if (hasStock) { %>
-                <button class="btn-dark-custom add-to-cart"
-                  data-id="<%= product._id %>"
-                  data-variant="<%= firstVariant._id %>"
-                  data-name="<%= product.name %>"
-                  data-img="<%= product.images[0] %>">Add to Cart</button>
+                  <button class="btn-dark-custom add-to-cart flex-fill"
+                    data-id="<%= product._id %>"
+                    data-variant="<%= displayVariant._id %>"
+                    data-name="<%= product.name %>"
+                    data-img="<%= product.images[0] %>">
+                    Add to Cart
+                  </button>
                 <% } else { %>
-                <button class="btn-dark-custom" disabled>Out of Stock</button>
+                  <button class="btn-dark-custom flex-fill" disabled>Out of Stock</button>
                 <% } %>
                 <button class="btn-dark-custom add-to-wishlist"
                   data-id="<%= product._id %>"
-                  data-name="<%= product.name %>">&#9829;</button>
+                  data-name="<%= product.name %>">♡</button>
               </div>
             </div>
           </div>
@@ -331,43 +353,53 @@
         <a href="/search" class="btn btn-dark btn-sm">View All</a>
       </div>
       <div class="scroll-container">
-        <% products.forEach(product => { %>
-          <% const firstVariant = product.fullProduct ? product.fullProduct[0] : null; %>
-          <% const hasStock = firstVariant && firstVariant.stock > 0; %>
+        <% 
+          products.forEach(product => { 
+            const inStockVariants = product.fullProduct?.filter(v => v.stock > 0) || [];
+            const hasStock = inStockVariants.length > 0;
+            let displayVariant = null;
+            if (hasStock) {
+              displayVariant = inStockVariants.reduce((prev, curr) => 
+                (prev.price < curr.price) ? prev : curr
+              );
+            }
+        %>
         <div class="product-card">
           <div class="card h-100 text-center">
             <a href="/all-product/product-details/<%= product._id %>" class="text-decoration-none text-dark">
-              <img src="<%= product.images[0] %>" alt="<%= product.name %>" />
+              <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="w-100" />
             </a>
             <div class="card-body">
-              <h6 class="card-title "><%= product.name %></h6>
-              <p class="mb-1"><%= product.OS%></p>
-              <p class="mb-1"><%= product.companyDetails%></p>
+              <h6 class="card-title"><%= product.name %></h6>
+              <p class="mb-1"><%= product.OS %></p>
+              <p class="mb-1"><%= product.companyDetails %></p>
+
               <% if (hasStock) { %>
-              <div class="price mb-3">
-                <span>₹<%= firstVariant.price %></span>
-                <% if (firstVariant.price < product.originalPrice) { %>
-                <span class="old-price">₹<%= product.originalPrice %></span>
-                <% } %>
-              </div>
+                <div class="price mb-3">
+                  <span>₹<%= displayVariant.price.toLocaleString('en-IN') %></span>
+                  <% if (displayVariant.price < product.originalPrice) { %>
+                    <span class="old-price">₹<%= product.originalPrice.toLocaleString('en-IN') %></span>
+                  <% } %>
+                </div>
               <% } else { %>
-              <div class="out-of-stock mb-3">
-                Out of Stock
-              </div>
+                <div class="out-of-stock mb-3">Out of Stock</div>
               <% } %>
-              <div class="d-flex justify-content-between">
+
+              <div class="d-flex justify-content-between gap-2">
                 <% if (hasStock) { %>
-                <button class="btn-dark-custom add-to-cart"
-                  data-id="<%= product._id %>"
-                  data-variant="<%= firstVariant._id %>"
-                  data-name="<%= product.name %>"
-                  data-img="<%= product.images[0] %>">Add to Cart</button>
+                  <button class="btn-dark-custom add-to-cart flex-fill"
+                    data-id="<%= product._id %>"
+                    data-variant="<%= displayVariant._id %>"
+                    data-name="<%= product.name %>"
+                    data-img="<%= product.images[0] %>">
+                    Add to Cart
+                  </button>
                 <% } else { %>
-                <button class="btn-dark-custom" disabled>Out of Stock</button>
+                  <button class="btn-dark-custom flex-fill" disabled>Out of Stock</button>
                 <% } %>
                 <button class="btn-dark-custom add-to-wishlist"
                   data-id="<%= product._id %>"
-                  data-name="<%= product.name %>">&#9829;</button>
+                  data-name="<%= product.name %>">♡</button>
               </div>
             </div>
           </div>
@@ -390,7 +422,6 @@
       return response.json();
     }
 
-    // ✅ Fly-to-cart animation
     function flyToCart(imgSrc, btn) {
       const cartIcon = document.querySelector("#cart-icon") || document.querySelector(".cart-icon");
       if (!cartIcon) return;
@@ -401,23 +432,22 @@
       document.body.appendChild(img);
 
       const btnRect = btn.getBoundingClientRect();
-      img.style.left = btnRect.left + "px";
-      img.style.top = btnRect.top + "px";
+      img.style.left = btnRect.left + btnRect.width / 2 - 30 + "px";
+      img.style.top = btnRect.top + btnRect.height / 2 - 30 + "px";
       img.style.width = "60px";
 
       const cartRect = cartIcon.getBoundingClientRect();
       setTimeout(() => {
-        img.style.left = cartRect.left + "px";
-        img.style.top = cartRect.top + "px";
+        img.style.left = cartRect.left + cartRect.width / 2 - 15 + "px";
+        img.style.top = cartRect.top + cartRect.height / 2 - 15 + "px";
         img.style.width = "30px";
         img.style.opacity = "0.5";
       }, 100);
 
-      setTimeout(() => img.remove(), 1000);
+      setTimeout(() => img.remove(), 1100);
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      // Add to Cart
       document.querySelectorAll(".add-to-cart").forEach(btn => {
         btn.addEventListener("click", async () => {
           const productId = btn.dataset.id;
@@ -425,7 +455,6 @@
           const productName = btn.dataset.name;
           const imgSrc = btn.dataset.img;
 
-          // 🚀 Animate
           flyToCart(imgSrc, btn);
 
           try {
@@ -434,7 +463,7 @@
             if (res.success) {
               Swal.fire({
                 icon: "success",
-                title: "Added to Cart",
+                title: "Added to Cart!",
                 text: res.message || "Product added successfully!",
                 confirmButtonText: "Go to Cart",
                 showCancelButton: true,
@@ -444,44 +473,27 @@
               }).then((result) => {
                 if (result.isConfirmed) window.location.href = "/cart";
               });
-
             } else if (res.loginRequired) {
               Swal.fire({
                 icon: "warning",
                 title: "Login Required",
-                text: res.message || "Please login to continue.",
+                text: "Please login to add items to cart.",
                 confirmButtonText: "Login",
-                showClass: { popup: "animate__animated animate__fadeInUp" },
-                hideClass: { popup: "animate__animated animate__fadeOutDown" }
-              }).then((result) => {
-                if (result.isConfirmed) window.location.href = "/login";
-              });
-
+              }).then((r) => r.isConfirmed && (window.location.href = "/login"));
             } else {
-              Swal.fire({
-                icon: "error",
-                title: "Failed",
-                text: res.message || "Could not add product to cart.",
-                showClass: { popup: "animate__animated animate__fadeInUp" },
-                hideClass: { popup: "animate__animated animate__fadeOutDown" }
-              });
+              Swal.fire({ icon: "error", title: "Failed", text: res.message || "Something went wrong." });
             }
           } catch (err) {
             Swal.fire({
               icon: "warning",
               title: "Login Required",
               text: "Please login to continue",
-              confirmButtonText: "Login",
-              showClass: { popup: "animate__animated animate__fadeInUp" },
-              hideClass: { popup: "animate__animated animate__fadeOutDown" }
-            }).then((result) => {
-              if (result.isConfirmed) window.location.href = "/login";
-            });
+              confirmButtonText: "Login"
+            }).then((r) => r.isConfirmed && (window.location.href = "/login"));
           }
         });
       });
 
-      // Add to Wishlist
       document.querySelectorAll(".add-to-wishlist").forEach(btn => {
         btn.addEventListener("click", async () => {
           const productId = btn.dataset.id;
@@ -489,52 +501,28 @@
 
           try {
             const res = await postData("/wishlist", { productId, productName });
-
             if (res.success) {
+              btn.innerHTML = "❤️";
               Swal.fire({
                 icon: "success",
-                title: "Added to Wishlist",
-                text: res.message || "Product added successfully!",
-                confirmButtonText: "Go to Wishlist",
+                title: "Added to Wishlist!",
                 showCancelButton: true,
-                cancelButtonText: "Continue Shopping",
-                showClass: { popup: "animate__animated animate__fadeInUp" },
-                hideClass: { popup: "animate__animated animate__fadeOutDown" }
-              }).then((result) => {
-                if (result.isConfirmed) window.location.href = "/viewWishList";
-              });
-
+                confirmButtonText: "View Wishlist",
+                cancelButtonText: "Continue"
+              }).then((r) => r.isConfirmed && (window.location.href = "/viewWishList"));
             } else if (res.loginRequired) {
               Swal.fire({
                 icon: "warning",
                 title: "Login Required",
-                text: res.message || "Please login to continue.",
-                confirmButtonText: "Login",
-                showClass: { popup: "animate__animated animate__fadeInUp" },
-                hideClass: { popup: "animate__animated animate__fadeOutDown" }
-              }).then((result) => {
-                if (result.isConfirmed) window.location.href = "/login";
-              });
-            } else {
-              Swal.fire({
-                icon: "error",
-                title: "Failed",
-                text: res.message || "Could not add to wishlist.",
-                showClass: { popup: "animate__animated animate__fadeInUp" },
-                hideClass: { popup: "animate__animated animate__fadeOutDown" }
-              });
+                confirmButtonText: "Login"
+              }).then((r) => r.isConfirmed && (window.location.href = "/login"));
             }
           } catch (err) {
             Swal.fire({
               icon: "warning",
               title: "Login Required",
-              text: "Please login to continue",
-              confirmButtonText: "Login",
-              showClass: { popup: "animate__animated animate__fadeInUp" },
-              hideClass: { popup: "animate__animated animate__fadeOutDown" }
-            }).then((result) => {
-              if (result.isConfirmed) window.location.href = "/login";
-            });
+              confirmButtonText: "Login"
+            }).then((r) => r.isConfirmed && (window.location.href = "/login"));
           }
         });
       });
@@ -542,4 +530,5 @@
   </script>
 </body>
 </html>
+
 <%- include('partials/footer') %>

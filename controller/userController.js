@@ -13,8 +13,6 @@ const adminModal = require('../model/adminModel');
 const { json } = require('express');
 const { Status, Message } = require('../utils/constants')
 
-
-
 exports.loadHome = async (req, res) => {
   try {
 
@@ -25,6 +23,7 @@ exports.loadHome = async (req, res) => {
       isActive:true
     }
     const categories = await productModel.getAllCategories(filter);
+
       res.render('user-pages/home', {
       products,
       categories
@@ -86,7 +85,6 @@ exports.loginAccess = async (req, res) => {
     return res.status(500).json({ error: 'Server error. Please try again.' });
   }
 };
-
 exports.renderSignupPage = (req, res) => {
   res.render('user-pages/signup', { error: null });
 };
@@ -173,15 +171,12 @@ exports.handleSignup = async (req, res) => {
     });
   }
 };
-
 exports.renderVerifyMailPage = (req, res) => {  
   
   if (!req.session.emailData) return res.redirect('/signup');
 email = req.session.emailData;
   res.render('user-pages/verify-mail', { email, error: null })
 }
-
-
 exports.resendOtp = async (req, res) => {
   try {
     let mail = req.body.email
@@ -196,9 +191,6 @@ exports.resendOtp = async (req, res) => {
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 };
-
-
-
 exports.verifyUserOtp = async (req, res) => {
   //otp from front end
   const { email, otp } = req.body
@@ -218,7 +210,6 @@ exports.verifyUserOtp = async (req, res) => {
 
 
 }
-
 //forgot password page loading
 exports.loadForgotPage = (req, res) => {
   res.render('user-pages/forgot_page.ejs', { error: null })

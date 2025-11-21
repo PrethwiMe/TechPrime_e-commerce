@@ -32,6 +32,10 @@ router.get('/view-categories', sessionHandle.adminConfirmed, productController.v
 router.post('/categories/switch/:id', sessionHandle.adminConfirmed, productController.controleCategories)
 //view products
 router.get('/products', sessionHandle.adminConfirmed, productController.displayProducts)
+//add varients page
+router.get('/products/Variants/:productId?',sessionHandle.adminConfirmed,productController.addVarients)
+// add varients
+router.post("/product/addVarients",sessionHandle.adminConfirmed,productController.addMoreVariants)
 //enable or disable
 router.patch('/products/toggle-status/:productId', sessionHandle.adminConfirmed, productController.productStatus)
 //product search

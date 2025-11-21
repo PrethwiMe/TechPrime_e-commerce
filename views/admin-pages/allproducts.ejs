@@ -5,7 +5,7 @@
   <!-- Main Content on the right -->
   <div class="flex-grow-1 bg-white text-dark" style="min-height: 100vh;">
     <!-- Topbar inside content area -->
-    <div class="border-bottom shadow-sm">
+    <div class="border-bottom shadow-sm bg-light">
       <%- include('partials/topbar') %>
     </div>
 
@@ -13,7 +13,7 @@
     <div class="p-4">
       <!-- Header with Search and Add Button -->
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold mb-0">Products</h3>
+        <h3 class="fw-bold mb-0 text-dark">Products</h3>
         <div class="d-flex gap-3 align-items-center">
           <form id="searchForm" class="d-flex" method="GET" action="/admin/products" role="search">
             <div class="input-group">
@@ -21,11 +21,11 @@
                 type="text"
                 id="searchInput"
                 name="search"
-                class="form-control"
+                class="form-control border-dark-subtle"
                 placeholder="Search by name or brand or price..."
                 value="<%= typeof search !== 'undefined' ? search : '' %>"
               />
-              <button type="submit" class="btn btn-outline-primary">
+              <button type="submit" class="btn btn-outline-dark">
                 <i class="bi bi-search"></i>
               </button>
             </div>
@@ -33,42 +33,45 @@
 
           <button id="clearSearchBtn" class="btn btn-outline-secondary">Clear</button>
 
-          <a href="/admin/add-products" class="btn btn-primary">
+          <a href="/admin/add-products" class="btn btn-success">
             <i class="bi bi-plus-lg"></i> Add Product
           </a>
         </div>
       </div>
 
       <!-- Product Table -->
-      <div class="table-responsive rounded shadow">
-        <table class="table table-bordered table-hover align-middle text-center">
-          <thead class="table-dark">
+      <div class="table-responsive rounded shadow-sm border">
+        <table class="table table-bordered table-hover align-middle text-center bg-white">
+          <thead class="bg-dark text-white">
             <tr>
               <th>Image</th>
               <th>Name</th>
               <th>Brand</th>
               <th>Price</th>
               <th>Status</th>
+              <th>Variants</th> <!-- New Column -->
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <% if (data.length === 0) { %>
               <tr>
-                <td colspan="6" class="text-muted">No products found.</td>
+                <td colspan="7" class="text-muted py-5">No products found.</td>
               </tr>
             <% } else { %>
               <% data.forEach((product) => { %>
-                <tr>
+                <tr class="border-dark-subtle">
                   <td>
                     <% if (product.images && product.images.length) { %>
-                      <img src="<%= product.images[0] %>" class="img-thumbnail" width="70" height="70" style="object-fit: cover;" />
+                      <img src="<%= product.images[0] %>" class="img-thumbnail border" width="70" height="70" style="object-fit: cover;" />
                     <% } else { %>
-                      <span class="text-muted">No Image</span>
+                      <div class="bg-light border rounded d-flex align-items-center justify-content-center" style="width:70px;height:70px;">
+                        <span class="text-muted small">No Image</span>
+                      </div>
                     <% } %>
                   </td>
-                  <td><%= product.name %></td>
-                  <td><%= product.companyDetails %></td>
+                  <td class="fw-semibold"><%= product.name %></td>
+                  <td><%= product.companyDetails || '<span class="text-muted">N/A</span>' %></td>
                   <td>
                     <% if (product.originalPrice) { %>
                       ₹ <%= product.originalPrice.toLocaleString() %>
@@ -87,8 +90,13 @@
                     </div>
                   </td>
                   <td>
+                    <a href="/admin/products/Variants/<%= product._id %>" class="btn btn-sm btn-outline-info" title="Manage Variants">
+                      <i class="bi bi-collection"></i> Variants
+                    </a>
+                  </td>
+                  <td>
                     <a href="/admin/products/edit/<%= product._id %>" class="btn btn-sm btn-outline-primary me-2" title="Edit Product">
-                      <i class="bi bi-gear"></i>
+                      <i class="bi bi-pencil-square"></i>
                     </a>
                   </td>
                 </tr>
@@ -104,19 +112,19 @@
           <ul class="pagination justify-content-center">
             <% if (page > 1) { %>
               <li class="page-item">
-                <a class="page-link" href="?page=<%= page - 1 %>&search=<%= search %>">Previous</a>
+                <a class="page-link text-dark border-dark-subtle" href="?page=<%= page - 1 %>&search=<%= search %>">Previous</a>
               </li>
             <% } %>
 
             <% for (let i = 1; i <= totalPages; i++) { %>
               <li class="page-item <%= page === i ? 'active' : '' %>">
-                <a class="page-link" href="?page=<%= i %>&search=<%= search %>"><%= i %></a>
+                <a class="page-link <%= page === i ? 'bg-dark border-dark' : 'text-dark border-dark-subtle' %>" href="?page=<%= i %>&search=<%= search %>"><%= i %></a>
               </li>
             <% } %>
 
             <% if (page < totalPages) { %>
               <li class="page-item">
-                <a class="page-link" href="?page=<%= page + 1 %>&search=<%= search %>">Next</a>
+                <a class="page-link text-dark border-dark-subtle" href="?page=<%= page + 1 %>&search=<%= search %>">Next</a>
               </li>
             <% } %>
           </ul>
@@ -162,6 +170,11 @@
 </script>
 
 <style>
+  /* Darker theme with white main background */
+  body { background-color: #f8f9fa; }
+
+  .table-dark { background-color: #212529 !important; }
+
   .form-switch.form-switch-lg .form-check-input {
     width: 3rem;
     height: 1.5rem;
@@ -174,4 +187,17 @@
     transform: scale(1.5);
     cursor: pointer;
   }
-</style>
+
+  /* Slight shadow and border enhancements */
+  .shadow-sm { box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.15) !important; }
+  .table-hover tbody tr:hover {
+    background-color: #f1f3f5;
+  }
+
+  /* Button hover effects */
+  .btn-outline-dark:hover,
+  .btn-outline-info:hover,
+  .btn-outline-primary:hover {
+    color: #fff !important;
+  }
+</style> 

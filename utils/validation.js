@@ -53,7 +53,7 @@ const addressValidation = (data) => {
     city: Joi.string().required(),
     line1: Joi.string().required(),
   });
-               
+
   return schema.validate(data);
 };
 
@@ -107,8 +107,31 @@ const productValidation = (data) => {
     price: Joi.number().positive().precision(2).required(),
     stock: Joi.number().integer().min(0).required(),
     categoryId: Joi.string().required(),
+    packageItems: Joi.string().required(),
+    OS: Joi.string().required(),
+    dimension: Joi.string().required(),
+
+    series: Joi.string().required(),
+
+
     brand: Joi.string().allow(""),
-    images: Joi.array().min(3).required(),
+    images: Joi.any().optional().required(),
+  });
+
+  return schema.validate(data);
+};
+const addVariantValidation = (data) => {
+  const schema = Joi.object({
+    processor: Joi.string().min(2).max(100).required(),
+    ram: Joi.string().min(1).max(20).required(),
+    storage: Joi.string().min(1).max(50).required(),
+    graphics: Joi.string().min(2).max(100).required(),
+    color: Joi.string().min(1).max(50).required(),
+    display: Joi.string().min(2).max(100).required(),
+    price: Joi.number().positive().required(),
+    stock: Joi.number().integer().min(0).required(),
+    productId: Joi.any().optional().allow(""),
+    created: Joi.any().optional().allow("")
   });
 
   return schema.validate(data);
@@ -129,9 +152,9 @@ const categoryValidation = (data) => {
 
 
 const couponValidation = (data) => {
- 
+
   const schema = Joi.object({
-  id: Joi.string().optional().messages({
+    id: Joi.string().optional().messages({
       "string.base": "Coupon ID must be a string"
     }),
     code: Joi.string()
@@ -145,21 +168,22 @@ const couponValidation = (data) => {
     discount: Joi.number()
       .positive()
       .min(1)
-      .max(100)
+      .max(80)
       .required()
       .messages({
         "number.base": "Discount must be a number",
         "number.min": "Discount must be at least 1",
-        "number.max": "Discount cannot exceed 100",
+        "number.max": "Discount cannot exceed 80",
         "any.required": "Discount is required"
       }),
 
     minPurchase: Joi.number()
       .positive()
+      .min(1000)
       .default(0)
       .messages({
         "number.base": "Minimum purchase must be a number",
-        "number.min": "Minimum purchase must be positive"
+        "number.min": "Discount must be at least 1000",
       }),
 
     validFrom: Joi.date()
@@ -308,7 +332,7 @@ const offerValidation = (data) => {
     }),
 
     categoryId: Joi.when("appliesTo", {
-      is: "category",   
+      is: "category",
       then: Joi.string().length(24).required().messages({
         "any.required": "Category ID is required when appliesTo is 'category'",
         "string.length": "Category ID must be a valid 24-character ObjectId"
@@ -406,14 +430,204 @@ const productEditValidation = (data) => {
       }),
 
     images: Joi.array()
-      .items(Joi.string().uri().required())
+      .items(
+        Joi.alternatives().try(
+          Joi.string()
+            .pattern(/^\/uploads\/products\/.+\.(jpg|jpeg|png|webp)$/i)
+            .messages({
+              'string.pattern.base': 'Invalid local image path format'
+            }),
+          Joi.string()
+            .uri({ scheme: ['http', 'https'] })
+            .messages({
+              'string.uri': 'Image must be a valid URL'
+            })
+        )
+      )
       .length(3)
       .required()
+
+
+  });
+
+  return schema.validate(data, { abortEarly: false });
+};
+
+
+const variantEditValidation = (data) => {
+  const schema = Joi.object({
+    processor: Joi.string()
+      .min(3)
+      .max(100)
+      .required()
       .messages({
-        "array.length": "Exactly 3 image URLs are required",
-        "string.uri": "Each image must be a valid URL",
-        "any.required": "Images are required"
+        "string.min": "Processor must have at least 3 characters",
+        "string.max": "Processor cannot exceed 100 characters",
+        "any.required": "Processor is required",
       }),
+
+    ram: Joi.string()
+      .pattern(/^\d+$/)
+      .required()
+      .messages({
+        "string.pattern.base": "RAM must be a numeric value",
+        "any.required": "RAM is required",
+      }),
+
+    storage: Joi.string()
+      .min(1)
+      .required()
+      .messages({
+        "any.required": "Storage is required",
+      }),
+
+    graphics: Joi.string()
+      .min(2)
+      .required()
+      .messages({
+        "string.min": "Graphics must have at least 2 characters",
+        "any.required": "Graphics is required",
+      }),
+
+    color: Joi.string()
+      .min(2)
+      .required()
+      .messages({
+        "string.min": "Color must have at least 2 characters",
+        "any.required": "Color is required",
+      }),
+
+    display: Joi.string()
+      .min(2)
+      .required()
+      .messages({
+        "string.min": "Display must have at least 2 characters",
+        "any.required": "Display type is required",
+      }),
+
+    price: Joi.number()
+      .min(1000)
+      .required()
+      .messages({
+        "number.base": "Price must be a number",
+        "number.min": "Price must be at least 1000",
+        "any.required": "Price is required",
+      }),
+
+    stock: Joi.number()
+      .integer()
+      .min(0)
+      .required()
+      .messages({
+        "number.base": "Stock must be a number",
+        "number.integer": "Stock must be an integer",
+        "number.min": "Stock cannot be negative",
+        "any.required": "Stock is required",
+      }),
+  });
+
+  return schema.validate(data, { abortEarly: false });
+};
+
+const addVariantsValidation = (data) => {
+  const variantSchema = Joi.object({
+    processor: Joi.string()
+      .trim()
+      .min(3)
+      .max(100)
+      .required()
+      .messages({
+        "string.min": "Processor name must be at least 3 characters",
+        "string.max": "Processor name cannot exceed 100 characters",
+        "any.required": "Processor is required"
+      }),
+
+    ram: Joi.string()
+      .trim()
+      .pattern(/^\d{1,3}$/) // e.g., 8, 16, 32
+      .required()
+      .messages({
+        "string.pattern.base": "RAM must be a number (e.g., 8, 16, 32)",
+        "any.required": "RAM is required"
+      }),
+
+    storage: Joi.string()
+      .required()
+      .messages({
+        "any.required": "Storage is required"
+      }),
+
+    graphics: Joi.string()
+      .trim()
+      .max(100)
+      .optional()
+      .allow('')
+      .messages({
+        "string.max": "Graphics description too long"
+      }),
+
+    color: Joi.string()
+      .trim()
+      .max(50)
+      .optional()
+      .allow('')
+      .messages({
+        "string.max": "Color name too long"
+      }),
+
+    display: Joi.string()
+      .trim()
+      .max(100)
+      .required()
+      .messages({
+        "string.max": "Display description too long",
+        "String.required":"Display can not be empty"
+      }),
+
+    price: Joi.number()
+      .min(1000)
+      .max(10000000)
+      .required()
+      .messages({
+        "number.base": "Price must be a valid number",
+        "number.min": "Price must be at least ₹1,000",
+        "number.max": "Price cannot exceed ₹1 Crore",
+        "any.required": "Price is required"
+      }),
+
+    stock: Joi.number()
+      .integer()
+      .min(0)
+      .max(10000)
+      .default(0)
+      .messages({
+        "number.base": "Stock must be a number",
+        "number.min": "Stock cannot be negative",
+        "number.max": "Stock limit exceeded (max 10,000)"
+      })
+  });
+
+  const schema = Joi.object({
+    productId: Joi.string()
+      .length(24)
+      .hex()
+      .required()
+      .messages({
+        "string.length": "Invalid Product ID",
+        "string.hex": "Product ID must be a valid ObjectId",
+        "any.required": "Product ID is required"
+      }),
+
+    variants: Joi.array()
+      .min(1)
+      .max(20)
+      .items(variantSchema)
+      .required()
+      .messages({
+        "array.min": "At least one variant is required",
+        "array.max": "Maximum 20 variants allowed at once",
+        "any.required": "Variants array is required"
+      })
   });
 
   return schema.validate(data, { abortEarly: false });
@@ -421,16 +635,19 @@ const productEditValidation = (data) => {
 
 
 module.exports = {
+  addVariantsValidation,
+  variantEditValidation,
   productEditValidation,
   signupValidation,
   loginValidation,
   addressValidation,
-  checkoutValidation, 
+  checkoutValidation,
   productValidation,
   categoryValidation,
   couponValidation,
   orderValidation,
   paymentValidation,
   userProfileValidation,
-  offerValidation
+  offerValidation,
+  addVariantValidation
 };

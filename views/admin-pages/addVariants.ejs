@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title><%= product.name %> - Product Details</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    .product-image { height: 400px; object-fit: contain; background: #f8f9fa; }
+    .spec-table th { background-color: #f8f9fa; width: 30%; }
+    .price-original { text-decoration: line-through; color: #6c757d; font-size: 1.1rem; }
+    .badge-active { background-color: #28a745; }
+    .variant-form { border: 1px dashed #007bff; border-radius: 12px; padding: 20px; background: #f8fbff; position: relative; }
+    .remove-variant { position: absolute; top: 10px; right: 10px; z-index: 10; }
+  </style>
+</head>
+<body class="bg-light">
+
+  <div class="container my-5">
+    <!-- Product Details (unchanged) -->
+    <div class="row g-5">
+      <div class="col-lg-6">
+        <!-- Carousel code same as before -->
+        <div id="productCarousel" class="carousel slide shadow-sm rounded" data-bs-ride="carousel">
+          <!-- ... your existing carousel code ... -->
+          <div class="carousel-indicators">
+            <% product.images.forEach((img, index) => { %>
+              <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="<%= index %>"
+                      class="<%= index === 0 ? 'active' : '' %>"></button>
+            <% }) %>
+          </div>
+          <div class="carousel-inner rounded">
+            <% product.images.forEach((img, index) => { %>
+              <div class="carousel-item <%= index === 0 ? 'active' : '' %>">
+                <img src="<%= img %>" class="d-block w-100 product-image" alt="<%= product.name %>">
+              </div>
+            <% }) %>
+          </div>
+          <!-- controls -->
+        </div>
+
+        <div class="row mt-3 g-2">
+          <% product.images.forEach((img, index) => { %>
+            <div class="col-4">
+              <img src="<%= img %>" class="img-fluid rounded border" style="height:100px; object-fit:contain; background:#f8f9fa; cursor:pointer;"
+                   onclick="document.querySelector('.carousel-item.active').classList.remove('active');
+                            document.querySelectorAll('.carousel-item')[<%= index %>].classList.add('active');
+                            document.querySelectorAll('.carousel-indicators button')[<%= index %>].click();">
+            </div>
+          <% }) %>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="bg-white p-4 rounded shadow-sm h-100">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <h1 class="h3 fw-bold"><%= product.name %></h1>
+            <span class="badge <%= product.isActive ? 'badge-active text-white' : 'bg-secondary' %> px-3 py-2">
+              <%= product.isActive ? 'Active' : 'Inactive' %>
+            </span>
+          </div>
+
+          <p class="text-muted mb-2">by <strong><%= product.companyDetails %></strong> • <%= product.series %> Series</p>
+
+          <div class="mb-4">
+            <h2 class="h1 fw-bold text-primary">₹<%= product.originalPrice.toLocaleString('en-IN') %></h2>
+            <% if (product.originalPrice > 50000) { %>
+              <p class="price-original">M.R.P: ₹<%= (product.originalPrice + 15000).toLocaleString('en-IN') %></p>
+              <span class="text-success fw-semibold">Save ₹15,000</span>
+            <% } %>
+          </div>
+
+          <hr>
+          <h5 class="fw-semibold mb-3">Key Specifications</h5>
+          <table class="table table-borderless spec-table">
+            <tr><th>Operating System</th><td><%= product.OS %></td></tr>
+            <tr><th>Dimensions</th><td><%= product.dimension %></td></tr>
+            <tr><th>In the Box</th><td><%= product.packageItems %></td></tr>
+            <tr><th>Added On</th><td><%= new Date(product.createdAt).toLocaleDateString('en-IN') %></td></tr>
+          </table>
+
+          <hr>
+          <h5 class="fw-semibold mb-3">Description</h5>
+          <p class="text-muted lh-lg"><%= product.description %></p>
+
+          <a href="/admin/products/edit/<%= product._id %>" class="btn btn-dark mt-3">Edit Product</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Current Variants Display -->
+    <% if (variants && variants.length > 0) { %>
+      <div class="mt-5">
+        <h3 class="h4 fw-bold mb-4 text-success">Current Variants (<%= variants.length %>)</h3>
+        <div class="row g-4">
+          <% variants.forEach((variant, index) => { %>
+            <div class="col-lg-6 col-xxl-4">
+              <div class="card h-100 shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                  <strong>Variant <%= index + 1 %></strong>
+                  <span class="badge bg-light text-dark ms-2"><%= variant.stock > 0 ? 'In Stock' : 'Out of Stock' %></span>
+                </div>
+                <div class="card-body">
+                  <h5 class="text-primary">₹<%= variant.price.toLocaleString('en-IN') %></h5>
+                  <hr>
+                  <small>
+                    <% if(variant.processor) { %><div><strong>CPU:</strong> <%= variant.processor %></div><% } %>
+                    <% if(variant.ram) { %><div><strong>RAM:</strong> <%= variant.ram %> </div><% } %>
+                    <% if(variant.storage) { %><div><strong>Storage:</strong> <%= variant.storage %> </div><% } %>
+                    <% if(variant.color) { %><div><strong>Color:</strong> <%= variant.color %></div><% } %>
+                  </small>
+                </div>
+                <div class="card-footer text-center">
+                  
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- ADD NEW VARIANTS FORM (AJAX) -->
+    <div class="mt-5 p-4 bg-white rounded shadow">
+      <h3 class="h4 fw-bold mb-4 text-primary">
+        <i class="bi bi-plus-circle-dotted"></i> Add New Variants
+      </h3>
+
+      <div id="variantsContainer">
+        <div class="variant-form mb-4">
+          <div class="row g-3">
+            <div class="col-md-6"><input type="text" class="form-control" placeholder="Processor" data-field="processor"></div>
+            <div class="col-md-3"><input type="text" class="form-control" placeholder="RAM (GB)" data-field="ram"></div>
+            <div class="col-md-3"><input type="text" class="form-control" placeholder="Storage (GB)" data-field="storage"></div>
+            <div class="col-md-4"><input type="text" class="form-control" placeholder="Graphics" data-field="graphics"></div>
+            <div class="col-md-4"><input type="text" class="form-control" placeholder="Color" data-field="color"></div>
+            <div class="col-md-4"><input type="text" class="form-control" placeholder="Display" data-field="display"></div>
+            <div class="col-md-6"><input type="number" class="form-control" placeholder="Price ₹" data-field="price" min="1"></div>
+            <div class="col-md-6"><input type="number" class="form-control" placeholder="Stock" data-field="stock" min="0" value="0"></div>
+          </div>
+          <button type="button" class="btn btn-sm btn-danger remove-variant mt-2">
+            <i class="bi bi-trash"></i> Remove
+          </button>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between mt-4">
+        <button type="button" id="addMoreBtn" class="btn btn-outline-primary">
+          <i class="bi bi-plus-lg"></i> Add Another Variant
+        </button>
+        <button type="button" id="saveVariantsBtn" class="btn btn-success btn-lg px-5">
+          <i class="bi bi-check2-all"></i> Save All Variants
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <script>
+    // Add new variant form
+    document.getElementById('addMoreBtn').addEventListener('click', () => {
+      const container = document.getElementById('variantsContainer');
+      const first = container.querySelector('.variant-form');
+      const clone = first.cloneNode(true);
+      clone.querySelectorAll('input').forEach(input => input.value = '');
+      container.appendChild(clone);
+    });
+
+    // Remove variant
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.remove-variant')) {
+        const forms = document.querySelectorAll('.variant-form');
+        if (forms.length > 1) {
+          e.target.closest('.variant-form').remove();
+        } else {
+          Swal.fire('Error', 'At least one variant is required!', 'error');
+        }
+      }
+    });
+
+    // Save all variants via Axios
+    document.getElementById('saveVariantsBtn').addEventListener('click', async () => {
+      const forms = document.querySelectorAll('.variant-form');
+      const variants = [];
+
+      let hasError = false;
+
+      forms.forEach(form => {
+        const data = {};
+        let empty = false;
+
+        form.querySelectorAll('input').forEach(input => {
+          const field = input.dataset.field;
+          const value = input.value.trim();
+          if (['processor', 'ram', 'storage', 'price'].includes(field) && !value) {
+            empty = true;
+            input.classList.add('is-invalid');
+          } else {
+            input.classList.remove('is-invalid');
+          }
+          data[field] = value;
+        });
+
+        if (!empty) {
+          data.price = parseInt(data.price);
+          data.stock = parseInt(data.stock) || 0;
+          variants.push(data);
+        } else {
+          hasError = true;
+        }
+      });
+
+      if (variants.length === 0) {
+        Swal.fire('Error!', 'Please fill at least one complete variant.', 'error');
+        return;
+      }
+
+      try {
+        Swal.fire({
+          title: 'Saving...',
+          text: 'Adding variants to product',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading()
+        });
+
+        const response = await axios.post('/admin/product/addVarients', {
+          productId: '<%= product._id %>',
+          variants: variants
+        });
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: response.data.message || `${variants.length} variant(s) added successfully!`,
+          timer: 3000
+        }).then(() => {
+          location.reload(); // Refresh to show new variants
+        });
+
+      } catch (err) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed!',
+          text: err.response?.data?.message || 'Something went wrong. Please try again.'
+        });
+      }
+    });
+  </script>
+</body>
+</html>
