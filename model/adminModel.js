@@ -236,6 +236,7 @@ exports.getEachOrder = async (id) => {
 
 // update order status
 exports.updateOrderStatus = async (orderId, st) => {
+  console.log("updateOrderStatus",st)
     try {
         const db = await getDB();
 
@@ -243,6 +244,7 @@ exports.updateOrderStatus = async (orderId, st) => {
             { _id: new ObjectId(orderId) },
             { $set: { status:st } }
         );
+  console.log("updateOrderStatus  result",result)
 
         return result;
     } catch (err) {
@@ -261,6 +263,7 @@ exports.returnAccept = async (id,st) => {
 //upadate item status
 exports.updateItemStatus = async (params) => {
   try {
+    console.log("step 1")
     let { orderId, variantId, itemStatus } = params;
     const db = await getDB();
     let result = await db.collection(dbVariables.orderCollection).updateOne(
@@ -275,25 +278,27 @@ exports.updateItemStatus = async (params) => {
       }
     );
 
+    console.log("step 2")
 
     if (result.modifiedCount === 0) {
       console.warn(" No item was updated. Check orderId/variantId match.");
     }
+    console.log("step 3")
+    const order = await db.collection(dbVariables.orderCollection).findOne({_id:new ObjectId(orderId)});
+    console.log("orderId",orderId)
 
-    const order = await db
-      .collection(dbVariables.orderCollection)
-      .findOne({ orderId });
-
-
+console.log("order",order)
     if (!order) {
       return { success: false, message: "Order not found" };
     }
+    console.log("step 4")
 
     let allStatuses = order.items.map((item) => item.itemStatus || "Pending");
 
     console.log("All item statuses:", allStatuses);
 
     let newOrderStatus = "Pending";
+    console.log("step 5")
 
     if (allStatuses.every((s) => s === "Delivered")) {
       newOrderStatus = "Delivered";
@@ -304,11 +309,17 @@ exports.updateItemStatus = async (params) => {
     } else {
       newOrderStatus = "Partially Fulfilled"; 
     }
+        console.log("step 6")
 
+console.log("stsUpdate",newOrderStatus)
     await db.collection(dbVariables.orderCollection).updateOne(
-      { orderId },
+      { _id: new ObjectId(orderId) },
       { $set: { status: newOrderStatus } }
     );
+
+    if (newOrderStatus == "Delivered" && order.paymentMethod=='cod') {
+      await db.collection(dbVariables.orderCollection).updateOne({_id:new ObjectId(orderId)},{$set:{paymentStatus:'paid'}})
+    }
 
     return { success: true, orderId, newOrderStatus };
   } catch (err) {
@@ -349,7 +360,7 @@ exports.offerAdd = async (data) => {
 };
 exports.offerView = async (data) => {
   const db = getDB();
-  const response = await db.collection(dbVariables.offerCollection).find({Active:true}).toArray();
+  const response = await db.collection(dbVariables.offerCollection).find({Active:true}).sort({endDate:-1}).toArray();
   return response
 }
 exports.disableOffer = async(id,status) => {
@@ -370,7 +381,7 @@ exports.addCoupon = async (data) => {
 }
 exports.viewCouponPage = async () => {
   const db = await getDB();
-  const response = await db.collection(dbVariables.couponCollection).find({isActive:true}).toArray();
+  const response = await db.collection(dbVariables.couponCollection).find({isActive:true}).sort({minimumPurchase:-1}).toArray();
   return response;
 }
 exports.checkOffers = async (query) => {

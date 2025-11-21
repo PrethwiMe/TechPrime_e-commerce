@@ -10,101 +10,167 @@
     <!-- Page content -->
     <div class="container-fluid p-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold">Coupons Management</h3>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCouponModal">
-          <i class="bi bi-plus-circle"></i> Add New Coupon
+        <h3 class="fw-bold mb-0">Coupons Management</h3>
+        <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addCouponModal">
+          <i class="bi bi-plus-circle me-2"></i>Add New Coupon
         </button>
       </div>
 
       <!-- Coupons Table -->
-      <div class="table-responsive rounded shadow">
-        <table class="table table-hover table-bordered align-middle text-center">
-          <thead class="table-dark">
-            <tr>
-              <th>SL NO:</th>
-              <th>Coupon Code</th>
-              <th>Discount</th>
-              <th>Valid From</th>
-              <th>Valid Until</th>
-              <th>Min Purchase</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% if (!coupons || coupons.length === 0) { %>
-              <tr>
-                <td colspan="7" class="text-muted">No coupons available.</td>
-              </tr>
-            <% } else { %>
-              <% coupons.forEach((coupon, index) => { %>
+      <div class="card shadow border-0">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover table-bordered align-middle text-center mb-0">
+              <thead class="table-dark">
                 <tr>
-                  <td><%= index + 1 %></td>
-                  <td><%= coupon.code %></td>
-                  <td><%= coupon.discount %>%</td>
-                  <td><%= new Date(coupon.validFrom).toLocaleDateString('en-IN') %></td>
-                  <td><%= new Date(coupon.validUntil).toLocaleDateString('en-IN') %></td>
-                  <td>₹<%= coupon.minimumPurchase %></td>
-                  <td>
-                    <button 
-                      class="btn btn-sm btn-warning edit-btn" 
-                      data-bs-toggle="modal"
-                      data-bs-target="#editCouponModal"
-                      data-id="<%= coupon._id %>"
-                      data-code="<%= coupon.code %>"
-                      data-discount="<%= coupon.discount %>"
-                      data-validfrom="<%= new Date(coupon.validFrom).toISOString().slice(0,10) %>"
-                      data-validuntil="<%= new Date(coupon.validUntil).toISOString().slice(0,10) %>"
-                      data-minpurchase="<%= coupon.minimumPurchase %>">
-                      <i class="bi bi-pencil-square"></i> Edit
-                    </button>
-                    <button 
-                      class="btn btn-sm btn-danger delete-btn" 
-                      data-id="<%= coupon._id %>" 
-                      data-code="<%= coupon.code %>">
-                      <i class="bi bi-trash"></i> Delete
-                    </button>
-                  </td>
+                  <th>SL NO.</th>
+                  <th>Coupon Code</th>
+                  <th>Discount</th>
+                  <th>Valid From</th>
+                  <th>Valid Until</th>
+                  <th>Min Purchase</th>
+                  <th>Actions</th>
                 </tr>
-              <% }) %>
-            <% } %>
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                <% if (!coupons || coupons.length === 0) { %>
+                  <tr>
+                    <td colspan="7" class="py-5 text-muted fw-medium">
+                      <i class="bi bi-inbox display-6 d-block mb-3"></i>
+                      No coupons available yet.
+                    </td>
+                  </tr>
+                <% } else { %>
+                  <% coupons.forEach((coupon, index) => { %>
+                    <tr>
+                      <td class="fw-bold">
+                        <%= (currentPage - 1) * limit + index + 1 %>
+                      </td>
+                      <td>
+                        <span class="badge bg-primary fs-6 px-3 py-2"><%= coupon.code %></span>
+                      </td>
+                      <td><strong><%= coupon.discount %>%</strong></td>
+                      <td><%= new Date(coupon.validFrom).toLocaleDateString('en-IN') %></td>
+                      <td><%= new Date(coupon.validUntil).toLocaleDateString('en-IN') %></td>
+                      <td>₹<%= Number(coupon.minimumPurchase).toLocaleString('en-IN') %></td>
+                      <td class="py-2">
+                        <button 
+                          class="btn btn-sm btn-warning edit-btn me-2"
+                          data-bs-toggle="modal"
+                          data-bs-target="#editCouponModal"
+                          data-id="<%= coupon._id %>"
+                          data-code="<%= coupon.code %>"
+                          data-discount="<%= coupon.discount %>"
+                          data-validfrom="<%= new Date(coupon.validFrom).toISOString().slice(0,10) %>"
+                          data-validuntil="<%= new Date(coupon.validUntil).toISOString().slice(0,10) %>"
+                          data-minpurchase="<%= coupon.minimumPurchase %>">
+                          <i class="bi bi-pencil-square"></i> Edit
+                        </button>
+                        <button 
+                          class="btn btn-sm btn-danger delete-btn"
+                          data-id="<%= coupon._id %>" 
+                          data-code="<%= coupon.code %>">
+                          <i class="bi bi-trash"></i> Delete
+                        </button>
+                      </td>
+                    </tr>
+                  <% }) %>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
+
+      <!-- Pagination & Info -->
+      <% if (totalPages > 1) { %>
+        <div class="row mt-4 align-items-center">
+          <div class="col-md-6">
+            <p class="mb-0 text-muted">
+              Showing <strong><%= (currentPage - 1) * limit + 1 %></strong> to 
+              <strong><%= Math.min(currentPage * limit, totalCoupons) %></strong> of 
+              <strong><%= totalCoupons %></strong> coupons
+            </p>
+          </div>
+          <div class="col-md-6">
+            <nav aria-label="Page navigation">
+              <ul class="pagination justify-content-end mb-0">
+                <!-- Previous -->
+                <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                  <a class="page-link" href="?page=<%= currentPage - 1 %>&limit=<%= limit %>">Previous</a>
+                </li>
+
+                <% 
+                  let startPage = Math.max(1, currentPage - 2);
+                  let endPage = Math.min(totalPages, currentPage + 2);
+                  if (endPage - startPage + 1 < 5) {
+                    if (currentPage <= 3) endPage = Math.min(totalPages, 5);
+                    else startPage = Math.max(1, totalPages - 4);
+                  }
+                %>
+
+                <% if (startPage > 1) { %>
+                  <li class="page-item"><a class="page-link" href="?page=1&limit=<%= limit %>">1</a></li>
+                  <% if (startPage > 2) { %><li class="page-item disabled"><span class="page-link">...</span></li><% } %>
+                <% } %>
+
+                <% for (let i = startPage; i <= endPage; i++) { %>
+                  <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                    <a class="page-link" href="?page=<%= i %>&limit=<%= limit %>"><%= i %></a>
+                  </li>
+                <% } %>
+
+                <% if (endPage < totalPages) { %>
+                  <% if (endPage < totalPages - 1) { %><li class="page-item disabled"><span class="page-link">...</span></li><% } %>
+                  <li class="page-item"><a class="page-link" href="?page=<%= totalPages %>&limit=<%= limit %>"><%= totalPages %></a></li>
+                <% } %>
+
+                <!-- Next -->
+                <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                  <a class="page-link" href="?page=<%= currentPage + 1 %>&limit=<%= limit %>">Next</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      <% } %>
+
     </div>
+  </div>
   </div>
 </div>
 
 <!-- Add Coupon Modal -->
 <div class="modal fade" id="addCouponModal" tabindex="-1" aria-labelledby="addCouponModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <form id="addCouponForm" action="/admin/coupons/add" method="POST" class="modal-content">
+    <form id="addCouponForm" action="/admin/coupons/add" method="POST" class="modal-content rounded-3 shadow">
       <div class="modal-header bg-dark text-white">
         <h5 class="modal-title" id="addCouponModalLabel">
-          <i class="bi bi-plus-circle"></i> Add New Coupon
+          <i class="bi bi-plus-circle me-2"></i> Add New Coupon
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body bg-light">
         <div class="mb-3">
-          <label for="couponCode" class="form-label">Coupon Code</label>
-          <input type="text" id="couponCode" name="code" class="form-control" value="<%= generatedCode %>" readonly>
-          <small class="text-muted">This code is automatically generated.</small>
+          <label class="form-label fw-bold">Coupon Code</label>
+          <input type="text" name="code" class="form-control" value="<%= generatedCode || '' %>" readonly>
+          <small class="text-muted">Auto-generated unique code</small>
         </div>
         <div class="mb-3">
-          <label for="couponDiscount" class="form-label">Discount (%)</label>
-          <input type="number" id="couponDiscount" name="discount" class="form-control" min="1" max="100"  >
+          <label class="form-label fw-bold">Discount (%)</label>
+          <input type="number" name="discount" class="form-control" min="1" max="100" required>
         </div>
         <div class="mb-3">
-          <label for="validFrom" class="form-label">Valid From</label>
-          <input type="date" id="validFrom" name="validFrom" class="form-control"  >
+          <label class="form-label fw-bold">Valid From</label>
+          <input type="date" name="validFrom" class="form-control" required>
         </div>
         <div class="mb-3">
-          <label for="validUntil" class="form-label">Valid Until</label>
-          <input type="date" id="validUntil" name="validUntil" class="form-control"  >
+          <label class="form-label fw-bold">Valid Until</label>
+          <input type="date" name="validUntil" class="form-control" required>
         </div>
         <div class="mb-3">
-          <label for="minPurchase" class="form-label">Minimum Purchase (₹)</label>
-          <input type="number" id="minPurchase" name="minPurchase" class="form-control" min="0"  >
+          <label class="form-label fw-bold">Minimum Purchase (₹)</label>
+          <input type="number" name="minimumPurchase" class="form-control" min="0" value="0" required>
         </div>
       </div>
       <div class="modal-footer bg-light">
@@ -118,34 +184,34 @@
 <!-- Edit Coupon Modal -->
 <div class="modal fade" id="editCouponModal" tabindex="-1" aria-labelledby="editCouponModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <form id="editCouponForm" class="modal-content">
+    <form id="editCouponForm" class="modal-content rounded-3 shadow">
       <div class="modal-header bg-dark text-white">
         <h5 class="modal-title" id="editCouponModalLabel">
-          <i class="bi bi-pencil-square"></i> Edit Coupon
+          <i class="bi bi-pencil-square me-2"></i> Edit Coupon
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body bg-light">
         <input type="hidden" id="editCouponId" name="id">
         <div class="mb-3">
-          <label for="editCouponCode" class="form-label">Coupon Code</label>
+          <label class="form-label fw-bold">Coupon Code</label>
           <input type="text" id="editCouponCode" name="code" class="form-control" readonly>
         </div>
         <div class="mb-3">
-          <label for="editCouponDiscount" class="form-label">Discount (%)</label>
-          <input type="number" id="editCouponDiscount" name="discount" class="form-control" min="1" max="100"  >
+          <label class="form-label fw-bold">Discount (%)</label>
+          <input type="number" id="editCouponDiscount" name="discount" class="form-control" min="1" max="100" required>
         </div>
         <div class="mb-3">
-          <label for="editValidFrom" class="form-label">Valid From</label>
-          <input type="date" id="editValidFrom" name="validFrom" class="form-control"  >
+          <label class="form-label fw-bold">Valid From</label>
+          <input type="date" id="editValidFrom" name="validFrom" class="form-control" required>
         </div>
         <div class="mb-3">
-          <label for="editValidUntil" class="form-label">Valid Until</label>
-          <input type="date" id="editValidUntil" name="validUntil" class="form-control"  >
+          <label class="form-label fw-bold">Valid Until</label>
+          <input type="date" id="editValidUntil" name="validUntil" class="form-control" required>
         </div>
         <div class="mb-3">
-          <label for="editMinPurchase" class="form-label">Minimum Purchase (₹)</label>
-          <input type="number" id="editMinPurchase" name="minPurchase" class="form-control" min="0"  >
+          <label class="form-label fw-bold">Minimum Purchase (₹)</label>
+          <input type="number" id="editMinPurchase" name="minPurchase" class="form-control" min="0" required>
         </div>
       </div>
       <div class="modal-footer bg-light">
@@ -156,99 +222,94 @@
   </div>
 </div>
 
-<!-- Include SweetAlert2 & Axios -->
+<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 <script>
+  // Preserve current page & limit after actions
+  const urlParams = new URLSearchParams(window.location.search);
+  const currentPage = urlParams.get('page') || 1;
+  const currentLimit = urlParams.get('limit') || 10;
+
+  function reloadPage() {
+    window.location.href = `${window.location.pathname}?page=${currentPage}&limit=${currentLimit}`;
+  }
+
   // Add Coupon
   document.getElementById('addCouponForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.target));
 
     try {
-      const response = await axios.post('/admin/coupons/add', data);
-      if (response.data.success) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Coupon Added!',
-          text: response.data.message || 'New coupon has been added successfully.',
-          timer: 1500,
-          showConfirmButton: false
-        }).then(() => window.location.reload());
+      const res = await axios.post('/admin/coupons/add', data);
+      if (res.data.success) {
+        Swal.fire('Success!', res.data.message || 'Coupon added successfully.', 'success')
+          .then(() => reloadPage());
       } else {
-        Swal.fire({ icon: 'error', title: 'Error', text: response.data.message || 'Failed to add coupon.' });
+        Swal.fire('Error', res.data.message || 'Failed to add coupon.', 'error');
       }
-    } catch (error) {
-      Swal.fire({ icon: 'error', title: 'Server Error', text: error.response?.data?.message || 'Something went wrong while adding the coupon.' });
+    } catch (err) {
+      Swal.fire('Error', err.response?.data?.message || 'Something went wrong.', 'error');
     }
   });
 
   // Delete Coupon
-  document.querySelectorAll('.delete-btn').forEach(button => {
-    button.addEventListener('click', async () => {
-      const couponId = button.dataset.id;
-      const couponCode = button.dataset.code;
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      const code = btn.dataset.code;
 
-      const confirmed = await Swal.fire({
-        title: `Delete Coupon "${couponCode}"?`,
-        text: "This action cannot be undone!",
+      const { isConfirmed } = await Swal.fire({
+        title: `Delete "${code}"?`,
+        text: "This cannot be undone!",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
         confirmButtonText: 'Yes, delete it!'
       });
 
-      if (confirmed.isConfirmed) {
+      if (isConfirmed) {
         try {
-          const res = await axios.post(`/admin/coupons/delete/${couponId}`);
+          const res = await axios.post(`/admin/coupons/delete/${id}`);
           if (res.data.success) {
-            Swal.fire({ icon: 'success', title: 'Deleted!', text: res.data.message || 'Coupon deleted successfully.', timer: 1200, showConfirmButton: false })
-            .then(() => window.location.reload());
-          } else {
-            Swal.fire({ icon: 'error', title: 'Failed!', text: res.data.message || 'Could not delete coupon.' });
+            Swal.fire('Deleted!', res.data.message || 'Coupon removed.', 'success')
+              .then(() => reloadPage());
           }
         } catch (err) {
-          Swal.fire({ icon: 'error', title: 'Error!', text: err.response?.data?.message || 'Server error while deleting coupon.' });
+          Swal.fire('Error', err.response?.data?.message || 'Delete failed.', 'error');
         }
       }
     });
   });
 
-  // Populate Edit Coupon Modal
-  const editModal = document.getElementById('editCouponModal');
-  editModal.addEventListener('show.bs.modal', event => {
-    const button = event.relatedTarget;
-    document.getElementById('editCouponId').value = button.dataset.id;
-    document.getElementById('editCouponCode').value = button.dataset.code;
-    document.getElementById('editCouponDiscount').value = button.dataset.discount;
-    document.getElementById('editValidFrom').value = button.dataset.validfrom;
-    document.getElementById('editValidUntil').value = button.dataset.validuntil;
-    document.getElementById('editMinPurchase').value = button.dataset.minpurchase;
+  // Edit Modal Populate
+  document.getElementById('editCouponModal').addEventListener('show.bs.modal', e => {
+    const btn = e.relatedTarget;
+    document.getElementById('editCouponId').value = btn.dataset.id;
+    document.getElementById('editCouponCode').value = btn.dataset.code;
+    document.getElementById('editCouponDiscount').value = btn.dataset.discount;
+    document.getElementById('editValidFrom').value = btn.dataset.validfrom;
+    document.getElementById('editValidUntil').value = btn.dataset.validuntil;
+    document.getElementById('editMinPurchase').value = btn.dataset.minpurchase;
   });
 
-  // Edit Coupon Submission
+  // Edit Submit
   document.getElementById('editCouponForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.target));
-    const couponId = data.id;
+    const id = data.id;
 
     try {
-      const res = await axios.post(`/admin/coupons/edit/${couponId}`, data);
+      const res = await axios.post(`/admin/coupons/edit/${id}`, data);
       if (res.data.success) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Updated!',
-          text: res.data.message || 'Coupon updated successfully.',
-          timer: 1500,
-          showConfirmButton: false
-        }).then(() => window.location.reload());
+        Swal.fire('Updated!', res.data.message || 'Coupon updated.', 'success')
+          .then(() => reloadPage());
       } else {
-        Swal.fire({ icon: 'error', title: 'Failed!', text: res.data.message || 'Could not update coupon.' });
+        Swal.fire('Failed', res.data.message || 'Update failed.', 'error');
       }
     } catch (err) {
-      Swal.fire({ icon: 'error', title: 'Error!', text: err.response?.data?.message || 'Server error while updating coupon.' });
+      Swal.fire('Error', err.response?.data?.message || 'Something went wrong.', 'error');
     }
   });
 </script>

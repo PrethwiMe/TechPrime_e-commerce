@@ -434,7 +434,7 @@ exports.viewOffer = async (req, res) => {
     let limit = 5
     const { skip, totalPages } = paginate({ totalDocs, page, limit });
     const paginatedOffers = offer.slice(skip, skip + limit)
-console.log("skip",skip)
+    //
     res.render("admin-pages/offers.ejs", {
       offer: paginatedOffers || [],
       categories,
@@ -505,6 +505,7 @@ exports.disableOffer = async (req, res) => {
   res.status(400).json({ success: false, message: "error in delete" })
 }
 exports.couponPage = async (req, res) => {
+
   const generateCouponCode = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code = '';
@@ -513,11 +514,21 @@ exports.couponPage = async (req, res) => {
     }
     return code;
   };
-
-  let result = await adminModel.viewCouponPage();
+ let result = await adminModel.viewCouponPage();
+ //pagination
+ let limit = 5
+ let page = parseInt(req.query.page) || 1;
+ console.log("page",page)
+  let totalCoupons = result.length
+  let {skip,totalPages} = paginate({totalDocs:totalCoupons,page,limit})
+result = result.splice(skip,skip+limit)
   res.render('admin-pages/coupons.ejs', {
     coupons: result || [],
-    generatedCode: generateCouponCode()
+    generatedCode: generateCouponCode(),
+    currentPage:page || null,
+    totalCoupons:totalCoupons||null,
+    totalPages:totalPages||null,
+    limit
   });
 };
 exports.addCoupon = async (req, res) => {

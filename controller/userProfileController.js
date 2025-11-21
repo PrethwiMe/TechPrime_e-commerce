@@ -313,7 +313,6 @@ exports.checkoutView = async (req, res) => {
 //add to order
 
 exports.addToOrder = async (req, res) => {
-  console.log("request body:", req.body);
   try {
     const { paymentMethod, selectedAddress, couponCode, items } = req.body;
     const userId = req.session.user?.userId;
