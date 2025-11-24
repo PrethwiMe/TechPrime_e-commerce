@@ -387,7 +387,8 @@ exports.addToOrder = async (req, res) => {
     }
 
     await userProfileModel.deleteCart(userId);
-
+    //disable coupons
+    let disableCoupon = await userProfileModel.disableCoupon(couponCode)
     for (const item of orderItems) {
       await productModel.updateStockAfterOrder(item.variantId, item.quantity);
     }
@@ -762,10 +763,6 @@ exports.couponLogic = async (req, res) => {
     const total = newSubtotal + deliveryCharge;
     //prevent multiple clicks
 countOfCoupon = 1
-
-    //disable coupons
-    let disableCoupon = await userProfileModel.disableCoupon(code)
-
     const updatedItems = items.map((item) => {
       const discountedPrice =
         coupon.discountType === "percentage"

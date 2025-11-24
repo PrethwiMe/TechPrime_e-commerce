@@ -342,10 +342,13 @@ const offerValidation = (data) => {
 
     offerValue: Joi.number()
       .min(1)
+      .max(10000)
       .required()
       .messages({
         "number.base": "Offer value must be a number",
         "number.min": "Offer value must be at least 1",
+        "number.max": "Offer value maximum is 10000",
+
         "any.required": "Offer value is required"
       }),
 
@@ -581,7 +584,7 @@ const addVariantsValidation = (data) => {
       .required()
       .messages({
         "string.max": "Display description too long",
-        "String.required":"Display can not be empty"
+        "String.required": "Display can not be empty"
       }),
 
     price: Joi.number()

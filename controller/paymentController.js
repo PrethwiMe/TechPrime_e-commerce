@@ -51,7 +51,6 @@ exports.razorpaySetup = async (req, res) => {
       amount, currency, receipt: `receipt_${Date.now()}`, notes: { userId }
     });
     
-    console.log("razorPay is bugggggggggggggggggggggggg")
     const orderData = {
       orderId: `ORD${Math.floor(10000000 + Math.random() * 90000000)}`,
       userId,
@@ -74,7 +73,10 @@ exports.razorpaySetup = async (req, res) => {
     };
 
     await userProfileModel.addNewOrder(userId, orderData);
-    await userProfileModel.deleteCart(userId);
+    await userProfileModel.deleteCart(userId);   
+     //disable coupons
+    let disableCoupon = await userProfileModel.disableCoupon(couponCode)
+
 
     res.status(200).json({
       id: razorpayOrder.id,

@@ -542,7 +542,6 @@ exports.viewCart = async (req, res) => {
       });
     }
 
-    // Save initial cart structure early
     req.session.cart = { userId, items: data.items };
 
     // OFFER LOGIC START

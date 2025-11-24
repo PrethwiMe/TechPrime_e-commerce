@@ -462,9 +462,9 @@ exports.addOffers = async (req, res) => {
 
   if (error) {
     console.log("Validation Errors:", error.details);
-    return res.status(400).json({
-      success: false,
-      errors: error.details.map(d => d.message)
+    return res.status(Status.BAD_REQUEST).json({
+      success: Message.FORBIDDEN,
+      errors:  error.details[0].message
     });
   }
 
@@ -479,9 +479,9 @@ exports.addOffers = async (req, res) => {
     }
 
     if (response.inserted) {
-      return res.status(201).json({
-        success: true,
-        message: "Offer added successfully"
+      return res.status(Status.CREATED).json({
+        success: Status.CREATED,
+        message: Message.CREATED
       });
     }
     return res.status(500).json({

@@ -138,10 +138,9 @@
         </div>
       </div>
 
-      <!-- Pagination - FULLY FIXED -->
+      <!-- Pagination -->
       <nav class="mt-4">
         <ul class="pagination justify-content-center">
-          <!-- Previous -->
           <% if (page > 1) { %>
             <li class="page-item">
               <a class="page-link" href="/admin/offers/<%= page - 1 %>">Previous</a>
@@ -150,14 +149,12 @@
             <li class="page-item disabled"><a class="page-link">Previous</a></li>
           <% } %>
 
-          <!-- Page Numbers -->
           <% for (let i = 1; i <= totalPages; i++) { %>
             <li class="page-item <%= i === page ? 'active' : '' %>">
               <a class="page-link" href="/admin/offers/<%= i %>"><%= i %></a>
             </li>
           <% } %>
 
-          <!-- Next -->
           <% if (page < totalPages) { %>
             <li class="page-item">
               <a class="page-link" href="/admin/offers/<%= page + 1 %>">Next</a>
@@ -205,17 +202,17 @@
 
         <div class="mb-3">
           <label class="form-label fw-bold">Offer Value (₹)</label>
-          <input type="number" id="offerValueAdd" class="form-control" min="1" required />
+          <input type="number" id="offerValueAdd" class="form-control" min="1"  />
         </div>
 
         <div class="mb-3">
           <label class="form-label fw-bold">Start Date</label>
-          <input type="date" id="startDateAdd" class="form-control" required />
+          <input type="date" id="startDateAdd" class="form-control"  />
         </div>
 
         <div class="mb-3">
           <label class="form-label fw-bold">End Date</label>
-          <input type="date" id="endDateAdd" class="form-control" required />
+          <input type="date" id="endDateAdd" class="form-control"  />
         </div>
       </div>
       <div class="modal-footer bg-light">
@@ -240,7 +237,7 @@
   }
   document.addEventListener('DOMContentLoaded', toggleTarget);
 
-  // Add New Offer
+  // Add New Offer - Show Backend Message
   document.getElementById('addOfferForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -251,24 +248,47 @@
     const startDate = document.getElementById('startDateAdd').value;
     const endDate = document.getElementById('endDateAdd').value;
 
-    if (!offerValue || !startDate || !endDate) return Swal.fire('Error', 'All fields required', 'error');
-    if (appliesTo === 'product' && !productId) return Swal.fire('Error', 'Select a product', 'error');
-    if (appliesTo === 'category' && !categoryId) return Swal.fire('Error', 'Select a category', 'error');
-    if (new Date(startDate) >= new Date(endDate)) return Swal.fire('Error', 'End date must be after start date', 'error');
+    if (!offerValue || !startDate || !endDate) {
+      return Swal.fire('Error', 'All fields are required', 'error');
+    }
+    if (appliesTo === 'product' && !productId) {
+      return Swal.fire('Error', 'Please select a product', 'error');
+    }
+    if (appliesTo === 'category' && !categoryId) {
+      return Swal.fire('Error', 'Please select a category', 'error');
+    }
+    if (new Date(startDate) >= new Date(endDate)) {
+      return Swal.fire('Error', 'End date must be after start date', 'error');
+    }
 
     const payload = { appliesTo, offerValue, startDate, endDate };
     if (appliesTo === 'product') payload.productId = productId;
     if (appliesTo === 'category') payload.categoryId = categoryId;
 
     try {
-      await axios.post('/admin/offers/add', payload);
-      Swal.fire('Success!', 'Offer added', 'success').then(() => location.reload());
+      const response = await axios.post('/admin/offers/add', payload);
+      
+      // Success - Show backend message
+      Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: response.data.message || 'Offer added successfully!',
+      }).then(() => location.reload());
+
     } catch (err) {
-      Swal.fire('Error', err.response?.data?.message || 'Failed to add offer', 'error');
+      const errorMsg = err.response?.data?.message || 
+                      err.response?.data?.errors || 
+                      'Failed to add offer. Please try again.';
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: errorMsg
+      });
     }
   });
 
-  // Soft Delete - Disable Offer (Matches your PUT /admin/offers/:offerId route)
+  // Disable Offer - Show Backend Message
   document.querySelectorAll('.delete-btn').forEach(btn => {
     btn.addEventListener('click', async function () {
       const offerId = this.getAttribute('data-id');
@@ -286,9 +306,16 @@
       if (result.isConfirmed) {
         try {
           const res = await axios.put(`/admin/offers/${offerId}`, { Active: false });
-          Swal.fire('Disabled!', res.data.message || 'Offer disabled', 'success').then(() => location.reload());
+          
+          Swal.fire({
+            icon: 'success',
+            title: 'Disabled!',
+            text: res.data.message || 'Offer has been disabled successfully.'
+          }).then(() => location.reload());
+
         } catch (err) {
-          Swal.fire('Error', err.response?.data?.message || 'Failed to disable', 'error');
+          const errorMsg = err.response?.data?.message || 'Failed to disable offer';
+          Swal.fire('Error', errorMsg, 'error');
         }
       }
     });
