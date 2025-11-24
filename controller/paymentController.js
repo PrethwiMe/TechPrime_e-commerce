@@ -46,7 +46,6 @@ exports.razorpaySetup = async (req, res) => {
       };
     });
 
-    console.log(amount,currency)
     const razorpayOrder = await req.app.locals.razorpay.orders.create({
       amount, currency, receipt: `receipt_${Date.now()}`, notes: { userId }
     });

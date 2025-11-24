@@ -129,7 +129,6 @@ exports.viewUserEditpage = async (req, res) => {
 
   let data = await userModel.fetchUser(email)
 
-  console.log(data);
   res.render('user-pages/editUserData.ejs', {
     user: data || null,
     image: data || null
@@ -161,7 +160,6 @@ exports.emailVerificetion = async (req, res) => {
 }
 //verify the mail
 exports.verifyEmailOtp = async (req, res) => {
-  console.log(req.body);
   const { email, otp, id } = req.body;
   let response = await userModel.userDataEmailVerification(id);
 
@@ -279,11 +277,6 @@ exports.checkoutView = async (req, res) => {
     });
 
     const netSubtotal = subtotal - totalDiscount;
-
-    console.log("netSubtotal", netSubtotal)
-    console.log("subtotal", subtotal)
-    console.log("totalDiscount", totalDiscount)
-
 
     let deliveryCharge = netSubtotal > 100000 ? 0 : 100;
 
@@ -445,10 +438,8 @@ exports.eachOrderData = async (req, res) => {
 }
 //return status page
 exports.returnStatus = async (req, res) => {
-  console.log("params", req.params);
   const userId = req.session.user.userId;
   const orderId = req.params.orderId;
-  console.log("userId", userId, " orderId", orderId);
   let data = await userProfileModel.returnStatusData(userId, orderId);
   res.render('user-pages/return-status.ejs', { returnData: data || null });
 }
@@ -658,7 +649,6 @@ exports.invoice = async (req, res) => {
     doc.end();
 
     stream.on("finish", () => {
-      console.log("Invoice saved:", invoicePath);
     });
   } catch (error) {
     console.error("Invoice error:", error);
@@ -668,7 +658,6 @@ exports.invoice = async (req, res) => {
 //cancel order
 exports.cancelOrder = async (req, res) => {
   try {
-    console.log("Cancel order body:", req.body);
 
     const result = await cancelOrderUtils(req);
 
@@ -695,7 +684,6 @@ exports.cancelOrder = async (req, res) => {
 
 //return order
 exports.returnOrder = async (req, res) => {
-  console.log(req.body);
   let data = await userProfileModel.returnData(req.body)
   // update change all products to pending state
 
@@ -862,7 +850,6 @@ exports.genarateReferralCode = async (req, res) => {
     code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   let userId = req.session.user.userId
-  console.log("Referral code generated:", code);
   const updateResult = await userProfileModel.updateReferralInDb(code, userId);
 
   res.json({ success: true, referralCode: code, dbUpdate: updateResult });
@@ -870,7 +857,6 @@ exports.genarateReferralCode = async (req, res) => {
 
 exports.couponPage = async (req,res) => {
   let data = await userProfileModel.getCoupon()
-  console.log(data)
    res.render('user-pages/coupons.ejs',{coupons : data})
 }
 

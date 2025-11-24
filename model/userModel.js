@@ -27,8 +27,7 @@ exports.updateRefferal = async (code) =>{
 
   let checkCode = await collectionIs.findOne({code:code});
    let user = checkCode.userId
-   console.log("useridddddddd",user)
-   console.log("checkCode",checkCode)
+ 
    let updatReferal = await collectionIs.updateOne({code:code},{$inc:{count:+1,totalEarnings:100}})
    //updat wallet
    let walletcheck = await walletCol.findOne({userId:user})
@@ -36,7 +35,6 @@ exports.updateRefferal = async (code) =>{
      let wallet = await walletCol.updateOne({userId:user},{$inc:{walletAmount:100}})
     }else{
       let wallet = await walletCol.insertOne({userId:user,walletAmount:100,updatedDate:new Date(),refundHistory: [],walletHistory: []})
-      console.log("wallert",wallet)
    }
   return
 }
@@ -54,7 +52,6 @@ exports.fetchUser = async (email) => {
 exports.userCheck = async (query) =>{
   try {
     const db = getDB();
-    console.log(query);
     let data = await db.collection(dbVariables.userCollection).findOne(query);
     return data;
   } catch (error) {
@@ -105,7 +102,6 @@ exports.addToCartdb = async (userId, productId, variantId, productName) => {
     );
 
     if (existingItem) {
-      console.log("itemExists true, quantity:", existingItem.quantity, "stock:", stock);
 
       if (existingItem.quantity < stock) {
         // increase quantity by 1
@@ -409,7 +405,6 @@ exports.updateOfferInCart = async (userId, productId, offerdata) => {
 
     return update;
   } catch (error) {
-    console.log("Error in updateOfferInCart:", error);
   }
 };
 exports.deleteWishListProduct = async (userId,productId) => {
@@ -427,7 +422,6 @@ exports.deletefromWishlist = async (userId,productId) => {
   }
 }
 exports.couponOffer = async (id) => {
-console.log("code is",id)
   const db = await getDB()
   const data = await db.collection(dbVariables.couponCollection).findOne({code:id})
   return data

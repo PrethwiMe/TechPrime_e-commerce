@@ -28,7 +28,6 @@ exports.loginfunction = async (req, res) => {
 
     const { email, password } = req.body;
     let data = await adminModel.adminLogin(email)
-    console.log(data);
 
     if (!data) {
       return res.render('admin-pages/login', { error: "You are Not authorised....!!" })
@@ -46,7 +45,6 @@ exports.loginfunction = async (req, res) => {
           name: data.firstName,
           email: data.email
         }
-        console.log("sessiondata", req.session.admin);
         return res.redirect("/admin/dashboard");
       }
 
@@ -241,7 +239,6 @@ exports.dashBoardHandle = async (req, res) => {
 exports.handleLogout = function (req, res) {
   req.session.destroy((err) => {
     if (err) {
-      console.log('Session destroy error:', err);
       return res.status(500).send('Could not log out');
     }
     res.clearCookie('connect.sid');
@@ -286,8 +283,6 @@ exports.displayUsers = async (req, res) => {
 exports.controleUser = async (req, res) => {
 
   const userId = req.params.id
-  console.log(userId);
-
   let userData = await adminModel.userControll(userId)
   res.redirect('/admin/users')
 }
@@ -297,9 +292,7 @@ exports.orderPage = async (req, res) => {
     const data = await adminModel.viewOrders();
     let orderData = data.ordersWithDetails
     const filter = req.query.search || '';
-    console.log("filter value:", req.query.search);
     if (filter) {
-      console.log("Applying filter:", filter);
       orderData = orderData.filter(order => {
         return order.orderId == filter
       });
@@ -461,7 +454,7 @@ exports.addOffers = async (req, res) => {
   const { error, value } = offerValidation(req.body);
 
   if (error) {
-    console.log("Validation Errors:", error.details);
+    ("Validation Errors:", error.details);
     return res.status(Status.BAD_REQUEST).json({
       success: Message.FORBIDDEN,
       errors:  error.details[0].message
@@ -518,7 +511,6 @@ exports.couponPage = async (req, res) => {
  //pagination
  let limit = 5
  let page = parseInt(req.query.page) || 1;
- console.log("page",page)
   let totalCoupons = result.length
   let {skip,totalPages} = paginate({totalDocs:totalCoupons,page,limit})
 result = result.splice(skip,skip+limit)
@@ -535,8 +527,7 @@ exports.addCoupon = async (req, res) => {
   try {
     const { error, value } = couponValidation(req.body);
     if (error) {
-      console.log("req.body", req.body);
-      console.log("errror", error);
+     
       return res.status(400).json({ success: false, message: error.details[0].message });
     }
     let { code, discount, validFrom, validUntil, minPurchase } = req.body;
@@ -574,9 +565,7 @@ exports.addCoupon = async (req, res) => {
 };
 exports.deleteCoupon = async (req, res) => {
   const couponId = req.params.couponId;
-  console.log("Coupon ID to delete:", couponId);
   let response = await adminModel.deleteCoupon(couponId);
-  console.log("Delete response:", response);
   if (response && response.modifiedCount > 0) {
     return res.status(200).json({ success: true, message: "Coupon removed successfully" })
   }
@@ -631,7 +620,6 @@ exports.returnHistoryPage = async (req, res) => {
 exports.salesReportPage = async (req, res) => {
   try {
     const filter = req.query.filter;
-    console.log("Sales Report Filter:", filter);
 
     const now = new Date();
     let startDate, endDate;
@@ -666,7 +654,6 @@ exports.salesReportPage = async (req, res) => {
     // Orders count
     const ordersData = await adminModel.viewOrders();
     const orders = ordersData.ordersWithDetails.length;
-    console.log("total orders in sales report page", orders);
 
     // Sales data
     const salesData = await adminModel.salesReportData();
@@ -679,9 +666,7 @@ exports.salesReportPage = async (req, res) => {
       });
     }
 
-    console.log("Start Date:", startDate);
-    console.log("End Date:", endDate);
-    console.log("datas is : ", salesData.length)
+  
     res.render('admin-pages/salesReport.ejs', {
       sales: filteredSales || [],
       search: req.query.search || '',
@@ -694,7 +679,6 @@ exports.salesReportPage = async (req, res) => {
 };
 exports.generateSalesReportPDF = async (req, res) => {
   try {
-    console.log("PDF generation requested:", req.body);
 
     const { data = [], filter, start, end } = req.body;
     const companyName = "TechPrime";
@@ -864,7 +848,6 @@ exports.generateSalesReportPDF = async (req, res) => {
 };
 exports.generateSalesReport = async (req, res) => {
   try {
-    console.log("Generating sales report...", req.body);
 
     const { data = [], filter, start, end } = req.body;
     const companyName = "TechPrime";

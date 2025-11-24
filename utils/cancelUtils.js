@@ -30,7 +30,6 @@ exports.cancelOrderUtils = async (req) => {
       }
     );
 
-    console.log(`Cancelled variant ${variantId} in order ${orderId}`);
 
     if (paymentMethod !== "cod") {
       const orderData = await orderCollection.findOne(

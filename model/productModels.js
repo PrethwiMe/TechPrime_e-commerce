@@ -80,7 +80,6 @@ exports.countInCart = async (userId)=> {
 
   const db = await getDB();
   const cartCount = await db.collection(dbVariables.cartCollection).findOne({userId:userId})
-  console.log("cartdata",JSON.stringify(cartCount,null,2))
 
 }
 // all products with pagination
@@ -325,7 +324,6 @@ exports.changeItemStatus = async (userId,orderId,status,variantId) => {
   let changeStatus = await db.collection(dbVariables.orderCollection);
 
   let test = await changeStatus.findOne({userId:userId,orderId: orderId });
-  console.log("Test Status:", test);
   let changed = await changeStatus.updateOne(
     { userId:userId,orderId: orderId, "items.variantId": variantId },
     { $set: { "items.$.itemStatus": status } }

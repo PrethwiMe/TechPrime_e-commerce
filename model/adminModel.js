@@ -58,23 +58,19 @@ exports.userControll = async (id) => {
 
 
     if (user.isActive === true) {
-      console.log("true");
 
       // Disable the user
       let result = await db.collection(dbVariables.userCollection).updateOne(
         { _id: new ObjectId(id) },
         { $set: { isActive: "blocked" } }
       );
-      console.log(result);
       return true
     } else if (user.isActive === "blocked") {
       // Enable the user
-      console.log("false");
       let result = await db.collection(dbVariables.userCollection).updateOne(
         { _id: new ObjectId(id) },
         { $set: { isActive: true } }
       );
-      console.log(result);
     }
 
 
@@ -95,7 +91,6 @@ const orderData = await db.collection(dbVariables.orderCollection).find({$or: [{
   .sort({ createdAt: -1 }).toArray();
 
     if (!orderData) throw new Error('No orders found or query failed');
-console.log("leeength", orderData.length)
     const ordersWithDetails = await Promise.all(orderData.map(async (order) => {
       const userId = order.userId; 
 
@@ -236,7 +231,6 @@ exports.getEachOrder = async (id) => {
 
 // update order status
 exports.updateOrderStatus = async (orderId, st) => {
-  console.log("updateOrderStatus",st)
     try {
         const db = await getDB();
 
@@ -244,7 +238,6 @@ exports.updateOrderStatus = async (orderId, st) => {
             { _id: new ObjectId(orderId) },
             { $set: { status:st } }
         );
-  console.log("updateOrderStatus  result",result)
 
         return result;
     } catch (err) {
@@ -253,7 +246,6 @@ exports.updateOrderStatus = async (orderId, st) => {
 };
 //accept order
 exports.returnAccept = async (id,st) => {
-  console.log("returnAccept",id,"  ",st);
   const db = await getDB();
   const update = await db.collection(dbVariables.orderCollection)
   .updateOne({_id: new ObjectId(id)},{$set:{returnOrder:st}})
@@ -263,7 +255,6 @@ exports.returnAccept = async (id,st) => {
 //upadate item status
 exports.updateItemStatus = async (params) => {
   try {
-    console.log("step 1")
     let { orderId, variantId, itemStatus } = params;
     const db = await getDB();
     let result = await db.collection(dbVariables.orderCollection).updateOne(
@@ -278,27 +269,20 @@ exports.updateItemStatus = async (params) => {
       }
     );
 
-    console.log("step 2")
 
     if (result.modifiedCount === 0) {
       console.warn(" No item was updated. Check orderId/variantId match.");
     }
-    console.log("step 3")
     const order = await db.collection(dbVariables.orderCollection).findOne({_id:new ObjectId(orderId)});
-    console.log("orderId",orderId)
 
-console.log("order",order)
     if (!order) {
       return { success: false, message: "Order not found" };
     }
-    console.log("step 4")
 
     let allStatuses = order.items.map((item) => item.itemStatus || "Pending");
 
-    console.log("All item statuses:", allStatuses);
 
     let newOrderStatus = "Pending";
-    console.log("step 5")
 
     if (allStatuses.every((s) => s === "Delivered")) {
       newOrderStatus = "Delivered";
@@ -309,9 +293,6 @@ console.log("order",order)
     } else {
       newOrderStatus = "Partially Fulfilled"; 
     }
-        console.log("step 6")
-
-console.log("stsUpdate",newOrderStatus)
     await db.collection(dbVariables.orderCollection).updateOne(
       { _id: new ObjectId(orderId) },
       { $set: { status: newOrderStatus } }
@@ -423,7 +404,6 @@ exports.checkOffers = async (query) => {
 };
 exports.deleteCoupon = async (couponId) => {
 const db = await getDB();
-console.log(couponId);
 const response = await db.collection(dbVariables.couponCollection).updateOne({_id: new ObjectId(couponId)},{$set:{isActive:false}})
 return response;
 
@@ -444,7 +424,6 @@ exports.editCoupon = async (couponId, data) => {
   return response;
 }
 exports.updateItemsStatus = async (orderId, status) => {
-  console.log("all items data changed:", orderId, status);
   const db = await getDB();
   const result = await db.collection(dbVariables.orderCollection).updateMany(
     { _id: new ObjectId(orderId) },

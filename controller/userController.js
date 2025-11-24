@@ -56,7 +56,6 @@ exports.loginAccess = async (req, res) => {
     if (user.googleId ) {
       return res.status(400).json({ error: 'Please log in using Google Acount...' });
     }
-    console.log("Login attempt for user:", user);  
     if (!user) {
       return res.status(404).json({ error: 'User not found.' });
     }
@@ -114,7 +113,6 @@ exports.handleSignup = async (req, res) => {
       email:email
     }
     const existingUser = await userModel.userCheck(data);
-    console.log(existingUser);
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -146,7 +144,6 @@ exports.handleSignup = async (req, res) => {
 
     if (referralCode) {
       let referr = await userModel.updateRefferal(referralCode)
-      console.log("referral Applied")
     }
 
 
@@ -197,7 +194,6 @@ exports.verifyUserOtp = async (req, res) => {
   //otp from db
   let result = await userModel.userVerify(email)
 
-  console.log("user enterd", otp);
   let numOtp = parseInt(otp)
 
   if (result.otp == numOtp) {
@@ -220,7 +216,6 @@ exports.emailOfUser = async (req, res) => {
   let user = await userModel.fetchUser(req.body.email);
   if (!user) return res.render('user-pages/forgot_page.ejs', { error: "E-mail is not Found" })
   const otp = Math.floor(100000 + Math.random() * 900000);
-  console.log(otp);
   let data = await userModel.resendotpData(user.email, otp)
   let d = await sendMail(user.email, otp, "forgot")
   res.render('user-pages/otpForgot', { email: user.email, err: null })
@@ -251,7 +246,6 @@ exports.verifyForgotOtp = async (req, res) => {
     }
 
     let result = await userModel.userVerify(email)
-    console.log("user enterd", otp);
     let numOtp = parseInt(otp)
     if (!otp) {
       return res.render('user-pages/otpForgot', {
@@ -367,7 +361,6 @@ exports.googleSuccessRedirect = async (req, res) => {
   role: req.user.role,
 };
 
-     console.log('User session set:', req.session.user)
   const data = await productModel.allProductsDisplay();
   const products = data;
   const categories = await productModel.getAllCategories();
@@ -421,7 +414,7 @@ exports.sortAndSearchProducts = async (req, res) => {
   const searchKey = req.query.searchKey || '';
   try {
     const { sort, searchKey, minPrice, maxPrice, categories } = req.body;
-    console.log("categories", categories)
+    ("categories", categories)
     let query = { isActive: true };
 
     if (searchKey && searchKey.trim() !== "") {

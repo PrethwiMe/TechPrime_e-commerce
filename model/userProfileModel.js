@@ -421,7 +421,6 @@ exports.updateRetryPaymentOrder = async (razorpayOrderId, newRazorpayOrderId, ne
       }
     );
 
-    console.log('🔁 Retry payment fields updated:', result);
     return result;
   } catch (err) {
     console.error('Error updating retry payment order:', err);
@@ -581,16 +580,13 @@ exports.updateWalletAfterCancelItem = async (userId, data) => {
     const orderData = await order.findOne({ orderId: orderId, "items.variantId": variantId },
       { projection: { "items.$": 1 ,paymentMethod:1} });
     let detailsInsert = orderData.items[0];
-          console.log("orderData",orderData)
 
     let amount = (detailsInsert.subtotal ) + detailsInsert.subtotal;
-    console.log("detailsInsert.subtotal",detailsInsert.subtotal);
-    console.log("amount before",amount);
+   
     let refundAmount = detailsInsert.subtotal;
     let productId = detailsInsert.productId;
     let rate = (detailsInsert.subtotal )+ detailsInsert.subtotal;
     let status = "Refunded"
-    console.log("amount after",amount);
     let details =  {
         userId,
         walletAmount: rate,
@@ -610,12 +606,9 @@ exports.updateWalletAfterCancelItem = async (userId, data) => {
     const walletUpdate = await db.collection(dbVariables.walletCollection);
     const checkWallet = await walletUpdate.findOne({ userId: userId });
     if (!checkWallet) {
-      console.log("No wallet found for user:", userId);
       let newWallet = await db.collection(dbVariables.walletCollection).insertOne( details )
-      console.log("No wallet found, created new wallet:", newWallet);
       return newWallet;
     }
-    console.log("checkWallet", checkWallet);
     amount = checkWallet.walletAmount + amount;
     const updateWallet = await walletUpdate.updateOne(
          { userId: userId },
@@ -635,14 +628,11 @@ exports.updateReferralInDb = async (code, userId) => {
     const db = await getDB();
     let collectionIs = await db.collection(dbVariables.referalCollection);
     let checkrefer =await collectionIs.findOne({userId:userId});
-    console.log("checkOffer",checkrefer)
     if (checkrefer) {
-      console.log("checkoffer there and updat")
       
       let result =await collectionIs.updateOne({ userId:userId },{ $set: { code: code } });
     return { success: true, result };
     }else{
-      console.log("no refer document")
       let addrefer = await collectionIs.insertOne({userId:userId,count:0,code,totalEarnings:0})
           return { success: true, addrefer };
 

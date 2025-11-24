@@ -14,7 +14,6 @@ passport.deserializeUser(async (id, done) => {
   try {
     const db = getDB();
     const user = await db.collection(dbVariables.userCollection).findOne({ _id: new ObjectId(id) });
-    // console.log("passsporttttttttt",user)
     done(null, user);
   } catch (err) {
     done(err, null);
