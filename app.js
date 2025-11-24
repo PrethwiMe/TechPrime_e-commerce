@@ -21,7 +21,6 @@ process.on('unhandledRejection', (reason, promise) => {
 
 var app = express()
 
-connectDB();
 
 
 
@@ -54,6 +53,9 @@ app.use((req, res, next) => {
   res.setHeader('Surrogate-Control', 'no-store');
   next();
 });
+(async function (params) {
+  connectDB();
+})()
 
 // Initialize Razorpay
 const razorpay = new Razorpay({

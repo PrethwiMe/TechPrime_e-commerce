@@ -1,7 +1,6 @@
 const { MongoClient } = require('mongodb');
-const dbname=require('./databse')
-const uri = 'mongodb://127.0.0.1:27017';
-
+const dbname = require('./databse'); // your collection info
+const uri = "mongodb+srv://developer:techprime_project@cluster0.gg1tlfp.mongodb.net/techprime_db?retryWrites=true&w=majority&tls=true";
 
 let db;
 
@@ -13,13 +12,13 @@ const connectDB = async () => {
     console.log('✅ MongoDB connected');
     return db;
   } catch (err) {
-    console.error(' MongoDB connection error:', err.message);
+    console.error('❌ MongoDB connection error:', err.message);
     process.exit(1);
   }
 };
 
 const getDB = () => {
-  if (!db) throw new Error(" Database not connected. Call connectDB() first.");
+  if (!db) throw new Error("Database not connected. Call connectDB() first.");
   return db;
 };
 
