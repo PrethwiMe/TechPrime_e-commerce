@@ -230,7 +230,7 @@
                   <ul class="item-list">
                     <% order.items.forEach(item => { %>
                       <li>
-                        <strong><%= item.productName %></strong> - ₹<%= parseFloat(item.price).toLocaleString() %> x<%= item.quantity %>
+                        <strong><%= item.productName %></strong> - x<%= item.quantity %>
                         <% if (item.variantDetails) { %><br/><small class="text-muted"><%= item.variantDetails.processor %> | <%= item.variantDetails.ram %> | <%= item.variantDetails.storage %></small><% } %>
                       </li>
                     <% }) %>
