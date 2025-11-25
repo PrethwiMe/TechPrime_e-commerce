@@ -13,6 +13,8 @@ var http = require('http');
  */
 
 var port = normalizePort(process.env.PORT || '3000');
+const HOST = '0.0.0.0';  // <-- important
+
 app.set('port', port);
 
 /**
@@ -26,8 +28,10 @@ var server = http.createServer(app,()=>{
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port,'0.0.0.0',()=>{
-  console.log("http://localhost:3000/");
+server.listen(port,HOST,()=>{
+  console.log(`http://localhost:${port}/`);
+    console.log(`host:${HOST}/`);
+
 
   // server time start
   const now = new Date();
