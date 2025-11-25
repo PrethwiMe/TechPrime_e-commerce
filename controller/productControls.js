@@ -231,7 +231,7 @@ exports.displayProducts = async (req, res) => {
     let data = await productModel.showProducts({ skip, limit, search });
     let varients = await productModel.showVarients();
 
-    res.render("admin-pages/allProducts", {
+    res.render("admin-pages/allproducts", {
       data,
       varients,
       page,
