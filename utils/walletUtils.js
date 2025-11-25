@@ -4,7 +4,7 @@ exports.handleWalletPayment = async (userId, total) => {
   try {
     //  wallet amount
     const wallet = await userProfileModel.getWalletAmount(userId);
-    if (!wallet) return { success: false, message: "Wallet not found" };
+    if (!wallet) return { success: false, message: "Insufficient wallet balance" };
 
     if (wallet.walletAmount < total) {
       return { success: false, message: "Insufficient wallet balance" };
