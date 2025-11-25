@@ -5,530 +5,458 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TechCart - Home</title>
+  <meta name="description" content="Best deals on mobiles, laptops & gadgets" />
+
+  <!-- Bootstrap 5 + Animate.css -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
   <style>
+    :root {
+      --primary: #000;
+      --primary-hover: #333;
+    }
+
     body {
       background-color: #f8f9fa;
       font-family: 'Segoe UI', sans-serif;
+      padding-top: 80px;
+    }
+
+    .navbar {
+      background: white;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+    }
+
+    .navbar-brand {
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: var(--primary) !important;
+    }
+
+    .nav-link {
+      font-weight: 500;
+      color: #333 !important;
     }
 
     img {
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transition: transform 0.3s ease;
     }
 
-    img:hover {
-      transform: scale(1.05);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    }
+    img:hover { transform: scale(1.05); }
 
     .category-btn {
-      padding: 12px 24px;
+      padding: 12px 28px;
       font-weight: 600;
-      background-color: #000;
+      background: var(--primary);
       color: white;
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
       margin: 8px;
-      transition: background-color 0.3s ease, transform 0.2s ease;
-      cursor: pointer;
+      transition: all 0.3s ease;
     }
 
     .category-btn:hover {
-      background-color: #333;
-      transform: translateY(-2px);
+      background: var(--primary-hover);
+      transform: translateY(-3px);
+    }
+
+    .product-card {
+      min-width: 260px;
+      flex: 0 0 auto;
+    }
+
+    .product-card .card {
+      border: none;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    .product-card .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.15);
     }
 
     .product-card img {
       height: 220px;
       object-fit: contain;
-      border-bottom: 1px solid #eee;
-      padding: 15px;
-    }
-
-    .product-card .card {
-      margin: 0 15px 30px;
-      transition: all 0.3s ease;
-      border: none;
-      border-radius: 12px;
-      background-color: #fff;
-      box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
-    }
-
-    .product-card .card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    }
-
-    .product-card .card-body {
-      padding: 1rem;
+      background: #f9f9f9;
+      padding: 20px;
     }
 
     .section-title {
-      font-size: 1.7rem;
+      font-size: 1.8rem;
       font-weight: 700;
-      margin-bottom: 1.5rem;
-      border-left: 5px solid #000;
-      padding-left: 12px;
+      border-left: 6px solid var(--primary);
+      padding-left: 15px;
     }
 
     .price {
+      font-size: 1.25rem;
       font-weight: 700;
-      font-size: 1.15rem;
-      color: #000000;
-      display: inline-block;
+      color: var(--primary);
     }
 
     .old-price {
-      text-decoration: line-through;
       color: #888;
+      text-decoration: line-through;
+      font-size: 0.95rem;
       margin-left: 8px;
     }
 
     .out-of-stock {
       color: #dc3545;
       font-weight: 700;
-      font-size: 1.15rem;
-    }
-
-    .card-title {
-      font-size: 1rem;
-      font-weight: 600;
-      color: #222;
-      line-height: 1.3;
-      min-height: 38px;
     }
 
     .btn-dark-custom {
-      background-color: #1a1a1a;
-      color: #fff;
-      border: 1px solid #000;
-      font-weight: 500;
-      padding: 6px 14px;
-      border-radius: 8px;
+      background: #1a1a1a;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 10px;
       font-size: 0.9rem;
-      transition: all 0.3s ease;
+      font-weight: 500;
+      transition: all 0.2s;
     }
 
     .btn-dark-custom:hover:not(:disabled) {
-      background-color: #333;
-      border-color: #111;
+      background: #333;
       transform: translateY(-2px);
-      color: #fff;
     }
 
     .btn-dark-custom:disabled {
-      background-color: #6c757d;
-      border-color: #6c757d;
+      background: #6c757d;
+      opacity: 0.7;
       cursor: not-allowed;
-      opacity: 0.65;
     }
 
     .scroll-container {
       display: flex;
-      gap: 25px;
+      gap: 20px;
       overflow-x: auto;
       scroll-behavior: smooth;
-      padding-bottom: 15px;
-      padding-top: 10px;
-    }
-
-    .scroll-container::-webkit-scrollbar {
-      display: none;
-    }
-
-    .scroll-container {
-      -ms-overflow-style: none;
+      padding: 10px 0;
       scrollbar-width: none;
     }
 
-    .scroll-container .product-card {
-      min-width: 25%;
-      flex: 0 0 auto;
-    }
+    .scroll-container::-webkit-scrollbar { display: none; }
 
     .banner-img {
-      border-radius: 14px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      margin-bottom: 40px;
-    }
-
-    .section-container {
-      margin-bottom: 60px;
-    }
-
-    @media (max-width: 992px) {
-      .scroll-container .product-card {
-        min-width: 48%;
-      }
-    }
-
-    @media (max-width: 576px) {
-      .scroll-container .product-card {
-        min-width: 85%;
-      }
-
-      .product-card img {
-        height: 180px;
-      }
+      border-radius: 18px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.12);
     }
 
     .flying-img {
-      position: absolute;
-      z-index: 9999;
-      transition: all 1s cubic-bezier(0.65, -0.1, 0.25, 1);
+      position: fixed;
+      width: 70px;
+      height: 70px;
+      object-fit: contain;
       pointer-events: none;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      z-index: 9999;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      transition: all 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
-    .swal2-popup .animate__animated {
-      animation-duration: 0.4s !important;
+    .toast {
+      position: fixed;
+      top: 100px;
+      right: 20px;
+      background: #28a745;
+      color: white;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      z-index: 99999;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.4s ease;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    @media (max-width: 992px) {
+      .product-card { min-width: 45%; }
+    }
+
+    @media (max-width: 576px) {
+      .product-card { min-width: 80%; }
+      .product-card img { height: 180px; }
+      .section-title { font-size: 1.5rem; }
     }
   </style>
 </head>
 
 <body>
-  <%- include('partials/header') %>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg">
+    <div class="container">
+      <a class="navbar-brand" href="/">TechCart</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto align-items-center">
+          <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="/search">All Products</a></li>
+          <li class="nav-item"><a class="nav-link" href="/cart">Cart (<span id="cart-count">0</span>)</a></li>
+          <li class="nav-item"><a class="nav-link" href="/viewWishList">Wishlist</a></li>
+          <% if (typeof user !== 'undefined' && user) { %>
+            <li class="nav-item"><a class="nav-link" href="/profile">Hi, <%= user.name.split(' ')[0] %></a></li>
+            <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+          <% } else { %>
+            <li class="nav-item"><a class="nav-link btn btn-dark text-white px-4 ms-3" href="/login">Login</a></li>
+          <% } %>
+        </ul>
+      </div>
+    </div>
+  </nav>
 
   <div class="container my-5">
+
     <!-- Banner -->
-    <div class="section-container">
-      <img src="https://img.pikbest.com/origin/10/01/82/867pIkbEsTAIq.png!sw800" class="w-100 banner-img" alt="Banner" />
+    <div class="my-5">
+      <img src="https://img.pikbest.com/origin/10/01/82/867pIkbEsTAIq.png!sw800" 
+           alt="TechCart Big Sale" class="w-100 banner-img" loading="lazy">
     </div>
 
     <!-- Flash Sales -->
-    <div class="section-container">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="section-title">Flash Sales</div>
-        <a href="/search" class="btn btn-dark btn-sm">View All Products</a>
+    <section class="mb-5">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="section-title">Flash Sales</h2>
+        <a href="/search" class="btn btn-dark">View All</a>
       </div>
       <div class="scroll-container">
-        <% 
-          products.forEach(product => { 
-            // Find in-stock variants
-            const inStockVariants = product.fullProduct?.filter(v => v.stock > 0) || [];
-            const hasStock = inStockVariants.length > 0;
-            let displayVariant = null;
-            if (hasStock) {
-              // Get cheapest in-stock variant
-              displayVariant = inStockVariants.reduce((prev, curr) => 
-                (prev.price < curr.price) ? prev : curr
-              );
-            }
+        <% products.slice(0, 15).forEach(product => { 
+          const inStock = product.fullProduct?.some(v => v.stock > 0);
+          const cheapest = inStock ? product.fullProduct.filter(v => v.stock > 0).sort((a,b) => a.price - b.price)[0] : null;
         %>
-        <div class="product-card">
-          <div class="card h-100 text-center">
-            <a href="/all-product/product-details/<%= product._id %>" class="text-decoration-none text-dark">
-              <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="w-100" />
-            </a>
-            <div class="card-body">
-              <h6 class="card-title"><%= product.name %></h6>
-              <p class="mb-1"><%= product.OS %></p>
-              <p class="mb-1"><%= product.companyDetails %></p>
+          <div class="product-card">
+            <div class="card h-100 text-center">
+              <a href="/all-product/product-details/<%= product._id %>" class="text-decoration-none">
+                <img src="<%= product.images[0] %>" alt="<%= product.name %>" loading="lazy" class="w-100">
+              </a>
+              <div class="card-body d-flex flex-column">
+                <h6 class="card-title flex-grow-1"><%= product.name %></h6>
+                <p class="text-muted small mb-1"><%= product.companyDetails %></p>
 
-              <% if (hasStock) { %>
-                <div class="price mb-3">
-                  <span>₹<%= displayVariant.price.toLocaleString('en-IN') %></span>
-                  <% if (displayVariant.price < product.originalPrice) { %>
-                    <span class="old-price">₹<%= product.originalPrice.toLocaleString('en-IN') %></span>
-                  <% } %>
-                </div>
-              <% } else { %>
-                <div class="out-of-stock mb-3">Out of Stock</div>
-              <% } %>
-
-              <div class="d-flex justify-content-between gap-2">
-                <% if (hasStock) { %>
-                  <button class="btn-dark-custom add-to-cart flex-fill"
+                <% if (inStock && cheapest) { %>
+                  <div class="price mb-3">
+                    ₹<%= cheapest.price.toLocaleString('en-IN') %>
+                    <% if (cheapest.price < product.originalPrice) { %>
+                      <span class="old-price">₹<%= product.originalPrice.toLocaleString('en-IN') %></span>
+                    <% } %>
+                  </div>
+                  <button class="btn-dark-custom add-to-cart mt-auto"
                     data-id="<%= product._id %>"
-                    data-variant="<%= displayVariant._id %>"
+                    data-variant="<%= cheapest._id %>"
                     data-name="<%= product.name %>"
                     data-img="<%= product.images[0] %>">
                     Add to Cart
                   </button>
                 <% } else { %>
-                  <button class="btn-dark-custom flex-fill" disabled>Out of Stock</button>
+                  <div class="out-of-stock mb-3">Out of Stock</div>
+                  <button class="btn-dark-custom" disabled>Out of Stock</button>
                 <% } %>
-                <button class="btn-dark-custom add-to-wishlist"
+
+                <button class="btn-dark-custom add-to-wishlist mt-2"
                   data-id="<%= product._id %>"
                   data-name="<%= product.name %>">♡</button>
               </div>
             </div>
           </div>
-        </div>
-        <% }); %>
+        <% }) %>
       </div>
-    </div>
+    </section>
 
     <!-- Categories -->
-    <div class="section-container">
-      <div class="section-title mb-3">Categories</div>
+    <section class="text-center my-5 py-5 bg-white rounded-4 shadow-sm">
+      <h2 class="section-title mb-5">Shop by Category</h2>
       <div class="d-flex flex-wrap justify-content-center">
-        <% if(categories && categories.length){ %>
-          <% categories.forEach(cat => { %>
+        <% if (categories && categories.length) { 
+          categories.forEach(cat => { %>
             <button class="category-btn text-capitalize" 
-                    onclick="window.location.href='/search?categories=<%= cat._id %>'">
+                    onclick="location.href='/search?categories=<%= cat._id %>'">
               <%= cat.name %>
             </button>
-          <% }); %>
-        <% } else { %>
-          <p>No categories found</p>
+          <% }) 
+        } else { %>
+          <p>No categories available</p>
         <% } %>
       </div>
-    </div>
+    </section>
 
     <!-- New Arrivals -->
-    <div class="section-container">
-      <div class="d-flex justify-content-between align-items-center mb-3">
+    <section class="mb-5">
+      <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <div class="section-title">New Arrival</div>
-          <small class="text-muted">Featured</small>
+          <h2 class="section-title">New Arrivals</h2>
+          <small class="text-muted">Just landed</small>
         </div>
-        <a href="/search" class="btn btn-dark btn-sm">View All</a>
+        <a href="/search" class="btn btn-dark">View All</a>
       </div>
       <div class="scroll-container">
-        <% 
-          products.slice().reverse().forEach(product => { 
-            const inStockVariants = product.fullProduct?.filter(v => v.stock > 0) || [];
-            const hasStock = inStockVariants.length > 0;
-            let displayVariant = null;
-            if (hasStock) {
-              displayVariant = inStockVariants.reduce((prev, curr) => 
-                (prev.price < curr.price) ? prev : curr
-              );
-            }
+        <% products.slice().reverse().slice(0, 15).forEach(product => { 
+          const inStock = product.fullProduct?.some(v => v.stock > 0);
+          const cheapest = inStock ? product.fullProduct.filter(v => v.stock > 0).sort((a,b) => a.price - b.price)[0] : null;
         %>
-        <div class="product-card">
-          <div class="card h-100 text-center">
-            <a href="/all-product/product-details/<%= product._id %>" class="text-decoration-none text-dark">
-              <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="w-100" />
-            </a>
-            <div class="card-body">
-              <h6 class="card-title"><%= product.name %></h6>
-              <p class="mb-1"><%= product.OS %></p>
-              <p class="mb-1"><%= product.companyDetails %></p>
+          <div class="product-card">
+            <div class="card h-100 text-center">
+              <a href="/all-product/product-details/<%= product._id %>" class="text-decoration-none">
+                <img src="<%= product.images[0] %>" alt="<%= product.name %>" loading="lazy" class="w-100">
+              </a>
+              <div class="card-body d-flex flex-column">
+                <h6 class="card-title flex-grow-1"><%= product.name %></h6>
+                <p class="text-muted small mb-1"><%= product.companyDetails %></p>
 
-              <% if (hasStock) { %>
-                <div class="price mb-3">
-                  <span>₹<%= displayVariant.price.toLocaleString('en-IN') %></span>
-                  <% if (displayVariant.price < product.originalPrice) { %>
-                    <span class="old-price">₹<%= product.originalPrice.toLocaleString('en-IN') %></span>
-                  <% } %>
-                </div>
-              <% } else { %>
-                <div class="out-of-stock mb-3">Out of Stock</div>
-              <% } %>
-
-              <div class="d-flex justify-content-between gap-2">
-                <% if (hasStock) { %>
-                  <button class="btn-dark-custom add-to-cart flex-fill"
+                <% if (inStock && cheapest) { %>
+                  <div class="price mb-3">
+                    ₹<%= cheapest.price.toLocaleString('en-IN') %>
+                    <% if (cheapest.price < product.originalPrice) { %>
+                      <span class="old-price">₹<%= product.originalPrice.toLocaleString('en-IN') %></span>
+                    <% } %>
+                  </div>
+                  <button class="btn-dark-custom add-to-cart mt-auto"
                     data-id="<%= product._id %>"
-                    data-variant="<%= displayVariant._id %>"
+                    data-variant="<%= cheapest._id %>"
                     data-name="<%= product.name %>"
                     data-img="<%= product.images[0] %>">
                     Add to Cart
                   </button>
                 <% } else { %>
-                  <button class="btn-dark-custom flex-fill" disabled>Out of Stock</button>
+                  <div class="out-of-stock mb-3">Out of Stock</div>
+                  <button class="btn-dark-custom" disabled>Out of Stock</button>
                 <% } %>
-                <button class="btn-dark-custom add-to-wishlist"
+
+                <button class="btn-dark-custom add-to-wishlist mt-2"
                   data-id="<%= product._id %>"
                   data-name="<%= product.name %>">♡</button>
               </div>
             </div>
           </div>
-        </div>
-        <% }); %>
+        <% }) %>
       </div>
-    </div>
+    </section>
 
-    <!-- Best Selling -->
-    <div class="section-container">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-          <div class="section-title">Best Selling Products</div>
-          <small class="text-muted">This Month</small>
-        </div>
-        <a href="/search" class="btn btn-dark btn-sm">View All</a>
-      </div>
-      <div class="scroll-container">
-        <% 
-          products.forEach(product => { 
-            const inStockVariants = product.fullProduct?.filter(v => v.stock > 0) || [];
-            const hasStock = inStockVariants.length > 0;
-            let displayVariant = null;
-            if (hasStock) {
-              displayVariant = inStockVariants.reduce((prev, curr) => 
-                (prev.price < curr.price) ? prev : curr
-              );
-            }
-        %>
-        <div class="product-card">
-          <div class="card h-100 text-center">
-            <a href="/all-product/product-details/<%= product._id %>" class="text-decoration-none text-dark">
-              <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="w-100" />
-            </a>
-            <div class="card-body">
-              <h6 class="card-title"><%= product.name %></h6>
-              <p class="mb-1"><%= product.OS %></p>
-              <p class="mb-1"><%= product.companyDetails %></p>
-
-              <% if (hasStock) { %>
-                <div class="price mb-3">
-                  <span>₹<%= displayVariant.price.toLocaleString('en-IN') %></span>
-                  <% if (displayVariant.price < product.originalPrice) { %>
-                    <span class="old-price">₹<%= product.originalPrice.toLocaleString('en-IN') %></span>
-                  <% } %>
-                </div>
-              <% } else { %>
-                <div class="out-of-stock mb-3">Out of Stock</div>
-              <% } %>
-
-              <div class="d-flex justify-content-between gap-2">
-                <% if (hasStock) { %>
-                  <button class="btn-dark-custom add-to-cart flex-fill"
-                    data-id="<%= product._id %>"
-                    data-variant="<%= displayVariant._id %>"
-                    data-name="<%= product.name %>"
-                    data-img="<%= product.images[0] %>">
-                    Add to Cart
-                  </button>
-                <% } else { %>
-                  <button class="btn-dark-custom flex-fill" disabled>Out of Stock</button>
-                <% } %>
-                <button class="btn-dark-custom add-to-wishlist"
-                  data-id="<%= product._id %>"
-                  data-name="<%= product.name %>">♡</button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <% }); %>
-      </div>
-    </div>
   </div>
 
+  <!-- Footer -->
+  <footer class="bg-dark text-white py-5 mt-5">
+    <div class="container text-center">
+      <p>&copy; 2025 TechCart. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <script>
-    async function postData(url = "", data = {}) {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      return response.json();
+    // Lightweight Toast
+    function showToast(message, type = 'success') {
+      const colors = { success: '#28a745', error: '#dc3545', warning: '#ffc107' };
+      const toast = document.createElement('div');
+      toast.className = 'toast show';
+      toast.style.background = colors[type] || '#28a745';
+      toast.textContent = message;
+      document.getElementById('toast-container').appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
     }
 
-    function flyToCart(imgSrc, btn) {
-      const cartIcon = document.querySelector("#cart-icon") || document.querySelector(".cart-icon");
+    // Flying to Cart Animation
+    function flyToCart(imgSrc, startEl) {
+      const cartIcon = document.querySelector('#cart-count')?.parentElement || document.querySelector('a[href="/cart"]');
       if (!cartIcon) return;
 
-      const img = document.createElement("img");
+      const img = new Image();
       img.src = imgSrc;
-      img.className = "flying-img";
+      img.className = 'flying-img';
+      img.style.left = startEl.getBoundingClientRect().left + 30 + 'px';
+      img.style.top = startEl.getBoundingClientRect().top + 30 + 'px';
       document.body.appendChild(img);
 
-      const btnRect = btn.getBoundingClientRect();
-      img.style.left = btnRect.left + btnRect.width / 2 - 30 + "px";
-      img.style.top = btnRect.top + btnRect.height / 2 - 30 + "px";
-      img.style.width = "60px";
-
-      const cartRect = cartIcon.getBoundingClientRect();
       setTimeout(() => {
-        img.style.left = cartRect.left + cartRect.width / 2 - 15 + "px";
-        img.style.top = cartRect.top + cartRect.height / 2 - 15 + "px";
-        img.style.width = "30px";
-        img.style.opacity = "0.5";
-      }, 100);
+        const rect = cartIcon.getBoundingClientRect();
+        img.style.left = rect.left + rect.width / 2 - 20 + 'px';
+        img.style.top = rect.top + rect.height / 2 - 20 + 'px';
+        img.style.width = '40px';
+        img.style.height = '40px';
+        img.style.opacity = '0.6';
+      }, 50);
 
-      setTimeout(() => img.remove(), 1100);
+      setTimeout(() => img.remove(), 1000);
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      document.querySelectorAll(".add-to-cart").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          const productId = btn.dataset.id;
-          const variantId = btn.dataset.variant;
-          const productName = btn.dataset.name;
-          const imgSrc = btn.dataset.img;
+    // Event Delegation - Single Listener
+    document.addEventListener('click', async function(e) {
+      // Add to Cart
+      const cartBtn = e.target.closest('.add-to-cart');
+      if (cartBtn) {
+        e.preventDefault();
+        const { id, variant, name, img } = cartBtn.dataset;
+        flyToCart(img, cartBtn);
 
-          flyToCart(imgSrc, btn);
+        try {
+          const res = await fetch('/cart/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId: id, variantId: variant, productName: name })
+          }).then(r => r.json());
 
-          try {
-            const res = await postData("/cart/add", { productId, variantId, productName });
-
-            if (res.success) {
-              Swal.fire({
-                icon: "success",
-                title: "Added to Cart!",
-                text: res.message || "Product added successfully!",
-                confirmButtonText: "Go to Cart",
-                showCancelButton: true,
-                cancelButtonText: "Continue Shopping",
-                showClass: { popup: "animate__animated animate__fadeInUp" },
-                hideClass: { popup: "animate__animated animate__fadeOutDown" }
-              }).then((result) => {
-                if (result.isConfirmed) window.location.href = "/cart";
-              });
-            } else if (res.loginRequired) {
-              Swal.fire({
-                icon: "warning",
-                title: "Login Required",
-                text: "Please login to add items to cart.",
-                confirmButtonText: "Login",
-              }).then((r) => r.isConfirmed && (window.location.href = "/login"));
-            } else {
-              Swal.fire({ icon: "error", title: "Failed", text: res.message || "Something went wrong." });
+          if (res.success) {
+            showToast('✓ Added to cart!');
+            if (res.cartCount !== undefined) {
+              document.getElementById('cart-count').textContent = res.cartCount;
             }
-          } catch (err) {
-            Swal.fire({
-              icon: "warning",
-              title: "Login Required",
-              text: "Please login to continue",
-              confirmButtonText: "Login"
-            }).then((r) => r.isConfirmed && (window.location.href = "/login"));
+          } else if (res.loginRequired) {
+            showToast('Please login first', 'warning');
+            setTimeout(() => location.href = '/login', 1500);
+          } else {
+            showToast(res.message || 'Failed', 'error');
           }
-        });
-      });
+        } catch (err) {
+          showToast('Network error', 'error');
+        }
+      }
 
-      document.querySelectorAll(".add-to-wishlist").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          const productId = btn.dataset.id;
-          const productName = btn.dataset.name;
+      // Add to Wishlist
+      const wishBtn = e.target.closest('.add-to-wishlist');
+      if (wishBtn) {
+        const { id, name } = wishBtn.dataset;
+        try {
+          const res = await fetch('/wishlist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId: id, productName: name })
+          }).then(r => r.json());
 
-          try {
-            const res = await postData("/wishlist", { productId, productName });
-            if (res.success) {
-              btn.innerHTML = "❤️";
-              Swal.fire({
-                icon: "success",
-                title: "Added to Wishlist!",
-                showCancelButton: true,
-                confirmButtonText: "View Wishlist",
-                cancelButtonText: "Continue"
-              }).then((r) => r.isConfirmed && (window.location.href = "/viewWishList"));
-            } else if (res.loginRequired) {
-              Swal.fire({
-                icon: "warning",
-                title: "Login Required",
-                confirmButtonText: "Login"
-              }).then((r) => r.isConfirmed && (window.location.href = "/login"));
-            }
-          } catch (err) {
-            Swal.fire({
-              icon: "warning",
-              title: "Login Required",
-              confirmButtonText: "Login"
-            }).then((r) => r.isConfirmed && (window.location.href = "/login"));
+          if (res.success) {
+            wishBtn.innerHTML = '❤️';
+            showToast('Added to wishlist!');
+          } else if (res.loginRequired) {
+            showToast('Login required', 'warning');
+            setTimeout(() => location.href = '/login', 1000);
           }
-        });
-      });
+        } catch (err) {
+          showToast('Error', 'error');
+        }
+      }
     });
   </script>
 </body>
 </html>
-
-<%- include('partials/footer') %>
