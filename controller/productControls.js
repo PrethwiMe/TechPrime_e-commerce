@@ -307,7 +307,7 @@ exports.productSearch = async (req, res) => {
 
     const data = await productModel.showProducts({ skip, limit, search });
 
-    res.render("admin-pages/allProducts", {
+    res.render("admin-pages/allproducts", {
       data,
       page,
       totalPages,
