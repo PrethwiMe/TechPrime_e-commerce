@@ -1,7 +1,7 @@
 const { MongoClient } = require('mongodb');
 const dbname = require('./databse'); // your collection info
 const uri = "mongodb+srv://developer:techprime_project@cluster0.gg1tlfp.mongodb.net/techprime_db?retryWrites=true&w=majority&tls=true";
-
+//const uri ="mongodb://localhost:27017/"
 let db;
 
 const connectDB = async () => {

@@ -300,8 +300,10 @@ exports.updateItemStatus = async (params) => {
     );
     //update wallet
         // let { orderId, variantId, itemStatus } = params;
-        let response = await updateWallet.updateAmount(order,variantId)
+if (newOrderStatus=="Cancelled") {
+let response = await updateWallet.updateAmount(order,variantId)
 
+}
     //update to paid in db
     if (newOrderStatus == "Delivered" && order.paymentMethod=='cod') {
       await db.collection(dbVariables.orderCollection).updateOne({_id:new ObjectId(orderId)},{$set:{paymentStatus:'paid'}})
