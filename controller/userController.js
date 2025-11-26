@@ -17,13 +17,11 @@ exports.loadHome = async (req, res) => {
   try {
 
     const data = await productModel.allProductsDisplay();
-
     const products = data;
     let filter = {
       isActive:true
     }
     const categories = await productModel.getAllCategories(filter);
-
       res.render('user-pages/home', {
       products,
       categories

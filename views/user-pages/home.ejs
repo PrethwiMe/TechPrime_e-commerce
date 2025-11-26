@@ -176,14 +176,14 @@
     .flying-img {
       position: absolute;
       z-index: 9999;
-      transition: all 1s cubic-bezier(0.65, -0.1, 0.25, 1);
+      transition: all 0.6s cubic-bezier(0.65, -0.1, 0.25, 1);
       pointer-events: none;
       border-radius: 10px;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     }
 
     .swal2-popup .animate__animated {
-      animation-duration: 0.4s !important;
+      animation-duration: 0.2s !important;
     }
   </style>
 </head>
@@ -194,7 +194,7 @@
   <div class="container my-5">
     <!-- Banner -->
     <div class="section-container">
-      <img src="https://img.pikbest.com/origin/10/01/82/867pIkbEsTAIq.png!sw800" class="w-100 banner-img" alt="Banner" />
+      <img src="https://img.pikbest.com/origin/10/01/82/867pIkbEsTAIq.png!sw800" class="w-100 banner-img" alt="Banner" loading="lazy" />
     </div>
 
     <!-- Flash Sales -->
@@ -205,13 +205,12 @@
       </div>
       <div class="scroll-container">
         <% 
-          products.forEach(product => { 
-            // Find in-stock variants
+          const flashProducts = products.slice(0, 8);
+          flashProducts.forEach(product => { 
             const inStockVariants = product.fullProduct?.filter(v => v.stock > 0) || [];
             const hasStock = inStockVariants.length > 0;
             let displayVariant = null;
             if (hasStock) {
-              // Get cheapest in-stock variant
               displayVariant = inStockVariants.reduce((prev, curr) => 
                 (prev.price < curr.price) ? prev : curr
               );
@@ -220,7 +219,7 @@
         <div class="product-card">
           <div class="card h-100 text-center">
             <a href="/all-product/product-details/<%= product._id %>" class="text-decoration-none text-dark">
-              <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="w-100" />
+              <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="w-100" loading="lazy" />
             </a>
             <div class="card-body">
               <h6 class="card-title"><%= product.name %></h6>
@@ -289,7 +288,8 @@
       </div>
       <div class="scroll-container">
         <% 
-          products.slice().reverse().forEach(product => { 
+          const newProducts = products.slice(-5).reverse();
+          newProducts.forEach(product => { 
             const inStockVariants = product.fullProduct?.filter(v => v.stock > 0) || [];
             const hasStock = inStockVariants.length > 0;
             let displayVariant = null;
@@ -302,7 +302,7 @@
         <div class="product-card">
           <div class="card h-100 text-center">
             <a href="/all-product/product-details/<%= product._id %>" class="text-decoration-none text-dark">
-              <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="w-100" />
+              <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="w-100" loading="lazy" />
             </a>
             <div class="card-body">
               <h6 class="card-title"><%= product.name %></h6>
@@ -354,7 +354,8 @@
       </div>
       <div class="scroll-container">
         <% 
-          products.forEach(product => { 
+          const bestProducts = products.slice(0, 8);
+          bestProducts.forEach(product => { 
             const inStockVariants = product.fullProduct?.filter(v => v.stock > 0) || [];
             const hasStock = inStockVariants.length > 0;
             let displayVariant = null;
@@ -367,7 +368,7 @@
         <div class="product-card">
           <div class="card h-100 text-center">
             <a href="/all-product/product-details/<%= product._id %>" class="text-decoration-none text-dark">
-              <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="w-100" />
+              <img src="<%= product.images[0] %>" alt="<%= product.name %>" class="w-100" loading="lazy" />
             </a>
             <div class="card-body">
               <h6 class="card-title"><%= product.name %></h6>
@@ -442,14 +443,18 @@
         img.style.top = cartRect.top + cartRect.height / 2 - 15 + "px";
         img.style.width = "30px";
         img.style.opacity = "0.5";
-      }, 100);
+      }, 50);
 
-      setTimeout(() => img.remove(), 1100);
+      setTimeout(() => img.remove(), 600);
     }
 
     document.addEventListener("DOMContentLoaded", () => {
       document.querySelectorAll(".add-to-cart").forEach(btn => {
         btn.addEventListener("click", async () => {
+          const originalText = btn.innerText;
+          btn.innerText = 'Adding...';
+          btn.disabled = true;
+
           const productId = btn.dataset.id;
           const variantId = btn.dataset.variant;
           const productName = btn.dataset.name;
@@ -490,12 +495,19 @@
               text: "Please login to continue",
               confirmButtonText: "Login"
             }).then((r) => r.isConfirmed && (window.location.href = "/login"));
+          } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
           }
         });
       });
 
       document.querySelectorAll(".add-to-wishlist").forEach(btn => {
         btn.addEventListener("click", async () => {
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '⭕';
+          btn.disabled = true;
+
           const productId = btn.dataset.id;
           const productName = btn.dataset.name;
 
@@ -523,6 +535,11 @@
               title: "Login Required",
               confirmButtonText: "Login"
             }).then((r) => r.isConfirmed && (window.location.href = "/login"));
+          } finally {
+            if (!res || !res.success) {
+              btn.innerHTML = originalText;
+            }
+            btn.disabled = false;
           }
         });
       });
