@@ -1,4 +1,3 @@
-const { couponPage } = require("../controller/admincontroller");
 
 module.exports={
      dbName : 'techprime_db',

@@ -4,6 +4,7 @@ const dbVariables = require('../config/databse')
 const { getDB } = require('../config/mongodb')
 const { ObjectId } = require('mongodb');
 const { types } = require('joi');
+const updateWallet = require('../utils/updateWallet')
 
 
 //admin login data
@@ -297,11 +298,14 @@ exports.updateItemStatus = async (params) => {
       { _id: new ObjectId(orderId) },
       { $set: { status: newOrderStatus } }
     );
+    //update wallet
+        // let { orderId, variantId, itemStatus } = params;
+        let response = await updateWallet.updateAmount(order,variantId)
 
+    //update to paid in db
     if (newOrderStatus == "Delivered" && order.paymentMethod=='cod') {
       await db.collection(dbVariables.orderCollection).updateOne({_id:new ObjectId(orderId)},{$set:{paymentStatus:'paid'}})
     }
-
     return { success: true, orderId, newOrderStatus };
   } catch (err) {
     console.error(" Error in updateItemStatus:", err);
@@ -434,9 +438,6 @@ exports.updateItemsStatus = async (orderId, status) => {
 }
 exports.processReturnProduct = async (orderId, productId, variantId, status) => {
   const db = await getDB(); 
-
-  
-
 
   const result = await db.collection(dbVariables.orderCollection).updateOne(
   { orderId: orderId }, 

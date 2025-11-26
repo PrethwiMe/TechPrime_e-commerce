@@ -30,6 +30,11 @@ exports.cancelOrderUtils = async (req) => {
       }
     );
 
+   let dataForChecdk =await orderCollection.findOne({orderId:orderId})
+
+   if (dataForChecdk.paymentStatus === 'pending') {
+      return { success: true };
+   }
 
     if (paymentMethod !== "cod") {
       const orderData = await orderCollection.findOne(
