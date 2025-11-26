@@ -92,6 +92,16 @@
       .modal-dialog { max-width: 98%; width: 98%; }
       .modal-body { padding: 1rem; }
       .spec-list { grid-template-columns: 1fr; }
+      @media (min-width: 993px) {
+    .flex-grow-1 {
+      margin-left: 260px !important;
+    }
+  }
+
+  /* Push content below fixed topbar */
+  body {
+    padding-top: 65px !important;
+  }
     }
   </style>
 </head>
