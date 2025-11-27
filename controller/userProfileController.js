@@ -45,8 +45,6 @@ exports.viewProfile = async (req, res) => {
 
   res.render('user-pages/profile.ejs', { user, image: null });
 }
-
-
 exports.addAddress = async (req, res) => {
   try {
     const userId = req.session.user.userId;
@@ -79,7 +77,6 @@ exports.addAddress = async (req, res) => {
     return res.status(500).json({ message: "Server error while adding address." });
   }
 };
-
 //deleteAddress address remove
 exports.deleteAddress = async (req, res) => {
   try {
@@ -680,8 +677,6 @@ exports.cancelOrder = async (req, res) => {
     });
   }
 };
-
-
 //return order
 exports.returnOrder = async (req, res) => {
   let data = await userProfileModel.returnData(req.body)
