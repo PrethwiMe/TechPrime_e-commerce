@@ -123,9 +123,9 @@ exports.updateAddress = async (req, res) => {
 //viewUserEditpage
 exports.viewUserEditpage = async (req, res) => {
   const email = req.session.user.email
-
   let data = await userModel.fetchUser(email)
-
+  console.log(data)
+if(data.password == null) return res.status(Status.BAD_REQUEST).json({status:Status.BAD_REQUEST,message:Message.BAD_REQUEST})
   res.render('user-pages/editUserData.ejs', {
     user: data || null,
     image: data || null
