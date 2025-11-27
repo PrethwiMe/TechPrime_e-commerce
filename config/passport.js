@@ -1,6 +1,6 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const  {getDB}  = require('./mongodb');
+const { getDB } = require('./mongodb');
 const dbVariables = require('./databse');
 const userModel = require('../model/userModel')
 const { ObjectId } = require('mongodb');
@@ -33,13 +33,13 @@ passport.use(
         const usersCollection = db.collection(dbVariables.userCollection);
 
         let user = await usersCollection.findOne({ email: profile.emails[0].value });
-        
+
         if (!user) {
           const newUser = {
             firstName: profile.name.givenName || '',
             lastName: profile.name.familyName || '',
             email: profile.emails[0].value,
-            password: null, 
+            password: null,
             isActive: true,
             createdAt: new Date(),
             googleId: profile.id
@@ -49,8 +49,8 @@ passport.use(
         }
 
         done(null, user);
-       
-        
+
+
       } catch (err) {
         done(err, null);
       }

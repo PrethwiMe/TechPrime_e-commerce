@@ -347,7 +347,7 @@ exports.canceleachItems = async (data) => {
       { orderId: orderId }, // find the order
       { $set: { "items.$[elem].itemStatus": status } }, // set itemStatus
       {
-        arrayFilters: [{ "elem.variantId": variantId }] 
+        arrayFilters: [{ "elem.variantId": variantId }]
       }
     );
 
@@ -457,7 +457,7 @@ exports.returnEachItems = async (data) => {
 
 
 
-    const refundAmount = +(itemValue ).toFixed(2);
+    const refundAmount = +(itemValue).toFixed(2);
     const returnData = {
       orderId,
       userId: result.userId,
@@ -573,49 +573,49 @@ exports.updateWalletHistory = async (userId, amount) => {
 // update wallet after cancel item
 exports.updateWalletAfterCancelItem = async (userId, data) => {
   try {
-      //const updateWallet = await walletUpdate.updateOne()
+    //const updateWallet = await walletUpdate.updateOne()
     let { orderId, variantId } = data;
     const db = await getDB();
     const order = await db.collection(dbVariables.orderCollection);
     const orderData = await order.findOne({ orderId: orderId, "items.variantId": variantId },
-      { projection: { "items.$": 1 ,paymentMethod:1} });
+      { projection: { "items.$": 1, paymentMethod: 1 } });
     let detailsInsert = orderData.items[0];
 
-    let amount = (detailsInsert.subtotal ) + detailsInsert.subtotal;
-   
+    let amount = (detailsInsert.subtotal) + detailsInsert.subtotal;
+
     let refundAmount = detailsInsert.subtotal;
     let productId = detailsInsert.productId;
-    let rate = (detailsInsert.subtotal )+ detailsInsert.subtotal;
+    let rate = (detailsInsert.subtotal) + detailsInsert.subtotal;
     let status = "Refunded"
-    let details =  {
-        userId,
-        walletAmount: rate,
-        updatedDate: new Date(),
-        refundHistory: [
-          {
-            orderId,
-            productId,
-            variantId,
-            status,
-            refund:"credit",
-            refundAmount:rate,
-            date: new Date(),
-           
-          }]
-      }
+    let details = {
+      userId,
+      walletAmount: rate,
+      updatedDate: new Date(),
+      refundHistory: [
+        {
+          orderId,
+          productId,
+          variantId,
+          status,
+          refund: "credit",
+          refundAmount: rate,
+          date: new Date(),
+
+        }]
+    }
     const walletUpdate = await db.collection(dbVariables.walletCollection);
     const checkWallet = await walletUpdate.findOne({ userId: userId });
     if (!checkWallet) {
-      let newWallet = await db.collection(dbVariables.walletCollection).insertOne( details )
+      let newWallet = await db.collection(dbVariables.walletCollection).insertOne(details)
       return newWallet;
     }
     amount = checkWallet.walletAmount + amount;
     const updateWallet = await walletUpdate.updateOne(
-         { userId: userId },
-    {
-      $set: { walletAmount: amount, updatedDate: new Date() },
-      $push:{refundHistory:{orderId,productId:detailsInsert.productId,variantId,status:"Refunded",refund:"credit",refundAmount:rate,date:new Date()}}
-    }
+      { userId: userId },
+      {
+        $set: { walletAmount: amount, updatedDate: new Date() },
+        $push: { refundHistory: { orderId, productId: detailsInsert.productId, variantId, status: "Refunded", refund: "credit", refundAmount: rate, date: new Date() } }
+      }
     )
     return updateWallet;
   } catch (error) {
@@ -627,14 +627,14 @@ exports.updateReferralInDb = async (code, userId) => {
   try {
     const db = await getDB();
     let collectionIs = await db.collection(dbVariables.referalCollection);
-    let checkrefer =await collectionIs.findOne({userId:userId});
+    let checkrefer = await collectionIs.findOne({ userId: userId });
     if (checkrefer) {
-      
-      let result =await collectionIs.updateOne({ userId:userId },{ $set: { code: code } });
-    return { success: true, result };
-    }else{
-      let addrefer = await collectionIs.insertOne({userId:userId,count:0,code,totalEarnings:0})
-          return { success: true, addrefer };
+
+      let result = await collectionIs.updateOne({ userId: userId }, { $set: { code: code } });
+      return { success: true, result };
+    } else {
+      let addrefer = await collectionIs.insertOne({ userId: userId, count: 0, code, totalEarnings: 0 })
+      return { success: true, addrefer };
 
     }
 
@@ -646,11 +646,11 @@ exports.updateReferralInDb = async (code, userId) => {
 exports.disableCoupon = async (code) => {
 
   const db = await getDB()
-  const changeState = await db.collection(dbVariables.couponCollection).updateOne({code:code},{$set:{isActive:false}})
+  const changeState = await db.collection(dbVariables.couponCollection).updateOne({ code: code }, { $set: { isActive: false } })
   return changeState
 }
 exports.getCoupon = async () => {
   let db = await getDB();
-  let collectionIs = await db.collection(dbVariables.couponCollection).find({isActive:true}).toArray()
-return collectionIs
- }
+  let collectionIs = await db.collection(dbVariables.couponCollection).find({ isActive: true }).toArray()
+  return collectionIs
+}

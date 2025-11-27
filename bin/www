@@ -21,25 +21,25 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-var server = http.createServer(app,()=>{
+var server = http.createServer(app, () => {
 });
 
 /**
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port,HOST,()=>{
+server.listen(port, HOST, () => {
   console.log(`http://localhost:${port}/`);
-    console.log(`host:${HOST}/`);
+  console.log(`host:${HOST}/`);
 
 
   // server time start
   const now = new Date();
 
-const time = now.toLocaleTimeString('en-IN', { hour12: true });
-const date = now.toLocaleDateString('en-IN');
+  const time = now.toLocaleTimeString('en-IN', { hour12: true });
+  const date = now.toLocaleDateString('en-IN');
 
-console.log(`Server started at: ${time} on ${date}`);
+  console.log(`Server started at: ${time} on ${date}`);
 
 });
 server.on('error', onError);

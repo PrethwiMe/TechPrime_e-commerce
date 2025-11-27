@@ -15,7 +15,7 @@ const now = new Date();
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('⚠️ Unhandled Promise Rejection:');
-  console.error(reason); 
+  console.error(reason);
 });
 
 
@@ -30,7 +30,7 @@ app.set('view engine', 'ejs');
 
 //layout
 app.use(expressLayouts);
-app.set('layout', 'layouts/main'); 
+app.set('layout', 'layouts/main');
 
 app.use(express.urlencoded({ extended: true }));
 app.use(limitTextLength);
@@ -69,12 +69,12 @@ app.locals.razorpay = razorpay;
 
 
 app.use(session({
-  secret: process.env.SESSION_ID,         
-  resave: false,                
-  saveUninitialized: false,      
+  secret: process.env.SESSION_ID,
+  resave: false,
+  saveUninitialized: false,
   cookie: {
-    maxAge: 1000 * 60 * 65,
-    httpOnly: true               
+    maxAge: 1000 * 60 * 60 * 6,   // 6 hours
+    httpOnly: true
   }
 }));
 
@@ -126,12 +126,12 @@ var adminRouter = require('./routes/admin');
 app.use('/', userRouter);
 app.use('/admin', adminRouter)
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

@@ -88,12 +88,12 @@ exports.viewOrders = async () => {
   try {
     const db = await getDB();
 
-const orderData = await db.collection(dbVariables.orderCollection).find({$or: [{ paymentStatus: "paid" },{ paymentMethod: "cod" } ]})
-  .sort({ createdAt: -1 }).toArray();
+    const orderData = await db.collection(dbVariables.orderCollection).find({ $or: [{ paymentStatus: "paid" }, { paymentMethod: "cod" }] })
+      .sort({ createdAt: -1 }).toArray();
 
     if (!orderData) throw new Error('No orders found or query failed');
     const ordersWithDetails = await Promise.all(orderData.map(async (order) => {
-      const userId = order.userId; 
+      const userId = order.userId;
 
       let buyer = null;
       try {
@@ -232,24 +232,24 @@ exports.getEachOrder = async (id) => {
 
 // update order status
 exports.updateOrderStatus = async (orderId, st) => {
-    try {
-        const db = await getDB();
+  try {
+    const db = await getDB();
 
-        const result = await db.collection(dbVariables.orderCollection).updateOne(
-            { _id: new ObjectId(orderId) },
-            { $set: { status:st } }
-        );
+    const result = await db.collection(dbVariables.orderCollection).updateOne(
+      { _id: new ObjectId(orderId) },
+      { $set: { status: st } }
+    );
 
-        return result;
-    } catch (err) {
-        throw new Error('Failed to update order status: ' + err.message);
-    }
+    return result;
+  } catch (err) {
+    throw new Error('Failed to update order status: ' + err.message);
+  }
 };
 //accept order
-exports.returnAccept = async (id,st) => {
+exports.returnAccept = async (id, st) => {
   const db = await getDB();
   const update = await db.collection(dbVariables.orderCollection)
-  .updateOne({_id: new ObjectId(id)},{$set:{returnOrder:st}})
+    .updateOne({ _id: new ObjectId(id) }, { $set: { returnOrder: st } })
 
   return update;
 }
@@ -259,7 +259,7 @@ exports.updateItemStatus = async (params) => {
     let { orderId, variantId, itemStatus } = params;
     const db = await getDB();
     let result = await db.collection(dbVariables.orderCollection).updateOne(
-      { _id: new ObjectId(orderId)  }, 
+      { _id: new ObjectId(orderId) },
       {
         $set: {
           "items.$[elem].itemStatus": itemStatus,
@@ -274,7 +274,7 @@ exports.updateItemStatus = async (params) => {
     if (result.modifiedCount === 0) {
       console.warn(" No item was updated. Check orderId/variantId match.");
     }
-    const order = await db.collection(dbVariables.orderCollection).findOne({_id:new ObjectId(orderId)});
+    const order = await db.collection(dbVariables.orderCollection).findOne({ _id: new ObjectId(orderId) });
 
     if (!order) {
       return { success: false, message: "Order not found" };
@@ -290,23 +290,23 @@ exports.updateItemStatus = async (params) => {
     } else if (allStatuses.every((s) => s === "Cancelled")) {
       newOrderStatus = "Cancelled";
     } else if (allStatuses.every((s) => s === "Shipped" || s === "Delivered")) {
-      newOrderStatus = "Shipped"; 
+      newOrderStatus = "Shipped";
     } else {
-      newOrderStatus = "Partially Fulfilled"; 
+      newOrderStatus = "Partially Fulfilled";
     }
     await db.collection(dbVariables.orderCollection).updateOne(
       { _id: new ObjectId(orderId) },
       { $set: { status: newOrderStatus } }
     );
     //update wallet
-        // let { orderId, variantId, itemStatus } = params;
-if (newOrderStatus=="Cancelled") {
-let response = await updateWallet.updateAmount(order,variantId)
+    // let { orderId, variantId, itemStatus } = params;
+    if (newOrderStatus == "Cancelled") {
+      let response = await updateWallet.updateAmount(order, variantId)
 
-}
+    }
     //update to paid in db
-    if (newOrderStatus == "Delivered" && order.paymentMethod=='cod') {
-      await db.collection(dbVariables.orderCollection).updateOne({_id:new ObjectId(orderId)},{$set:{paymentStatus:'paid'}})
+    if (newOrderStatus == "Delivered" && order.paymentMethod == 'cod') {
+      await db.collection(dbVariables.orderCollection).updateOne({ _id: new ObjectId(orderId) }, { $set: { paymentStatus: 'paid' } })
     }
     return { success: true, orderId, newOrderStatus };
   } catch (err) {
@@ -343,32 +343,32 @@ exports.offerAdd = async (data) => {
   };
 
   const response = await db.collection(dbVariables.offerCollection).insertOne(newOffer);
-  return { inserted: true, response }; 
+  return { inserted: true, response };
 };
 exports.offerView = async (data) => {
   const db = getDB();
-  const response = await db.collection(dbVariables.offerCollection).find({Active:true}).sort({endDate:-1}).toArray();
+  const response = await db.collection(dbVariables.offerCollection).find({ Active: true }).sort({ endDate: -1 }).toArray();
   return response
 }
-exports.disableOffer = async(id,status) => {
+exports.disableOffer = async (id, status) => {
   const db = await getDB();
-  const response = await db.collection(dbVariables.offerCollection).updateOne({_id: new ObjectId(id)},{$set:{Active:status.Active}})
+  const response = await db.collection(dbVariables.offerCollection).updateOne({ _id: new ObjectId(id) }, { $set: { Active: status.Active } })
   return response
 }
 exports.viewOffers = async (id) => {
   const db = await getDB()
-     check = await db.collection(dbVariables.offerCollection).findOne(id);
-     return check;
+  check = await db.collection(dbVariables.offerCollection).findOne(id);
+  return check;
 }
 exports.addCoupon = async (data) => {
- 
-  const db =await getDB();
+
+  const db = await getDB();
   const result = await db.collection(dbVariables.couponCollection).insertOne(data);
   return result;
 }
 exports.viewCouponPage = async () => {
   const db = await getDB();
-  const response = await db.collection(dbVariables.couponCollection).find({isActive:true}).sort({minimumPurchase:-1}).toArray();
+  const response = await db.collection(dbVariables.couponCollection).find({ isActive: true }).sort({ minimumPurchase: -1 }).toArray();
   return response;
 }
 exports.checkOffers = async (query) => {
@@ -388,14 +388,14 @@ exports.checkOffers = async (query) => {
     });
 
     let categoryOffer = null;
-   
-      categoryOffer = await offerCollection.findOne({
-        categoryId: categoriesId,
-        Active: true,
-        startDate: { $lte: currentDate },
-        endDate: { $gte: currentDate },
-      });
-    
+
+    categoryOffer = await offerCollection.findOne({
+      categoryId: categoriesId,
+      Active: true,
+      startDate: { $lte: currentDate },
+      endDate: { $gte: currentDate },
+    });
+
     if (productOffer && categoryOffer) {
       return productOffer.offerValue >= categoryOffer.offerValue
         ? productOffer
@@ -409,16 +409,16 @@ exports.checkOffers = async (query) => {
   }
 };
 exports.deleteCoupon = async (couponId) => {
-const db = await getDB();
-const response = await db.collection(dbVariables.couponCollection).updateOne({_id: new ObjectId(couponId)},{$set:{isActive:false}})
-return response;
+  const db = await getDB();
+  const response = await db.collection(dbVariables.couponCollection).updateOne({ _id: new ObjectId(couponId) }, { $set: { isActive: false } })
+  return response;
 
 }
 exports.editCoupon = async (couponId, data) => {
 
   const db = await getDB();
 
-  data ={
+  data = {
     couponId,
     ...data
   }
@@ -439,13 +439,13 @@ exports.updateItemsStatus = async (orderId, status) => {
 
 }
 exports.processReturnProduct = async (orderId, productId, variantId, status) => {
-  const db = await getDB(); 
+  const db = await getDB();
 
   const result = await db.collection(dbVariables.orderCollection).updateOne(
-  { orderId: orderId }, 
-  { $set: { "items.$[elem].itemReturn": status } },
-  { arrayFilters: [{ "elem.productId": productId, "elem.variantId": variantId }] }
-);
+    { orderId: orderId },
+    { $set: { "items.$[elem].itemReturn": status } },
+    { arrayFilters: [{ "elem.productId": productId, "elem.variantId": variantId }] }
+  );
 
   return result;
 
@@ -457,21 +457,21 @@ exports.viewReturnPage = async () => {
     const db = await getDB();
 
     const pipeline = [
-       {
+      {
         $addFields: {
           'items.productObjId': { $toObjectId: '$items.productId' },
           userObjId: { $toObjectId: '$userId' }
         }
       },
       {
-        $lookup:{
-          from:dbVariables.productCollection,
-          localField:'items.productObjId',
+        $lookup: {
+          from: dbVariables.productCollection,
+          localField: 'items.productObjId',
           foreignField: '_id',
-            as:"productsData"
+          as: "productsData"
         }
       },
-        {
+      {
         $lookup: {
           from: dbVariables.userCollection,
           localField: 'userObjId',
@@ -490,135 +490,136 @@ exports.viewReturnPage = async () => {
   }
 }
 exports.createWallet = async (data) => {
-      const {userId, orderId, productId, variantId, status,refundAmount } = data
-      const details = {
-        userId,
-        walletAmount: refundAmount,
-        updatedDate: new Date(),
-        refundHistory: [
-          {
-            orderId,
-            productId,
-            variantId,
-            status,
-            refund:"credit",
-            refundAmount,
-            date: new Date(),
-           
-          }]
-      }
+  const { userId, orderId, productId, variantId, status, refundAmount } = data
+  const details = {
+    userId,
+    walletAmount: refundAmount,
+    updatedDate: new Date(),
+    refundHistory: [
+      {
+        orderId,
+        productId,
+        variantId,
+        status,
+        refund: "credit",
+        refundAmount,
+        date: new Date(),
+
+      }]
+  }
   const db = await getDB();
-  const walletInserted = await db.collection(dbVariables.walletCollection).insertOne(details)  
+  const walletInserted = await db.collection(dbVariables.walletCollection).insertOne(details)
   if (walletInserted.insertedId) {
     const refundUpdate = await db.collection(dbVariables.returnCollection).updateOne(
-      {userId: userId, orderId: orderId, 'items.productId': productId, 'items.variantId': variantId},
-      {$set:{returnStatus:status}}
+      { userId: userId, orderId: orderId, 'items.productId': productId, 'items.variantId': variantId },
+      { $set: { returnStatus: status } }
     )
-   }
+  }
   return walletInserted;
 }
 exports.rejectReturnProduct = async (data) => {
-  const {userId, orderId, productId, variantId, status } = data
+  const { userId, orderId, productId, variantId, status } = data
   const db = await getDB();
   const response = await db.collection(dbVariables.returnCollection).updateOne(
-    {userId: userId, orderId: orderId, 'items.productId': productId, 'items.variantId': variantId},
-    {$set:{returnStatus:status}}
+    { userId: userId, orderId: orderId, 'items.productId': productId, 'items.variantId': variantId },
+    { $set: { returnStatus: status } }
   )
   return response;
 }
 exports.updateWallet = async (data) => {
-    const {userId, orderId, productId, variantId, status,refundAmount } = data;
-    const db = await getDB();
-    const walletData = await db.collection(dbVariables.walletCollection).findOne({userId:userId})
-    let sum = walletData.walletAmount + refundAmount;
+  const { userId, orderId, productId, variantId, status, refundAmount } = data;
+  const db = await getDB();
+  const walletData = await db.collection(dbVariables.walletCollection).findOne({ userId: userId })
+  let sum = walletData.walletAmount + refundAmount;
 
-if (!walletData) return false
+  if (!walletData) return false
   const updateData = await db.collection(dbVariables.walletCollection).updateOne(
     { userId: userId },
     {
       $set: { walletAmount: sum, updatedDate: new Date() },
-      $push:{refundHistory:{orderId,productId,variantId,status,refund:"credit",refundAmount,date:new Date()}}
+      $push: { refundHistory: { orderId, productId, variantId, status, refund: "credit", refundAmount, date: new Date() } }
     })
-    if (updateData.modifiedCount > 0) {
-        const refundUpdate = await db.collection(dbVariables.returnCollection).updateOne(
-      {userId: userId, orderId: orderId, 'items.productId': productId, 'items.variantId': variantId},
-      {$set:{returnStatus:status}}
+  if (updateData.modifiedCount > 0) {
+    const refundUpdate = await db.collection(dbVariables.returnCollection).updateOne(
+      { userId: userId, orderId: orderId, 'items.productId': productId, 'items.variantId': variantId },
+      { $set: { returnStatus: status } }
     )
-      }
- return updateData
+  }
+  return updateData
 
 }
 exports.checkUserWallet = async (userId) => {
   const db = await getDB();
-  const walletData = await db.collection(dbVariables.walletCollection).findOne({userId:userId})
+  const walletData = await db.collection(dbVariables.walletCollection).findOne({ userId: userId })
   return walletData
 }
 exports.viewReturnHistoryPage = async () => {
   try {
     const db = await getDB();
-   const pipeline = [{$match:{$or:[{returnStatus:'Approved'},{returnStatus:'Rejected'}]}},
-       {
-        $addFields: {
-          'items.productObjId': { $toObjectId: '$items.productId' },
-          userObjId: { $toObjectId: '$userId' }
-        }
-      },
-      {
-        $lookup:{
-          from:dbVariables.productCollection,
-          localField:'items.productObjId',
-          foreignField: '_id',
-            as:"productsData"
-        }
-      },
-        {
-        $lookup: {
-          from: dbVariables.userCollection,
-          localField: 'userObjId',
-          foreignField: '_id',
-          as: 'userData'
-        }
-      },
-      {
-        $sort: { _id: -1 }
+    const pipeline = [{ $match: { $or: [{ returnStatus: 'Approved' }, { returnStatus: 'Rejected' }] } },
+    {
+      $addFields: {
+        'items.productObjId': { $toObjectId: '$items.productId' },
+        userObjId: { $toObjectId: '$userId' }
       }
+    },
+    {
+      $lookup: {
+        from: dbVariables.productCollection,
+        localField: 'items.productObjId',
+        foreignField: '_id',
+        as: "productsData"
+      }
+    },
+    {
+      $lookup: {
+        from: dbVariables.userCollection,
+        localField: 'userObjId',
+        foreignField: '_id',
+        as: 'userData'
+      }
+    },
+    {
+      $sort: { _id: -1 }
+    }
     ]
     const returnHistory = await db.collection(dbVariables.returnCollection).aggregate(pipeline).toArray()
     return returnHistory;
   } catch (error) {
     console.error("Error fetching return history:", error);
     throw error;
-}}
+  }
+}
 exports.salesReportData = async () => {
   try {
     const db = await getDB();
 
-  const pipeline = [
+    const pipeline = [
 
-  { $unwind: "$items" },
-  {
-    $match: {
-      "items.itemStatus": "Delivered",
-      "items.itemReturn": { $ne: "return" }
-    }
-  },
-  {
-    $addFields: {
-      userObjectId: { $toObjectId: "$userId" }
-    }
-  },
-  {
-    $lookup: {
-      from: dbVariables.userCollection,
-      localField: "userObjectId",
-      foreignField: "_id",
-      as: "user"
-    }
-  },
-  { $unwind: "$user" },
+      { $unwind: "$items" },
+      {
+        $match: {
+          "items.itemStatus": "Delivered",
+          "items.itemReturn": { $ne: "return" }
+        }
+      },
+      {
+        $addFields: {
+          userObjectId: { $toObjectId: "$userId" }
+        }
+      },
+      {
+        $lookup: {
+          from: dbVariables.userCollection,
+          localField: "userObjectId",
+          foreignField: "_id",
+          as: "user"
+        }
+      },
+      { $unwind: "$user" },
 
-  { $sort: { updatedAt: -1 } }
-];
+      { $sort: { updatedAt: -1 } }
+    ];
 
     const salesData = await db
       .collection(dbVariables.orderCollection)

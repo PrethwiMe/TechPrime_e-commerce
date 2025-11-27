@@ -49,7 +49,7 @@ exports.razorpaySetup = async (req, res) => {
     const razorpayOrder = await req.app.locals.razorpay.orders.create({
       amount, currency, receipt: `receipt_${Date.now()}`, notes: { userId }
     });
-    
+
     const orderData = {
       orderId: `ORD${Math.floor(10000000 + Math.random() * 90000000)}`,
       userId,
@@ -72,8 +72,8 @@ exports.razorpaySetup = async (req, res) => {
     };
 
     await userProfileModel.addNewOrder(userId, orderData);
-    await userProfileModel.deleteCart(userId);   
-     //disable coupons
+    await userProfileModel.deleteCart(userId);
+    //disable coupons
     let disableCoupon = await userProfileModel.disableCoupon(couponCode)
 
 
@@ -111,9 +111,9 @@ exports.verifyPayment = async (req, res) => {
     });
 
 
-     for (const item of order.items) {
-  const changed = await productModel.updateStockAfterOrder(item.variantId, item.quantity);
-}
+    for (const item of order.items) {
+      const changed = await productModel.updateStockAfterOrder(item.variantId, item.quantity);
+    }
 
     res.json({
       success: updateOrder.modifiedCount > 0,

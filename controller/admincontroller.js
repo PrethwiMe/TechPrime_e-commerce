@@ -421,7 +421,7 @@ exports.viewOffer = async (req, res) => {
     const products = allProducts?.products || [];
     const offer = await adminModel.offerView();
     // paginate
-    let page = parseInt(req.params.number) || 1; 
+    let page = parseInt(req.params.number) || 1;
     if (page < 1) page = 1;
     let totalDocs = offer.length
     let limit = 5
@@ -457,7 +457,7 @@ exports.addOffers = async (req, res) => {
     ("Validation Errors:", error.details);
     return res.status(Status.BAD_REQUEST).json({
       success: Message.FORBIDDEN,
-      errors:  error.details[0].message
+      errors: error.details[0].message
     });
   }
 
@@ -507,19 +507,19 @@ exports.couponPage = async (req, res) => {
     }
     return code;
   };
- let result = await adminModel.viewCouponPage();
- //pagination
- let limit = 5
- let page = parseInt(req.query.page) || 1;
+  let result = await adminModel.viewCouponPage();
+  //pagination
+  let limit = 5
+  let page = parseInt(req.query.page) || 1;
   let totalCoupons = result.length
-  let {skip,totalPages} = paginate({totalDocs:totalCoupons,page,limit})
-result = result.splice(skip,skip+limit)
+  let { skip, totalPages } = paginate({ totalDocs: totalCoupons, page, limit })
+  result = result.splice(skip, skip + limit)
   res.render('admin-pages/coupons.ejs', {
     coupons: result || [],
     generatedCode: generateCouponCode(),
-    currentPage:page || null,
-    totalCoupons:totalCoupons||null,
-    totalPages:totalPages||null,
+    currentPage: page || null,
+    totalCoupons: totalCoupons || null,
+    totalPages: totalPages || null,
     limit
   });
 };
@@ -527,7 +527,7 @@ exports.addCoupon = async (req, res) => {
   try {
     const { error, value } = couponValidation(req.body);
     if (error) {
-     
+
       return res.status(400).json({ success: false, message: error.details[0].message });
     }
     let { code, discount, validFrom, validUntil, minPurchase } = req.body;
@@ -666,7 +666,7 @@ exports.salesReportPage = async (req, res) => {
       });
     }
 
-  
+
     res.render('admin-pages/salesReport.ejs', {
       sales: filteredSales || [],
       search: req.query.search || '',

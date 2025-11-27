@@ -20,36 +20,36 @@ exports.insertUser = async (userdata) => {
 
 }
 //check refer
-exports.updateRefferal = async (code) =>{
+exports.updateRefferal = async (code) => {
   const db = await getDB()
-  const collectionIs =await db.collection(dbVariables.referalCollection)
-    const walletCol = db.collection(dbVariables.walletCollection)
+  const collectionIs = await db.collection(dbVariables.referalCollection)
+  const walletCol = db.collection(dbVariables.walletCollection)
 
-  let checkCode = await collectionIs.findOne({code:code});
-   let user = checkCode.userId
- 
-   let updatReferal = await collectionIs.updateOne({code:code},{$inc:{count:+1,totalEarnings:100}})
-   //updat wallet
-   let walletcheck = await walletCol.findOne({userId:user})
-   if (walletcheck) {
-     let wallet = await walletCol.updateOne({userId:user},{$inc:{walletAmount:100}})
-    }else{
-      let wallet = await walletCol.insertOne({userId:user,walletAmount:100,updatedDate:new Date(),refundHistory: [],walletHistory: []})
-   }
+  let checkCode = await collectionIs.findOne({ code: code });
+  let user = checkCode.userId
+
+  let updatReferal = await collectionIs.updateOne({ code: code }, { $inc: { count: +1, totalEarnings: 100 } })
+  //updat wallet
+  let walletcheck = await walletCol.findOne({ userId: user })
+  if (walletcheck) {
+    let wallet = await walletCol.updateOne({ userId: user }, { $inc: { walletAmount: 100 } })
+  } else {
+    let wallet = await walletCol.insertOne({ userId: user, walletAmount: 100, updatedDate: new Date(), refundHistory: [], walletHistory: [] })
+  }
   return
 }
 //find one user
 exports.fetchUser = async (email) => {
   try {
-    const db =await getDB();
-    let data = await db.collection(dbVariables.userCollection).findOne( { email: email });
+    const db = await getDB();
+    let data = await db.collection(dbVariables.userCollection).findOne({ email: email });
     return data;
   } catch (error) {
     console.log(error);
   }
 };
 //check user exist or not 
-exports.userCheck = async (query) =>{
+exports.userCheck = async (query) => {
   try {
     const db = getDB();
     let data = await db.collection(dbVariables.userCollection).findOne(query);
@@ -319,12 +319,12 @@ exports.controllCart = async (userId, productId, variantId, op) => {
     { $set: { "items.$.quantity": newQuantity } }
   );
 
- 
+
   return {
     productId,
     variantId,
     quantity: newQuantity,
-    itemSubtotal: newQuantity * item.price, 
+    itemSubtotal: newQuantity * item.price,
   };
 };
 exports.removeProduct = async (productId, variantId, userId) => {
@@ -334,11 +334,11 @@ exports.removeProduct = async (productId, variantId, userId) => {
 }
 exports.addToWhishList = async (userId, productId, productName) => {
   const data = { userId, productId, productName }//obj
-  const db =await getDB();
+  const db = await getDB();
 
-const userCheck = await db.collection(dbVariables.whishList).findOne({userId:userId,productId:productId})
+  const userCheck = await db.collection(dbVariables.whishList).findOne({ userId: userId, productId: productId })
 
-if (userCheck) return "data is there"
+  if (userCheck) return "data is there"
   const whishlist = await db.collection(dbVariables.whishList).insertOne(data)
   return whishlist;
 }
@@ -374,16 +374,16 @@ exports.userDataEmailVerification = async (id) => {
       .collection(dbVariables.userCollection)
       .findOne(
         { _id: new ObjectId(id), isActive: true },
-        { projection: { password: 1, firstName: 1, email: 1, phone: 1, role: 1,referralCode:1,lastName:1,otp:1,otpCreated:1 } }
+        { projection: { password: 1, firstName: 1, email: 1, phone: 1, role: 1, referralCode: 1, lastName: 1, otp: 1, otpCreated: 1 } }
       );
     return data;
   } catch (error) {
     console.log(error);
   }
 };
-exports.updateEmail = async (id,email) => {
+exports.updateEmail = async (id, email) => {
   const db = await getDB();
-  const update = await db.collection(dbVariables.userCollection).updateOne({_id:new ObjectId(id)},{$set:{email:email}});
+  const update = await db.collection(dbVariables.userCollection).updateOne({ _id: new ObjectId(id) }, { $set: { email: email } });
   return update;
 }
 exports.updateOfferInCart = async (userId, productId, offerdata) => {
@@ -407,12 +407,12 @@ exports.updateOfferInCart = async (userId, productId, offerdata) => {
   } catch (error) {
   }
 };
-exports.deleteWishListProduct = async (userId,productId) => {
+exports.deleteWishListProduct = async (userId, productId) => {
   const db = await getDB();
   const deleteData = await db.collection(dbVariables.whishList).deleteOne({ userId: userId, productId: productId });
   return deleteData;
 }
-exports.deletefromWishlist = async (userId,productId) => {
+exports.deletefromWishlist = async (userId, productId) => {
   try {
     const db = await getDB();
     const deleteData = await db.collection(dbVariables.whishList).deleteOne({ userId: userId, productId: productId });
@@ -423,12 +423,12 @@ exports.deletefromWishlist = async (userId,productId) => {
 }
 exports.couponOffer = async (id) => {
   const db = await getDB()
-  const data = await db.collection(dbVariables.couponCollection).findOne({code:id})
+  const data = await db.collection(dbVariables.couponCollection).findOne({ code: id })
   return data
 }
 
 exports.getReferral = async (userId) => {
   const db = await getDB();
-  const data = await db.collection(dbVariables.referalCollection).findOne({userId:userId});
+  const data = await db.collection(dbVariables.referalCollection).findOne({ userId: userId });
   return data
 }

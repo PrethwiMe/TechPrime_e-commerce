@@ -4,13 +4,7 @@ const { ObjectId } = require('mongodb');
 
 const isUserLoggedIn = async (req, res, next) => {
   try {
-//        req.session.user= {
-//   userId: '689c69c53616ccec32a3d701',
-//   firstName: 'prethwi',
-//   email: 'admin@gmail.com',
-//   phone: '7034271417',
-//   role: 'user'
-// }
+
 
     if (!req.session.user || !req.session.user.userId) {
       return next();
@@ -38,14 +32,6 @@ const isUserLoggedIn = async (req, res, next) => {
 
 const userConfirmed = async (req, res, next) => {
   try {
-    
-//        req.session.user= {
-//   userId: '689c69c53616ccec32a3d701',
-//   firstName: 'prethwi',
-//   email: 'admin@gmail.com',
-//   phone: '7034271417',
-//   role: 'user'
-// }
 
     if (!req.session.user || !req.session.user.userId) {
       return res.redirect('/login');

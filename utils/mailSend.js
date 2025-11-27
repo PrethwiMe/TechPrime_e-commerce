@@ -78,4 +78,4 @@ async function sendVerificationMail(toEmail, code, type) {
     console.error('Error sending email:', error);
     return false;
   }
-}module.exports = sendVerificationMail;
+} module.exports = sendVerificationMail;

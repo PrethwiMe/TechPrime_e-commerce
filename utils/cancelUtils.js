@@ -13,7 +13,7 @@ exports.cancelOrderUtils = async (req) => {
   const orderCollection = db.collection(dbVariables.orderCollection);
   const walletCollection = db.collection(dbVariables.walletCollection);
 
-//check anything is delivered
+  //check anything is delivered
 
   // cancel each item
   for (const item of items) {
@@ -30,11 +30,11 @@ exports.cancelOrderUtils = async (req) => {
       }
     );
 
-   let dataForChecdk =await orderCollection.findOne({orderId:orderId})
+    let dataForChecdk = await orderCollection.findOne({ orderId: orderId })
 
-   if (dataForChecdk.paymentStatus === 'pending') {
+    if (dataForChecdk.paymentStatus === 'pending') {
       return { success: true };
-   }
+    }
 
     if (paymentMethod !== "cod") {
       const orderData = await orderCollection.findOne(
@@ -46,7 +46,7 @@ exports.cancelOrderUtils = async (req) => {
 
       const details = orderData.items[0];
       const refundBase = details.subtotal || 0;
-      const refundAmount = refundBase 
+      const refundAmount = refundBase
 
       const refundEntry = {
         orderId,

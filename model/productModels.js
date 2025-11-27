@@ -11,13 +11,13 @@ exports.insertProduct = async (productData) => {
 };
 // Insert variant  productId
 exports.insertVariant = async (variantData) => {
-  const db =getDB();
-  variantData.productId = new ObjectId(variantData.productId); 
+  const db = getDB();
+  variantData.productId = new ObjectId(variantData.productId);
   const result = await db.collection(dbVariables.variantCollection).insertOne(variantData);
   return result;
 };
 // Update product variantId
-exports.updateProductVarientsData= async (productId, variantIds) => {
+exports.updateProductVarientsData = async (productId, variantIds) => {
   const db = getDB()
   return await db.collection(dbVariables.productCollection).updateOne(
     { _id: productId },
@@ -27,7 +27,7 @@ exports.updateProductVarientsData= async (productId, variantIds) => {
 // Fetch all categories
 exports.getAllCategories = async (data) => {
 
-   const filter = data || {}
+  const filter = data || {}
   const db = await getDB();
   const categories = await db
     .collection(dbVariables.categoriesCollection)
@@ -49,7 +49,7 @@ exports.insetCategories = async (data) => {
 exports.statusOfCategory = async (categoryId) => {
 
 
-  const db =  getDB();
+  const db = getDB();
 
   const category = await db
     .collection(dbVariables.categoriesCollection)
@@ -60,26 +60,26 @@ exports.statusOfCategory = async (categoryId) => {
   const newStatus = !category.isActive;
   const updateResult = await db
     .collection(dbVariables.categoriesCollection)
-    .updateOne({ _id: new ObjectId(categoryId) },{ $set: { isActive: newStatus } });
+    .updateOne({ _id: new ObjectId(categoryId) }, { $set: { isActive: newStatus } });
 
-    if (updateResult) {
-      let cateId = category._id.toString()
+  if (updateResult) {
+    let cateId = category._id.toString()
 
-      let products = await db.collection(dbVariables.productCollection).find({categoriesId:cateId}).toArray()
-  for(let val of products){
+    let products = await db.collection(dbVariables.productCollection).find({ categoriesId: cateId }).toArray()
+    for (let val of products) {
 
 
-    let updateProduct = await db.collection(dbVariables.productCollection).updateMany({categoriesId: cateId},{$set:{isActive:newStatus}})
-  }      
+      let updateProduct = await db.collection(dbVariables.productCollection).updateMany({ categoriesId: cateId }, { $set: { isActive: newStatus } })
     }
+  }
 
   return updateResult;
 };
 //count in cart
-exports.countInCart = async (userId)=> {
+exports.countInCart = async (userId) => {
 
   const db = await getDB();
-  const cartCount = await db.collection(dbVariables.cartCollection).findOne({userId:userId})
+  const cartCount = await db.collection(dbVariables.cartCollection).findOne({ userId: userId })
 
 }
 // all products with pagination
@@ -101,68 +101,68 @@ exports.showProducts = async ({ skip = 0, limit = 5, search = "" }) => {
 
   return collection;
 };
-exports.showVarients = async(data) => {
+exports.showVarients = async (data) => {
   const db = getDB();
-  const variant =await db.collection(dbVariables.variantCollection).find().sort({createdAt:-1}).toArray();
+  const variant = await db.collection(dbVariables.variantCollection).find().sort({ createdAt: -1 }).toArray();
   return variant;
 }
-exports.toggleProduct = async (id,state) => {
+exports.toggleProduct = async (id, state) => {
   const db = getDB();
-  const collection =await db.collection(dbVariables.productCollection).updateOne({_id:new ObjectId(id)},{$set:{isActive:state}})
+  const collection = await db.collection(dbVariables.productCollection).updateOne({ _id: new ObjectId(id) }, { $set: { isActive: state } })
   return collection;
 }
 //search product
 exports.viewSearchData = async (data) => {
-const search = data.trim();
-let query = {};
+  const search = data.trim();
+  let query = {};
 
-if (search) {
-  if (!isNaN(search)) {
-    query = {
-      $or: [
-        { name: { $regex: search, $options: "i" } },
-        { companyDetails: { $regex: search, $options: "i" } },
-        { originalPrice: Number(search) }
-      ]
-    };
-  } else {
-    query = {
-      $or: [
-        { name: { $regex: search, $options: "i" } },
-        { companyDetails: { $regex: search, $options: "i" } }
-      ]
-    };
+  if (search) {
+    if (!isNaN(search)) {
+      query = {
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { companyDetails: { $regex: search, $options: "i" } },
+          { originalPrice: Number(search) }
+        ]
+      };
+    } else {
+      query = {
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { companyDetails: { $regex: search, $options: "i" } }
+        ]
+      };
+    }
   }
-}
 
-const db = getDB()
+  const db = getDB()
 
-const products = await db.collection(dbVariables.productCollection).find(query).toArray();
-return products;
+  const products = await db.collection(dbVariables.productCollection).find(query).toArray();
+  return products;
 }
 exports.showEditProduct = async (data) => {
 
   const db = getDB();
 
   const pipeline = [{
-    $match:{_id:new ObjectId(data)}
+    $match: { _id: new ObjectId(data) }
   },
-{
-  $lookup:{
-    from:dbVariables.variantCollection,
-    localField:"variantIds",
-    foreignField:"_id",
-    as:"fullProduct"
-  }
-}]
+  {
+    $lookup: {
+      from: dbVariables.variantCollection,
+      localField: "variantIds",
+      foreignField: "_id",
+      as: "fullProduct"
+    }
+  }]
 
   const productData = await db.collection(dbVariables.productCollection).aggregate(pipeline).toArray()
-  
+
   return productData
 }
 exports.showVarients = async (data) => {
   const db = getDB();
-  const productData = await db.collection(dbVariables.variantCollection).findOne({_id: new ObjectId(data)})
+  const productData = await db.collection(dbVariables.variantCollection).findOne({ _id: new ObjectId(data) })
   return productData
 
 }
@@ -174,7 +174,7 @@ exports.showCate = async () => {
 
 }
 exports.updateProduct = async (productId, updateData) => {
-  const db = getDB();  
+  const db = getDB();
   return db.collection(dbVariables.productCollection).updateOne(
     { _id: new ObjectId(productId) },
     { $set: updateData }
@@ -182,20 +182,20 @@ exports.updateProduct = async (productId, updateData) => {
 };
 exports.updateVariantByProductId = async (productId, variantId, variantData) => {
   const db = getDB();
- let updateVariant = db.collection(dbVariables.variantCollection).updateOne( { _id: new ObjectId(variantId) }, { $set: variantData });
+  let updateVariant = db.collection(dbVariables.variantCollection).updateOne({ _id: new ObjectId(variantId) }, { $set: variantData });
   return true
 };
-exports.showEditCategory = async (categoryId) =>{
+exports.showEditCategory = async (categoryId) => {
 
   const db = getDB();
   const category = await db
     .collection(dbVariables.categoriesCollection)
     .findOne({ _id: new ObjectId(categoryId) })
-    return category
+  return category
 }
 exports.updateCategory = (data) => {
   const db = getDB();
-  const statusOF = db.collection(dbVariables.categoriesCollection).updateOne({_id: new ObjectId(data._id)},{$set:{name:data.name,description : data.description}})
+  const statusOF = db.collection(dbVariables.categoriesCollection).updateOne({ _id: new ObjectId(data._id) }, { $set: { name: data.name, description: data.description } })
   return statusOF
 }
 //serach product
@@ -204,15 +204,15 @@ function getSortQuery(sortType) {
     case 'low-high': return { finalPrice: 1 };
     case 'high-low': return { finalPrice: -1 };
     case 'newest': return { createdAt: -1 };
-    default: return {}; 
+    default: return {};
   }
 }
-exports.allProductsDisplay = async () =>{
+exports.allProductsDisplay = async () => {
 
   const db = getDB()
 
-    return await db.collection(dbVariables.productCollection).aggregate([
-    { $match: {isActive:true} },
+  return await db.collection(dbVariables.productCollection).aggregate([
+    { $match: { isActive: true } },
     {
       $lookup: {
         from: dbVariables.variantCollection,
@@ -244,7 +244,7 @@ exports.getAllCategoriesForUser = async () => {
   const db = getDB();
   const categories = await db
     .collection(dbVariables.categoriesCollection)
-    .find({isActive:true})
+    .find({ isActive: true })
     .sort({ _id: -1 })
     .toArray();
   return categories;
@@ -252,13 +252,14 @@ exports.getAllCategoriesForUser = async () => {
 exports.viewProducts = async (data) => {
   let db = getDB();
   const pipeline = [{
-    $match:{_id:new ObjectId(data) }}
-  ,{
-    $lookup:{
-      from:dbVariables.variantCollection,
+    $match: { _id: new ObjectId(data) }
+  }
+    , {
+    $lookup: {
+      from: dbVariables.variantCollection,
       localField: "variantIds",
-        foreignField: "_id",
-        as: "combProduct"
+      foreignField: "_id",
+      as: "combProduct"
     }
   }]
 
@@ -270,17 +271,17 @@ exports.viewAllProducts = async () => {
 
   let db = getDB();
 
-   const totalDocs = await db.collection(dbVariables.productCollection).countDocuments();
+  const totalDocs = await db.collection(dbVariables.productCollection).countDocuments();
   const pipeline = [{
-    $lookup:{
-      from:dbVariables.variantCollection,
+    $lookup: {
+      from: dbVariables.variantCollection,
       localField: "variantIds",
-        foreignField: "_id",
-        as: "combProduct"
+      foreignField: "_id",
+      as: "combProduct"
     }
   }]
   const products = await db.collection(dbVariables.productCollection).aggregate(pipeline).toArray();
-    return { totalDocs, products };
+  return { totalDocs, products };
 }
 //decrease stock after order
 exports.updateStockAfterOrder = async (variantId, quantity) => {
@@ -290,7 +291,7 @@ exports.updateStockAfterOrder = async (variantId, quantity) => {
     { $inc: { stock: -quantity } }
   );
 
-  
+
 
 }
 exports.eachOrderData = async (orderId) => {
@@ -319,47 +320,47 @@ exports.eachOrderData = async (orderId) => {
   }
 };
 
-exports.changeItemStatus = async (userId,orderId,status,variantId) => {
+exports.changeItemStatus = async (userId, orderId, status, variantId) => {
   const db = getDB();
   let changeStatus = await db.collection(dbVariables.orderCollection);
 
-  let test = await changeStatus.findOne({userId:userId,orderId: orderId });
+  let test = await changeStatus.findOne({ userId: userId, orderId: orderId });
   let changed = await changeStatus.updateOne(
-    { userId:userId,orderId: orderId, "items.variantId": variantId },
+    { userId: userId, orderId: orderId, "items.variantId": variantId },
     { $set: { "items.$.itemStatus": status } }
   );
   console.log("Changed Status:", changed);
   return changed;
 }
-exports.addVarient =async (productId) => {
+exports.addVarient = async (productId) => {
   const db = await getDB()
-  const getProductCollection = await db.collection(dbVariables.productCollection).findOne({_id:new ObjectId(productId)});
+  const getProductCollection = await db.collection(dbVariables.productCollection).findOne({ _id: new ObjectId(productId) });
   return getProductCollection;
 }
 //get varients
 exports.getVarients = async (id) => {
   const db = await getDB();
-  const getVarients = await db.collection(dbVariables.variantCollection).find({productId:id}).toArray();
+  const getVarients = await db.collection(dbVariables.variantCollection).find({ productId: id }).toArray();
   return getVarients
 }
 // add varients
-exports.addMoreVarients = async (productId,val) => {
-try {
-  const db = await getDB()
-let data = {
-  productId: new ObjectId(productId),
-  ...val
-}
-  const varients = await db.collection(dbVariables.variantCollection).insertOne(data)
-  if (varients.insertedId) {
-    const variant = varients.insertedId;
-    const updateProduct = await db.collection(dbVariables.productCollection).updateOne({_id:new ObjectId(productId)},{$push:{ variantIds:variant}})
+exports.addMoreVarients = async (productId, val) => {
+  try {
+    const db = await getDB()
+    let data = {
+      productId: new ObjectId(productId),
+      ...val
+    }
+    const varients = await db.collection(dbVariables.variantCollection).insertOne(data)
+    if (varients.insertedId) {
+      const variant = varients.insertedId;
+      const updateProduct = await db.collection(dbVariables.productCollection).updateOne({ _id: new ObjectId(productId) }, { $push: { variantIds: variant } })
+    }
+
+    return varients
+  } catch (error) {
+    console.log(error)
+    throw error
   }
-  
-  return varients
-} catch (error) {
-  console.log(error)
-  throw error
-}
 
 }

@@ -19,10 +19,10 @@ exports.loadHome = async (req, res) => {
     const data = await productModel.allProductsDisplay();
     const products = data;
     let filter = {
-      isActive:true
+      isActive: true
     }
     const categories = await productModel.getAllCategories(filter);
-      res.render('user-pages/home', {
+    res.render('user-pages/home', {
       products,
       categories
     });
@@ -33,7 +33,7 @@ exports.loadHome = async (req, res) => {
 };
 exports.renderLoginPage = (req, res) => {
   try {
-    
+
     res.render('user-pages/login', { user: req.session.user });
   } catch (error) {
     console.log(error);
@@ -51,7 +51,7 @@ exports.loginAccess = async (req, res) => {
 
     const user = await userModel.fetchUser(email);
 
-    if (user.googleId ) {
+    if (user.googleId) {
       return res.status(400).json({ error: 'Please log in using Google Acount...' });
     }
     if (!user) {
@@ -90,7 +90,7 @@ exports.handleSignup = async (req, res) => {
     const { firstName, lastName, email, phone, password, confirmPassword, referralCode } = req.body;
 
     const { error } = joi.signupValidation({
-      name: firstName, 
+      name: firstName,
       email,
       phone,
       password,
@@ -107,8 +107,8 @@ exports.handleSignup = async (req, res) => {
     }
 
     //  Check if email already exists
-    const data={
-      email:email
+    const data = {
+      email: email
     }
     const existingUser = await userModel.userCheck(data);
     if (existingUser) {
@@ -166,10 +166,10 @@ exports.handleSignup = async (req, res) => {
     });
   }
 };
-exports.renderVerifyMailPage = (req, res) => {  
-  
+exports.renderVerifyMailPage = (req, res) => {
+
   if (!req.session.emailData) return res.redirect('/signup');
-email = req.session.emailData;
+  email = req.session.emailData;
   res.render('user-pages/verify-mail', { email, error: null })
 }
 exports.resendOtp = async (req, res) => {
@@ -179,7 +179,7 @@ exports.resendOtp = async (req, res) => {
     console.log(otp);
 
     let data = await userModel.resendotpData(mail, otp)
-    let msg = await sendMail(mail, otp,"signup"   );
+    let msg = await sendMail(mail, otp, "signup");
     return res.json({ success: true });
   } catch (error) {
     console.log(error);
@@ -352,17 +352,17 @@ exports.googleSuccessRedirect = async (req, res) => {
   if (!req.user) {
     return res.redirect('/login');
   }
-     req.session.user = {
-  userId: String(req.user._id),
-  firstName: req.user.firstName,
-  email: req.user.email,
-  role: req.user.role,
-};
+  req.session.user = {
+    userId: String(req.user._id),
+    firstName: req.user.firstName,
+    email: req.user.email,
+    role: req.user.role,
+  };
 
   const data = await productModel.allProductsDisplay();
   const products = data;
   const categories = await productModel.getAllCategories();
-res.redirect('/')
+  res.redirect('/')
 };
 // Logout
 exports.logoutUser = (req, res) => {
@@ -401,7 +401,7 @@ exports.searchProduct = async (req, res) => {
       categories,
       currentPage: page,
       totalPages,
-      user:req.session.user || null
+      user: req.session.user || null
     });
   } catch (error) {
     console.error(error);
@@ -424,34 +424,34 @@ exports.sortAndSearchProducts = async (req, res) => {
       query.categoriesId = { $in: categories.map(c => c.trim()) };
     }
 
-        let products = await productModel.getFilteredProducts(query);
+    let products = await productModel.getFilteredProducts(query);
 
 
-   if (minPrice || maxPrice) {
-  products = products.filter(p =>
-    p.fullProduct.some(v => {
-      const price = Number(v.price);
-      if (minPrice && price < minPrice) return false;
-      if (maxPrice && price > maxPrice) return false;
-      return true;
-    })
-  );
-}
+    if (minPrice || maxPrice) {
+      products = products.filter(p =>
+        p.fullProduct.some(v => {
+          const price = Number(v.price);
+          if (minPrice && price < minPrice) return false;
+          if (maxPrice && price > maxPrice) return false;
+          return true;
+        })
+      );
+    }
 
 
-  if (sort) {
-  switch (sort) {
-    case "low-high":
-      products.sort((a, b) => a.fullProduct[0].price - b.fullProduct[0].price);
-      break;
-    case "high-low":
-      products.sort((a, b) => b.fullProduct[0].price - a.fullProduct[0].price);
-      break;
-    case "newest":
-      products.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      break;
-  }
-}
+    if (sort) {
+      switch (sort) {
+        case "low-high":
+          products.sort((a, b) => a.fullProduct[0].price - b.fullProduct[0].price);
+          break;
+        case "high-low":
+          products.sort((a, b) => b.fullProduct[0].price - a.fullProduct[0].price);
+          break;
+        case "newest":
+          products.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          break;
+      }
+    }
 
 
     if (sort === "a-z") products.sort((a, b) => a.name.localeCompare(b.name));
@@ -479,18 +479,20 @@ exports.loadProductDetails = async (req, res) => {
   let data = req.params.id
   try {
     let result = await productModel.viewProducts(data)
-    let categoriesId = result[0].categoriesId   
+    let categoriesId = result[0].categoriesId
     const { totalDocs, products } = await productModel.viewAllProducts()
 
-//related products
-let filteredProducts = products.filter(product => {
-  return product.categoriesId == categoriesId
-}  );
+    //related products
+    let filteredProducts = products.filter(product => {
+      return product.categoriesId == categoriesId
+    });
 
 
     let categories = await productModel.getAllCategories()
-    res.render("user-pages/productDetails.ejs", { relatedProducts:filteredProducts,categories, product: result[0],
-       products: products, query: req.query.q || "",user: req.session.user });
+    res.render("user-pages/productDetails.ejs", {
+      relatedProducts: filteredProducts, categories, product: result[0],
+      products: products, query: req.query.q || "", user: req.session.user
+    });
   } catch (error) {
     console.log(error);
   }
@@ -498,24 +500,24 @@ let filteredProducts = products.filter(product => {
 //add to carts
 exports.addToCart = async (req, res) => {
   try {
-  const { productId, variantId, productName } = req.body;
+    const { productId, variantId, productName } = req.body;
 
-  let deletefromWishlist = await userModel.deleteWishListProduct(req.session.user.userId,productId)
+    let deletefromWishlist = await userModel.deleteWishListProduct(req.session.user.userId, productId)
 
-  const Id = req.session.user.userId
-  const name = req.session.user.name
-  const data = await userModel.addToCartdb(Id, productId, variantId, productName)
-  //get category id, cmpre ofer and product offer
-  let result = await productModel.viewProducts(productId)
-  let categoriesId = result[0]. categoriesId;
-  let offerCheck = await adminModal.checkOffers({productId,categoriesId,Active:true})
-  if (offerCheck) {
-    let updateOffer = await userModel.updateOfferInCart(Id, productId,offerCheck) 
+    const Id = req.session.user.userId
+    const name = req.session.user.name
+    const data = await userModel.addToCartdb(Id, productId, variantId, productName)
+    //get category id, cmpre ofer and product offer
+    let result = await productModel.viewProducts(productId)
+    let categoriesId = result[0].categoriesId;
+    let offerCheck = await adminModal.checkOffers({ productId, categoriesId, Active: true })
+    if (offerCheck) {
+      let updateOffer = await userModel.updateOfferInCart(Id, productId, offerCheck)
+    }
+    return res.json(data);
+  } catch (error) {
+    console.error(error);
   }
-  return res.json(data);
-} catch (error) {
-  console.error(error);
-}
 
 }
 //view cart
@@ -625,7 +627,8 @@ exports.viewCart = async (req, res) => {
       cartOriginal,
       cartDiscount,
       cartSubtotal,
-       user: req.session.user});
+      user: req.session.user
+    });
   } catch (error) {
     console.error("Error in viewCart:", error);
     res.status(500).send("Internal Server Error");
@@ -690,25 +693,25 @@ exports.whishList = async (req, res) => {
   }
 };
 ////view whishList
-exports.whishListCall = async (req,res) => {
+exports.whishListCall = async (req, res) => {
   const id = req.session.user.userId
   let wishlist = await userModel.viewWishList(id);
-  res.render('user-pages/whishlist.ejs',{wishlist,user: req.session.user})
+  res.render('user-pages/whishlist.ejs', { wishlist, user: req.session.user })
 }
 //delete from wishlist
 exports.deleteWishList = async (req, res) => {
-try {
-  const userId = req.session.user.userId;
-  const{  productId } = req.body;
-  let result = await userModel.deleteWishListProduct(userId,productId)
+  try {
+    const userId = req.session.user.userId;
+    const { productId } = req.body;
+    let result = await userModel.deleteWishListProduct(userId, productId)
 
-  if (result.modifiedCount > 0) {
-    return  res.json({ success: true, message: "product deleted from wishlist..!" });
+    if (result.modifiedCount > 0) {
+      return res.json({ success: true, message: "product deleted from wishlist..!" });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: "product can not delete now..!" });
   }
-} catch (error) {
-  console.log(error);
-  res.status(500).json({ success: false, message: "product can not delete now..!" });
-}
 
 }
 

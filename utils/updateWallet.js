@@ -4,11 +4,11 @@
 
 exports.updateAmount = async (data, variantId) => {
   const { orderId, userId } = data;
-const { getDB } = require('../config/mongodb.js')
-const dbVariables = require('../config/databse')
+  const { getDB } = require('../config/mongodb.js')
+  const dbVariables = require('../config/databse')
 
-  const db =  getDB();
-  
+  const db = getDB();
+
   const walletCollection = await db.collection(dbVariables.walletCollection);
   const orderCollection = await db.collection(dbVariables.orderCollection);
 

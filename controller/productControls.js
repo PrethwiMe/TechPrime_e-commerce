@@ -7,9 +7,9 @@ const dbVariables = require('../config/databse');
 const paginate = require('../utils/paginate');
 const { error, log } = require('console');
 const { ObjectId } = require('mongodb');
-const{productValidation,addVariantsValidation} = require('../utils/validation')
-const {uploadToCloudinary} = require('../middleware/multer')
-const { productEditValidation,variantEditValidation,addVariantValidation } = require('../utils/validation');
+const { productValidation, addVariantsValidation } = require('../utils/validation')
+const { uploadToCloudinary } = require('../middleware/multer')
+const { productEditValidation, variantEditValidation, addVariantValidation } = require('../utils/validation');
 const { Status, Message } = require('../utils/constants')
 
 // add product
@@ -41,7 +41,7 @@ exports.handleAddProduct = async (req, res) => {
       variant,
     } = req.body;
 
-   
+
     const productDataForValidation = {
       name,
       description,
@@ -53,7 +53,7 @@ exports.handleAddProduct = async (req, res) => {
       OS,
       dimension,
       series,
-      images: ["dummy1", "dummy2", "dummy3"], 
+      images: ["dummy1", "dummy2", "dummy3"],
     };
 
     const { error: baseError } = productValidation(productDataForValidation);
@@ -95,7 +95,7 @@ exports.handleAddProduct = async (req, res) => {
       imagePaths.push(result.secure_url);
     }
 
-   
+
     const productData = {
       name,
       companyDetails,
@@ -135,7 +135,7 @@ exports.handleAddProduct = async (req, res) => {
       }
     }
 
-  
+
     await productModel.updateProductVarientsData(productId, variantIds);
 
     return res.json({
@@ -239,34 +239,34 @@ exports.displayProducts = async (req, res) => {
       search
     });
   } catch (error) {
-    return res.status(Status.INTERNAL_SERVER_ERROR).json({status:Status.INTERNAL_SERVER_ERROR,message:Message.INTERNAL_ERROR})
+    return res.status(Status.INTERNAL_SERVER_ERROR).json({ status: Status.INTERNAL_SERVER_ERROR, message: Message.INTERNAL_ERROR })
   }
 };
 //add varients
-exports.addVarients = async(req,res) => {
+exports.addVarients = async (req, res) => {
   let varients;
-  let count=0;
+  let count = 0;
   const productId = req.params.productId
-let getProductData = await productModel.addVarient(productId)
- varients =await productModel.getVarients(getProductData._id)
+  let getProductData = await productModel.addVarient(productId)
+  varients = await productModel.getVarients(getProductData._id)
 
-res.render('admin-pages/addVariants.ejs',{product:getProductData || null, variants:varients || null })
+  res.render('admin-pages/addVariants.ejs', { product: getProductData || null, variants: varients || null })
 }
 
 // add More Variants
-exports.addMoreVariants = async (req,res) => {
+exports.addMoreVariants = async (req, res) => {
   try {
 
     const { error, value } = addVariantsValidation(req.body);
-    if(error) return res.status(Status.BAD_REQUEST).json({status:Status.BAD_REQUEST,message:error.details[0].message})
-    const { productId,variants} = req.body
-    for(let val of variants){
-      await productModel.addMoreVarients(productId,val)
+    if (error) return res.status(Status.BAD_REQUEST).json({ status: Status.BAD_REQUEST, message: error.details[0].message })
+    const { productId, variants } = req.body
+    for (let val of variants) {
+      await productModel.addMoreVarients(productId, val)
     }
-    res.status(Status.OK).json({status:Status.OK,message:Message.CREATED})
+    res.status(Status.OK).json({ status: Status.OK, message: Message.CREATED })
   } catch (error) {
     res.status(Status.INTERNAL_SERVER_ERROR)
-    .json({status:Status.INTERNAL_SERVER_ERROR,message:Message.INTERNAL_ERROR})
+      .json({ status: Status.INTERNAL_SERVER_ERROR, message: Message.INTERNAL_ERROR })
   }
 }
 
@@ -314,7 +314,7 @@ exports.productSearch = async (req, res) => {
       search,
     });
   } catch (error) {
-    return res.status(Status.INTERNAL_SERVER_ERROR).json({status:Status.INTERNAL_SERVER_ERROR,message:Message.INTERNAL_ERROR})
+    return res.status(Status.INTERNAL_SERVER_ERROR).json({ status: Status.INTERNAL_SERVER_ERROR, message: Message.INTERNAL_ERROR })
   }
 }
 exports.editProductPage = async (req, res) => {
@@ -347,16 +347,16 @@ exports.handleEditProduct = async (req, res) => {
       return String(val).trim();
     };
 
-    const name           = clean(req.body.name);
-    const companyDetails  = clean(req.body.companyDetails);
-    const description     = clean(req.body.description);
-    const originalPrice   = parseFloat(clean(req.body.originalPrice)) || 0;
-    const categoriesId    = clean(req.body.categoriesId);
-    const packageItems    = clean(req.body.packageItems);
-    const OS              = clean(req.body.OS);
-    const dimension       = clean(req.body.dimension);
-    const series          = clean(req.body.series);
-    const isActive        = clean(req.body.isActive) === 'true';
+    const name = clean(req.body.name);
+    const companyDetails = clean(req.body.companyDetails);
+    const description = clean(req.body.description);
+    const originalPrice = parseFloat(clean(req.body.originalPrice)) || 0;
+    const categoriesId = clean(req.body.categoriesId);
+    const packageItems = clean(req.body.packageItems);
+    const OS = clean(req.body.OS);
+    const dimension = clean(req.body.dimension);
+    const series = clean(req.body.series);
+    const isActive = clean(req.body.isActive) === 'true';
 
     const allImages = [];
     for (let i = 0; i < 3; i++) {
@@ -366,7 +366,7 @@ exports.handleEditProduct = async (req, res) => {
         const result = await uploadToCloudinary(file.buffer, 'techcart/products');
         allImages.push(result.secure_url);
       } else if (req.body[slotKey]) {
-        allImages.push(req.body[slotKey]); 
+        allImages.push(req.body[slotKey]);
       } else {
         return res.status(400).json({ success: false, message: `Image slot ${i + 1} is required.` });
       }
@@ -400,23 +400,23 @@ exports.handleEditProduct = async (req, res) => {
     if (req.body.variants && Array.isArray(req.body.variants)) {
       for (const variant of req.body.variants) {
         const variantId = clean(variant._id);
-        if (!variantId) continue; 
+        if (!variantId) continue;
 
         const variantData = {
           processor: clean(variant.processor),
-          ram:       clean(variant.ram),
-          storage:   clean(variant.storage),
-          graphics:  clean(variant.graphics),
-          color:     clean(variant.color),
-          display:   clean(variant.display),
-          price:     parseFloat(clean(variant.price)) || 0,
-          stock:     parseInt(clean(variant.stock), 10) || 0,
+          ram: clean(variant.ram),
+          storage: clean(variant.storage),
+          graphics: clean(variant.graphics),
+          color: clean(variant.color),
+          display: clean(variant.display),
+          price: parseFloat(clean(variant.price)) || 0,
+          stock: parseInt(clean(variant.stock), 10) || 0,
         };
 
-        const{error,value} = variantEditValidation(variantData)
+        const { error, value } = variantEditValidation(variantData)
         if (error) {
 
-         return res.status(Status.BAD_REQUEST).json({status:Status.BAD_REQUEST,message:error.details[0].message})
+          return res.status(Status.BAD_REQUEST).json({ status: Status.BAD_REQUEST, message: error.details[0].message })
         }
 
         await productModel.updateVariantByProductId(productId, variantId, variantData);
