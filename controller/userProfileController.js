@@ -231,7 +231,7 @@ exports.updatePassword = async (req, res) => {
   let data = await userModel.fetchUser(email);
 
   if (data.password==null) {
-    return res.status(Status.BAD_REQUEST).json({status:Status.BAD_REQUEST,message:"google user can not change numbers"})
+    return res.status(Status.BAD_REQUEST).json({status:Status.BAD_REQUEST,message:"google user can not change PASSWORDS"})
   }
   if (!data) {
     return res.status(404).json({ message: "User not found!" });
