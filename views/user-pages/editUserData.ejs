@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Edit Profile | TechCart</title>
 
+  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- SweetAlert2 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
   <style>
     .modal-dialog { max-width: 90%; max-height: 90vh; }
@@ -13,7 +15,7 @@
     .modal-content { max-width: 90%; max-height: 90%; }
     #timerDisplay { font-size: 14px; color: #555; margin-top: 10px; }
     .profile-img-preview { max-width: 150px; max-height: 150px; border-radius: 50%; object-fit: cover; margin-top: 10px; }
-    .google-info { background-color: #e7f3ff; border-left: 4px solid #4285f4; padding: 12px; border-radius: 4px; margin-bottom: 20px; font-size: 14px; }
+    .disabled-field { background-color: #e9ecef; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -24,11 +26,10 @@
     <div class="container-fluid">
       <h3 class="mb-4">Edit Your Profile</h3>
 
-      <!-- Show message only for Google users -->
-      <% if (!user.password) { %>
-        <div class="google-info">
-          <strong>Info:</strong> You are signed in with Google. You can update your name, phone, and profile picture. 
-          Email cannot be changed.
+      <!-- Show warning if password is not set -->
+      <% if (!user.password || user.password.trim() === '') { %>
+        <div class="alert alert-warning">
+          <strong>Note:</strong> You signed up via social login. Only Name, Phone, and Profile Image can be updated.
         </div>
       <% } %>
 
@@ -36,31 +37,29 @@
         <div class="row mb-3">
           <div class="col-md-6">
             <label for="firstName" class="form-label">First Name</label>
-            <input type="text" class="form-control" id="firstName" name="firstName" value="<%= user.firstName || '' %>" required />
+            <input type="text" class="form-control" id="firstName" name="firstName" value="<%= user.firstName || '' %>"  />
           </div>
           <div class="col-md-6">
             <label for="lastName" class="form-label">Last Name</label>
-            <input type="text" class="form-control" id="lastName" name="lastName" value="<%= user.lastName || '' %>" required />
+            <input type="text" class="form-control" id="lastName" name="lastName" value="<%= user.lastName || '' %>"  />
           </div>
         </div>
 
-        <!-- Email Field - Readonly for Google users -->
         <div class="mb-3 input-group">
           <div class="flex-grow-1">
             <label for="email" class="form-label">Email</label>
             <input type="email" 
-                   class="form-control" 
-                   id="email" 
+                   class="form-control <%= (!user.password || user.password.trim() === '') ? 'disabled-field' : '' %>" 
+                   id="email"  
                    value="<%= user.email || '' %>" 
-                   <%= user.password ? '' : 'readonly' %> 
-                   required />
+                   <%= (!user.password || user.password.trim() === '') ? 'disabled readonly' : '' %> 
+                    />
           </div>
-          <% if (user.password) { %>
+          <% if (user.password && user.password.trim() !== '') { %>
             <button type="button" id="sendOtpBtn" class="btn btn-outline-secondary ms-2 align-self-end">Send OTP</button>
           <% } %>
         </div>
 
-        <!-- Phone Field - Always editable -->
         <div class="mb-3">
           <label for="phone" class="form-label">Phone</label>
           <input type="text" 
@@ -68,15 +67,18 @@
                  id="phone" 
                  name="phone" 
                  value="<%= user.phone || '' %>" 
-                 required />
+                  />
         </div>
 
-        <!-- Profile Image -->
         <div class="mb-3">
           <label for="profileImage" class="form-label">Profile Image</label>
-          <input type="file" class="form-control" id="profileImage" name="profileImage" accept="image/*" />
+          <input type="file" 
+                 class="form-control" 
+                 id="profileImage" 
+                 name="profileImage" 
+                 accept="image/*" />
           <% if (user.profileImage && user.profileImage.url) { %>
-            <img src="<%=As user.profileImage.url %>" alt="Current Profile Image" class="profile-img-preview mt-2" />
+            <img src="<%= user.profileImage.url %>" alt="Current Profile Image" class="profile-img-preview mt-2" />
           <% } %>
           <div id="imagePreview" class="mt-2"></div>
         </div>
@@ -86,8 +88,8 @@
     </div>
   </div>
 
-  <!-- OTP Modal (Only for normal users) -->
-  <% if (user.password) { %>
+  <!-- OTP Modal (only shown if password exists) -->
+  <% if (user.password && user.password.trim() !== '') { %>
   <div class="modal fade" id="otpModal" tabindex="-1" aria-labelledby="otpModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -118,10 +120,8 @@
     const updateProfileForm = document.getElementById('updateProfileForm');
     const profileImageInput = document.getElementById('profileImage');
     const imagePreview = document.getElementById('imagePreview');
-    const emailInput = document.getElementById('email');
-    let isEmailVerified = <%= user.password ? 'false' : 'true' %>; // Google users don't need OTP
 
-    // Image Preview
+    // Image preview
     profileImageInput.addEventListener('change', function () {
       imagePreview.innerHTML = '';
       const file = this.files[0];
@@ -137,37 +137,123 @@
       }
     });
 
-    // Loading Popup
+    // Show loading
     function showLoading(message = 'Please wait...') {
-      Swal.fire({ title: message, allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      Swal.fire({
+        title: message,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => Swal.showLoading()
+      });
     }
 
-    // Form Submission
+    // Only initialize OTP functionality if password exists
+    <% if (user.password && user.password.trim() !== '') { %>
+      const otpModal = new bootstrap.Modal(document.getElementById('otpModal'));
+      const sendOtpBtn = document.getElementById('sendOtpBtn');
+      const resendOtpBtn = document.getElementById('resendOtpBtn');
+      const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+      const emailInput = document.getElementById('email');
+      const timerDisplay = document.getElementById('timerDisplay');
+      let isEmailVerified = false;
+      let countdownInterval;
+
+      function startResendTimer() {
+        resendOtpBtn.disabled = true;
+        clearInterval(countdownInterval);
+        let secondsLeft = 60;
+        timerDisplay.textContent = `Resend available in ${secondsLeft} seconds`;
+
+        countdownInterval = setInterval(() => {
+          secondsLeft--;
+          if (secondsLeft <= 0) {
+            clearInterval(countdownInterval);
+            resendOtpBtn.disabled = false;
+            timerDisplay.textContent = 'You can now resend OTP';
+          } else {
+            timerDisplay.textContent = `Resend available in ${secondsLeft} seconds`;
+          }
+        }, 1000);
+      }
+
+      async function sendOtp() {
+        const newEmail = emailInput.value.trim();
+        if (!newEmail || newEmail === '<%= user.email %>') return;
+
+        showLoading('Sending OTP...');
+        try {
+          const response = await axios.post('/account/edit/email', { email: newEmail, id: '<%= user._id %>' });
+          Swal.close();
+          if (response.data.success) {
+            otpModal.show();
+            startResendTimer();
+          } else {
+            Swal.fire('Error', response.data.message, 'error');
+          }
+        } catch (err) {
+          Swal.close();
+          Swal.fire('Error', err.response?.data?.message || 'Failed to send OTP', 'error');
+        }
+      }
+
+      sendOtpBtn.addEventListener('click', sendOtp);
+      resendOtpBtn.addEventListener('click', () => { sendOtp(); startResendTimer(); });
+
+      verifyOtpBtn.addEventListener('click', async () => {
+        const otp = document.getElementById('otpInput').value.trim();
+        if (!otp) return Swal.fire('Error', 'Please enter OTP', 'error');
+
+        showLoading('Verifying...');
+        try {
+          const response = await axios.post('/account/verify-otp', {
+            email: emailInput.value.trim(),
+            otp,
+            id: '<%= user._id %>'
+          });
+          Swal.close();
+          if (response.data.success) {
+            isEmailVerified = true;
+            otpModal.hide();
+            Swal.fire('Success', 'Email verified!', 'success');
+          } else {
+            Swal.fire('Invalid OTP', response.data.message, 'error');
+          }
+        } catch (err) {
+          Swal.close();
+          Swal.fire('Error', err.response?.data?.message || 'Verification failed', 'error');
+        }
+      });
+
+      // Clear timer on modal close
+      document.getElementById('otpModal').addEventListener('hidden.bs.modal', () => {
+        clearInterval(countdownInterval);
+        timerDisplay.textContent = '';
+      });
+    <% } %>
+
+    // Form submission
     updateProfileForm.addEventListener('submit', function (e) {
       e.preventDefault();
 
-      const originalEmail = '<%= user.email %>'.trim();
-      const newEmail = emailInput.value.trim();
+      <% if (user.password && user.password.trim() !== '') { %>
+        const originalEmail = '<%= user.email %>';
+        const newEmail = document.getElementById('email').value.trim();
 
-      // Only check OTP if email changed AND user has password (i.e. not Google user)
-      <% if (user.password) { %>
         if (newEmail !== originalEmail && !isEmailVerified) {
-          Swal.fire('Warning', 'Please verify your new email with OTP before saving.', 'warning');
-          return;
+          return Swal.fire('Warning', 'Please verify your new email with OTP first.', 'warning');
         }
       <% } %>
 
       Swal.fire({
-        title: 'Save Changes?',
-        text: 'Do you want to update your profile?',
+        title: 'Confirm Changes',
+        text: 'Save these changes?',
         icon: 'question',
         showCancelButton: true,
-        confirmButtonText: 'Yes, Save',
+        confirmButtonText: 'Save',
         cancelButtonText: 'Cancel'
-      }).then((result) => {
+      }).then(result => {
         if (result.isConfirmed) {
           showLoading('Updating profile...');
-
           const formData = new FormData(updateProfileForm);
           formData.append('id', '<%= user._id %>');
 
@@ -177,94 +263,20 @@
           .then(res => {
             Swal.close();
             if (res.data.success) {
-              Swal.fire('Success!', 'Profile updated successfully.', 'success').then(() => {
-                window.location.href = '/account';
+              Swal.fire('Success', 'Profile updated!', 'success').then(() => {
+                location.href = '/account';
               });
             } else {
-              Swal.fire('Error', res.data.message || 'Update failed.', 'error');
+              Swal.fire('Error', res.data.message || 'Update failed', 'error');
             }
           })
           .catch(err => {
             Swal.close();
-            Swal.fire('Error', err.response?.data?.message || 'Something went wrong.', 'error');
+            Swal.fire('Error', err.response?.data?.message || 'Update failed', 'error');
           });
         }
       });
     });
-
-    // OTP Logic - Only runs for non-Google users
-    <% if (user.password) { %>
-      const otpModal = new bootstrap.Modal(document.getElementById('otpModal'));
-      const sendOtpBtn = document.getElementById('sendOtpBtn');
-      const verifyOtpBtn = document.getElementById('verifyOtpBtn');
-      const resendOtpBtn = document.getElementById('resendOtpBtn');
-      const timerDisplay = document.getElementById('timerDisplay');
-      let countdownInterval;
-
-      function startResendTimer() {
-        let timeLeft = 60;
-        resendOtpBtn.disabled = true;
-        timerDisplay.textContent = `Resend available in ${timeLeft} seconds`;
-
-        countdownInterval = setInterval(() => {
-          timeLeft--;
-          if (timeLeft <= 0) {
-            clearInterval(countdownInterval);
-            resendOtpBtn.disabled = false;
-            timerDisplay.textContent = 'You can now resend OTP';
-          } else {
-            timerDisplay.textContent = `Resend available in ${timeLeft} seconds`;
-          }
-        }, 1000);
-      }
-
-      sendOtpBtn.addEventListener('click', async () => {
-        const email = emailInput.value.trim();
-        if (!email) return Swal.fire('Error', 'Enter a valid email', 'error');
-
-        showLoading('Sending OTP...');
-        try {
-          const res = await axios.post('/account/edit/email', { email, id: '<%= user._id %>' });
-          Swal.close();
-          if (res.data.success) {
-            otpModal.show();
-            startResendTimer();
-          } else {
-            Swal.fire('Failed', res.data.message, 'error');
-          }
-        } catch (err) {
-          Swal.close();
-          Swal.fire('Error', err.response?.data?.message || 'Failed to send OTP', 'error');
-        }
-      });
-
-      verifyOtpBtn.addEventListener('click', async () => {
-        const otp = document.getElementById('otpInput').value.trim();
-        const email = emailInput.value.trim();
-
-        if (!otp || otp.length !== 6) return Swal.fire('Invalid', 'Enter 6-digit OTP', 'warning');
-
-        showLoading('Verifying...');
-        try {
-          const res = await axios.post('/account/verify-otp', { email, otp, id: '<%= user._id %>' });
-          Swal.close();
-          if (res.data.success) {
-            isEmailVerified = true;
-            otpModal.hide();
-            Swal.fire('Verified!', 'Email verified successfully', 'success');
-          } else {
-            Swal.fire('Invalid OTP', res.data.message, 'error');
-          }
-        } catch (err) {
-          Swal.close();
-          Swal.fire('Error', err.response?.data?.message || 'Verification failed', 'error');
-        }
-      });
-
-      resendOtpBtn.addEventListener('click', () => {
-        sendOtpBtn.click();
-      });
-    <% } %>
   </script>
 </body>
 </html>
