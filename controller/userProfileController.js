@@ -222,12 +222,17 @@ exports.userImage = async (req, res) => {
   }
 };
 exports.updatePassword = async (req, res) => {
+
   const { firstName, email, phone, currentPassword, newPassword, confirmPassword } = req.body;
 
   if (newPassword !== confirmPassword) {
     return res.status(400).json({ message: "New password and confirmation do not match!" });
   }
   let data = await userModel.fetchUser(email);
+
+  if (data.password==null) {
+    return res.status(Status.BAD_REQUEST).json({status:Status.BAD_REQUEST,message:"google user can not change numbers"})
+  }
   if (!data) {
     return res.status(404).json({ message: "User not found!" });
   }
