@@ -5,167 +5,72 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Wishlist - TechCart</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
   <style>
-    body { 
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-      font-family: 'Segoe UI', sans-serif; 
-      min-height: 100vh;
-    }
-
-    .wishlist-container { 
-      margin-top: 40px; 
-      margin-bottom: 100px;
-    }
-
-    .page-header {
-      background: linear-gradient(120deg, #1e3a8a, #3b82f6);
-      color: white;
-      padding: 2rem 0;
-      border-radius: 16px;
-      margin-bottom: 2rem;
-      box-shadow: 0 10px 30px rgba(59,130,246,0.2);
-    }
-
-    .wallet-card {
-      background: white;
-      border-radius: 18px;
-      padding: 1.5rem;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-      margin-bottom: 2rem;
-      border: 1px solid #e2e8f0;
-    }
-
-    .wallet-balance {
-      font-size: 1.8rem;
-      font-weight: 800;
-      color: #1e40af;
-    }
-
-    .btn-wallet {
-      background: linear-gradient(45deg, #7c3aed, #a855f7);
-      color: white;
-      border: none;
-      border-radius: 50px;
-      padding: 0.8rem 2rem;
-      font-weight: 600;
-      font-size: 1.1rem;
-      box-shadow: 0 8px 25px rgba(124,58,237,0.4);
-      transition: all 0.3s ease;
-    }
-
-    .btn-wallet:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 15px 35px rgba(124,58,237,0.5);
-    }
+    body { background: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
+    .wishlist-container { margin-top: 40px; }
 
     .wishlist-item {
       background: #fff;
-      border-radius: 16px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
-      transition: all 0.3s ease;
-      border: 1px solid #e9ecef;
-    }
-
-    .wishlist-item:hover { 
-      transform: translateY(-5px); 
-      box-shadow: 0 12px 30px rgba(0,0,0,0.12); 
-    }
-
-    .wishlist-item img { 
-      max-width: 140px; 
-      border-radius: 12px; 
-      transition: transform 0.4s ease;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-
-    .wishlist-item img:hover { 
-      transform: scale(1.08); 
-    }
-
-    .product-name { 
-      font-weight: 700; 
-      font-size: 1.1rem; 
-      color: #1e293b;
-    }
-
-    .product-details { 
-      font-size: 0.92rem; 
-      color: #64748b; 
-    }
-
-    .price { 
-      font-weight: 800; 
-      font-size: 1.3rem; 
-      color: #dc2626;
-    }
-
-    .btn-add-cart {
-      background: #000;
-      color: #fff;
-      border-radius: 12px;
-      padding: 0.7rem 1.5rem;
-      font-weight: 600;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.05);
       transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
     }
+    .wishlist-item:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+    .wishlist-item img { max-width: 140px; border-radius: 10px; transition: transform 0.3s ease; }
+    .wishlist-item img:hover { transform: scale(1.05); }
 
-    .btn-add-cart:hover {
-      background: #333;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-    }
+    .product-name { font-weight: 600; font-size: 1.05rem; margin-bottom: 4px; }
+    .product-details { font-size: 0.9rem; color: #666; }
+    .price { font-weight: 700; font-size: 1.1rem; color: #000; }
 
     .btn-remove {
       background: transparent;
       border: none;
-      font-size: 1.6rem;
-      color: #ef4444;
-      width: 45px;
-      height: 45px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
+      font-size: 1.2rem;
+      color: #dc3545;
+      transition: transform 0.2s ease;
+    }
+    .btn-remove:hover { transform: scale(1.2); color: #a71d2a; }
+
+    /* ✅ Add to Cart Button Effect */
+    .btn-add-cart {
+      background: #000;
+      color: #fff;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: none;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-add-cart::after {
+      content: "🛒";
+      position: absolute;
+      right: -30px;
+      opacity: 0;
+      transition: all 0.4s ease;
+    }
+    .btn-add-cart:hover {
+      background: #333;
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }
+    .btn-add-cart:hover::after {
+      right: 12px;
+      opacity: 1;
     }
 
-    .btn-remove:hover {
-      background: #fee2e2;
-      transform: scale(1.15);
-      color: #dc2626;
-    }
-
-    .empty-wishlist {
-      text-align: center;
-      padding: 4rem 2rem;
-      color: #64748b;
-    }
-
-    .empty-wishlist i {
-      font-size: 4rem;
-      color: #cbd5e1;
-      margin-bottom: 1rem;
-    }
-
-    @media (max-width: 768px) {
-      .wishlist-item {
-        flex-direction: column;
-        text-align: center;
-      }
-      .wishlist-item img {
-        max-width: 180px;
-        margin-bottom: 1rem;
-      }
-      .btn-add-cart, .btn-wallet {
-        width: 100%;
-        margin-bottom: 0.5rem;
-      }
+    /* Small fade-in animation */
+    .wishlist-item { animation: fadeInUp 0.5s ease; }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
@@ -173,195 +78,84 @@
   <%- include('partials/header') %>
 
   <div class="container wishlist-container">
-    
-    <!-- Wallet Recharge Section -->
-    <div class="wallet-card">
-      <div class="row align-items-center">
-        <div class="col-md-8">
-          <h4 class="mb-1">
-            <i class="bi bi-wallet2 text-primary"></i> My Wallet
-          </h4>
-          <div class="wallet-balance">₹<%= user.wallet?.toLocaleString('en-IN') || '0' %></div>
-          <small class="text-muted">Available balance for shopping</small>
-        </div>
-        <div class="col-md-4 text-md-end mt-3 mt-md-0">
-          <button class="btn btn-wallet" id="addMoneyBtn">
-            <i class="bi bi-plus-circle"></i> Add Money
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Page Title -->
-    <div class="page-header text-center">
-      <h2 class="mb-0">
-        <i class="bi bi-heart-fill text-danger"></i> My Wishlist
-      </h2>
-      <p class="mb-0 mt-2 opacity-90">Items you loved — ready when you are!</p>
-    </div>
+    <h3 class="mb-4">My Wishlist</h3>
 
     <% if (wishlist && wishlist.length) { %>
       <% wishlist.forEach(item => { %>
         <div class="wishlist-item d-flex align-items-center justify-content-between" 
              data-id="<%= item.product._id %>" 
              data-variant="<%= item.variant._id %>">
-          <div class="d-flex align-items-center flex-grow-1">
-            <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="me-4"/>
+          <div class="d-flex align-items-center">
+            <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="me-3"/>
             <div>
               <div class="product-name"><%= item.product.name %></div>
-              <div class="product-details"><%= item.product.companyDetails %> • <%= item.variant.ram %> • <%= item.variant.storage %></div>
-              <div class="price mt-1">₹<%= item.variant.price.toLocaleString('en-IN') %></div>
+              <div class="product-details"><%= item.product.companyDetails %> | <%= item.product.OS %></div>
+              <div class="price">₹<%= item.variant.price %></div>
             </div>
           </div>
          
-          <div class="d-flex align-items-center gap-3 mt-3 mt-md-0">
+          <div class="d-flex align-items-center gap-2">
             <button class="btn-add-cart">Add to Cart</button>
-            <button class="btn-remove">×</button>
+            <button class="btn-remove">&times;</button>
           </div>
         </div>
       <% }) %>
     <% } else { %>
-      <div class="empty-wishlist">
-        <i class="bi bi-heart"></i>
-        <h4>Your wishlist is empty</h4>
-        <p>Explore products and add items you love!</p>
-        <a href="/search" class="btn btn-primary btn-lg mt-3">Start Shopping</a>
-      </div>
+      <p>Your wishlist is empty. <a href="/search">Browse products</a></p>
     <% } %>
   </div>
-
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       // Add to Cart
       document.querySelectorAll(".btn-add-cart").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          const item = btn.closest(".wishlist-item");
-          const productId = item.dataset.id;
+        btn.addEventListener("click", () => {
+          let item = btn.closest(".wishlist-item");
+          const productId = item.dataset.id; 
           const variantId = item.dataset.variant;
 
-          try {
-            const res = await fetch("/cart/add", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ productId, variantId, quantity: 1 })
-            });
-            const data = await res.json();
-
+          // call API
+          fetch("/cart/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ productId, variantId, quantity: 1 })
+          })
+          .then(res => res.json())
+          .then(data => {
             if (data.success) {
-              Swal.fire({
-                icon: "success",
-                title: "Added to Cart!",
-                text: "Item moved from wishlist",
-                timer: 1500,
-                showConfirmButton: false
-              });
+              Swal.fire("Added!", "Item moved to cart.", "success");
               item.remove();
             } else {
-              Swal.fire("Oops!", data.message || "Couldn't add to cart", "error");
-            }
-          } catch (err) {
-            Swal.fire("Error", "Something went wrong", "error");
-          }
-        });
-      });
-
-      // Remove from Wishlist
-      document.querySelectorAll(".btn-remove").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const item = btn.closest(".wishlist-item");
-          Swal.fire({
-            title: "Remove from wishlist?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#dc3545",
-            confirmButtonText: "Yes, remove"
-          }).then(result => {
-            if (result.isConfirmed) {
-              fetch("/wishlist/delete", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  productId: item.dataset.id,
-                  variantId: item.dataset.variant
-                })
-              });
-              item.style.animation = "fadeInUp 0.4s reverse";
-              setTimeout(() => item.remove(), 300);
+              Swal.fire("Error", data.message || "Could not add to cart", "error");
             }
           });
         });
       });
 
-      // Razorpay Wallet Recharge
-      document.getElementById("addMoneyBtn").addEventListener("click", () => {
-        Swal.fire({
-          title: "Add Money to Wallet",
-          input: "number",
-          inputLabel: "Enter amount (₹)",
-          inputPlaceholder: "Minimum ₹100",
-          inputAttributes: { min: 100, step: 1 },
-          showCancelButton: true,
-          confirmButtonText: "Proceed to Pay",
-          confirmButtonColor: "#7c3aed",
-          preConfirm: (amount) => {
-            if (!amount || amount < 100) {
-              Swal.showValidationMessage("Minimum amount is ₹100");
+      // Remove item
+      document.querySelectorAll(".btn-remove").forEach(btn => {
+        btn.addEventListener("click", () => {
+          let item = btn.closest(".wishlist-item");
+          Swal.fire({
+            title: "Remove from wishlist?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, remove"
+          }).then(result => {
+            if (result.isConfirmed) {
+              const productId = item.dataset.id;
+              const variantId = item.dataset.variant;
+              item.remove();
+              fetch("/wishlist/delete", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ productId, variantId })
+              });
             }
-            return amount;
-          }
-        }).then(result => {
-          if (result.isConfirmed) {
-            const amount = result.value * 100; // Razorpay uses paise
-
-            fetch("/wallet/create-order", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ amount: result.value })
-            })
-            .then(res => res.json())
-            .then(order => {
-              const options = {
-                key: "YOUR_RAZORPAY_KEY", // Replace with your key
-                amount: order.amount,
-                currency: "INR",
-                name: "TechCart",
-                description: "Wallet Recharge",
-                order_id: order.id,
-                handler: function (response) {
-                  fetch("/wallet/verify", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      razorpay_order_id: response.razorpay_order_id,
-                      razorpay_payment_id: response.razorpay_payment_id,
-                      razorpay_signature: response.razorpay_signature
-                    })
-                  })
-                  .then(res => res.json())
-                  .then(data => {
-                    if (data.success) {
-                      Swal.fire({
-                        icon: "success",
-                        title: "Success!",
-                        text: `₹${result.value} added to your wallet!`,
-                      }).then(() => location.reload());
-                    }
-                  });
-                },
-                prefill: {
-                  name: "<%= user.fullName %>",
-                  email: "<%= user.email %>",
-                  contact: "<%= user.phone %>"
-                },
-                theme: { color: "#7c3aed" }
-              };
-              const rzp = new Razorpay(options);
-              rzp.open();
-            });
-          }
+          });
         });
       });
     });

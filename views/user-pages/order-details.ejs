@@ -8,55 +8,24 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
     <style>
+      /* === All your existing styles remain unchanged === */
       body {
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
         font-family: 'Inter', sans-serif;
         color: #212529;
       }
-      a {
-        color: #0d6efd;
-        text-decoration: none;
-        transition: color 0.2s;
-      }
+      a { color: #0d6efd; text-decoration: none; transition: color 0.2s; }
       a:hover { color: #0a58ca; }
-      .content-wrapper {
-        margin-left: 260px;
-        padding: 1.5rem;
-        min-height: 100vh;
-      }
+      .content-wrapper { margin-left: 260px; padding: 1.5rem; min-height: 100vh; }
       @media (max-width: 768px) { .content-wrapper { margin-left: 0; } }
-      .page-header {
-        background: #fff;
-        border-radius: 0.5rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        padding: 1rem;
-        margin-bottom: 1.5rem;
-      }
+      .page-header { background: #fff; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); padding: 1rem; margin-bottom: 1.5rem; }
       .page-header h1 { font-size: 1.75rem; font-weight: 600; }
       .page-header p { font-size: 0.95rem; margin: 0; }
-      .card-light {
-        background: #fff;
-        border-radius: 0.75rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        transition: transform 0.3s, box-shadow 0.3s;
-      }
-      .card-light:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-      }
-      .table-lightish {
-        --bs-table-bg: transparent;
-        --bs-table-striped-bg: rgba(0,0,0,0.03);
-        --bs-table-hover-bg: rgba(0,0,0,0.05);
-        border-color: #dee2e6;
-      }
+      .card-light { background: #fff; border-radius: 0.75rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: transform 0.3s, box-shadow 0.3s; }
+      .card-light:hover { transform: translateY(-5px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+      .table-lightish { --bs-table-bg: transparent; --bs-table-striped-bg: rgba(0,0,0,0.03); --bs-table-hover-bg: rgba(0,0,0,0.05); border-color: #dee2e6; }
       .table-lightish th, .table-lightish td { padding: 0.75rem; }
-      .badge-status {
-        font-weight: 600;
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
-        font-size: 0.85rem;
-      }
+      .badge-status { font-weight: 600; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.85rem; }
       .badge-status.pending { background: #fff3cd; color: #856404; }
       .badge-status.shipped { background: #e7f3fe; color: #0d6efd; }
       .badge-status.delivered { background: #e6f4ea; color: #198754; }
@@ -64,32 +33,13 @@
       .badge-status.return-pending { background: #fff3cd; color: #856404; }
       .badge-status.return-approved { background: #e6f4ea; color: #198754; }
       .badge-status.return-rejected { background: #f8d7da; color: #dc3545; }
-      .badge-payment {
-        font-weight: 600;
-        padding: 0.4rem 0.8rem;
-        border-radius: 0.5rem;
-        font-size: 0.8rem;
-      }
+      .badge-payment { font-weight: 600; padding: 0.4rem 0.8rem; border-radius: 0.5rem; font-size: 0.8rem; }
       .badge-payment.pending { background: #fff3cd; color: #856404; }
       .badge-payment.completed { background: #e6f4ea; color: #198754; }
-      .order-item-thumb {
-        width: 60px;
-        height: 60px;
-        border-radius: 0.5rem;
-        object-fit: cover;
-        border: 1px solid #dee2e6;
-      }
+      .order-item-thumb { width: 60px; height: 60px; border-radius: 0.5rem; object-fit: cover; border: 1px solid #dee2e6; }
       .divider { height: 1px; background: #dee2e6; margin: 1rem 0; }
-      .order-actions .btn {
-        border-radius: 0.5rem;
-        padding: 0.5rem 1rem;
-        font-size: 0.9rem;
-        transition: all 0.3s ease;
-      }
-      .order-actions .btn:hover {
-        transform: scale(1.05);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      }
+      .order-actions .btn { border-radius: 0.5rem; padding: 0.5rem 1rem; font-size: 0.9rem; transition: all 0.3s ease; }
+      .order-actions .btn:hover { transform: scale(1.05); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
       .repeat-payment-btn {
         background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
         border-color: #ffc107;
@@ -102,84 +52,39 @@
         transform: scale(1.05) rotate(2deg);
         box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
       }
-      .detail-box {
-        background: #f8f9fa;
-        border-radius: 0.75rem;
-        padding: 1rem;
-        margin-top: 1rem;
-      }
-      .detail-label {
-        font-weight: 600;
-        color: #495057;
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
-      }
+      .detail-box { background: #f8f9fa; border-radius: 0.75rem; padding: 1rem; margin-top: 1rem; }
+      .detail-label { font-weight: 600; color: #495057; font-size: 0.9rem; margin-bottom: 0.5rem; }
       .detail-value { color: #212529; font-size: 1rem; margin-bottom: 1rem; }
       .modal-content { border-radius: 0.75rem; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
       .modal-header, .modal-footer { border: none; }
-      .payment-status-badge {
-        animation: pulse 2s infinite;
-      }
-      @keyframes pulse {
-        0% { opacity: 1; }
-        50% { opacity: 0.7; }
-        100% { opacity: 1; }
-      }
-      .item-return-info {
-        font-size: 0.8rem;
-        margin-top: 0.25rem;
-      }
-      .item-return-info .detail-label {
-        font-size: 0.75rem;
-        margin-bottom: 0.125rem;
-      }
-      .item-return-info .detail-value {
-        font-size: 0.8rem;
-        margin-bottom: 0;
-      }
-      .order-summary {
-        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-        border: 1px solid #e9ecef;
-        border-radius: 1rem;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        position: relative;
-        overflow: hidden;
-      }
-      .order-summary::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #0d6efd, #198754, #ffc107);
-      }
-      .order-summary .detail-label {
-        color: #6c757d;
-        font-size: 0.95rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-      .order-summary .badge {
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        border: none;
-      }
-      .order-summary .detail-value {
-        font-weight: 500;
-        color: #212529;
-      }
+      .payment-status-badge { animation: pulse 2s infinite; }
+      @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+      .order-summary { background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border: 1px solid #e9ecef; border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: hidden; }
+      .order-summary::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #0d6efd, #198754, #ffc107); }
+      .order-summary .detail-label { color: #6c757d; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; }
+      .order-summary .badge { box-shadow: 0 2px 4px rgba(0,0,0,0.1); border: none; }
+      .order-summary .detail-value { font-weight: 500; color: #212529; }
     </style>
   </head>
   <body>
     <%- include('partials/header') %>
     <%- include('partials/accountSidebar') %>
+
     <main class="content-wrapper">
       <% 
         const hasNonCancelledItems = order.items.some(item => (item.itemStatus || 'pending').toLowerCase() !== 'cancelled');
         const hasDeliveredItems = order.items.some(item => (item.itemStatus || 'pending').toLowerCase() === 'delivered');
+
+        // Define whether to show Repeat Payment & Invoice buttons
+        const showRepeatPayment = 
+          order.paymentMethod === 'online' && 
+          order.paymentStatus && 
+          order.paymentStatus.toLowerCase() === 'pending' && 
+          hasNonCancelledItems;
+
+        const showInvoice = !showRepeatPayment; // Hide invoice when repeat payment is needed
       %>
+
       <header class="page-header d-flex align-items-center justify-content-between gap-3 flex-wrap">
         <div>
           <h1 class="h3 mb-1">Order Details</h1>
@@ -196,9 +101,14 @@
               <i class="bi bi-x-circle me-1"></i> Cancel Order
             </button>
           <% } %>
-          <a href="/account/orders/invoice/<%= order.orderId %>" class="btn btn-outline-secondary" target="_blank">
-            <i class="bi bi-file-earmark-text me-1"></i> Invoice
-          </a>
+
+          <!-- Invoice button - hidden when repeat payment is required -->
+          <% if (showInvoice) { %>
+            <a href="/account/orders/invoice/<%= order.orderId %>" class="btn btn-outline-secondary" target="_blank">
+              <i class="bi bi-file-earmark-text me-1"></i> Invoice
+            </a>
+          <% } %>
+
           <a href="/account/order/return-status/<%= order.orderId %>" class="btn btn-outline-info">
             <i class="bi bi-arrow-return-left me-1"></i> Return Status
           </a>
@@ -207,6 +117,8 @@
           </a>
         </div>
       </header>
+
+      <!-- Order Summary -->
       <div class="order-summary">
         <div class="row g-3">
           <% if (order.paymentStatus) { %>
@@ -234,6 +146,8 @@
           <% } %>
         </div>
       </div>
+
+      <!-- Order Items Card -->
       <article class="card card-light">
         <div class="card-body">
           <div class="divider"></div>
@@ -254,7 +168,7 @@
                   <tr>
                     <td>
                       <div class="d-flex align-items-center gap-2">
-                        <img class="order-item-thumb" src="<%= item.productDetails.images[0]|| '/images/placeholder.jpg' %>" alt="Item image" />
+                        <img class="order-item-thumb" src="<%= item.productDetails.images[0] || '/images/placeholder.jpg' %>" alt="Item image" />
                         <div>
                           <div class="fw-semibold"><%= item.productDetails?.name || 'Product Name' %></div>
                           <small>Category: Laptops & Accessories</small>
@@ -297,6 +211,8 @@
               </tbody>
             </table>
           </div>
+
+          <!-- Address & Price Summary -->
           <div class="row g-3 mt-4">
             <div class="col-12 col-md-6">
               <div class="detail-box">
@@ -329,7 +245,6 @@
                       <div class="detail-value text-end"><%= parseFloat(order.deliveryCharge).toFixed(2) %>/-</div>
                     </div>
                   <% } %>
-                 
                   <div class="col-12">
                     <div class="detail-label fw-bold">Order Total</div>
                     <div class="detail-value fs-5 fw-bold text-end"><%= parseFloat(order.total).toFixed(2) %>/-</div>
@@ -341,6 +256,8 @@
         </div>
       </article>
     </main>
+
+    <!-- Payment Details Modal -->
     <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -375,39 +292,27 @@
         </div>
       </div>
     </div>
-<script>
-    console.log(JSON.stringify(order,null,2))
-</script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
       document.addEventListener('DOMContentLoaded', () => {
-        // Inject order data for use in JS
         const orderData = <%- JSON.stringify(order) %>;
+        const showRepeatPayment = <%= showRepeatPayment %>; // passed from server
 
-        const modals = {
-          payment: {
-            modal: '#paymentModal',
-            fields: [
-              { id: 'modalPaymentMethod', key: 'paymentMethod' },
-              { id: 'modalRazorpayOrderId', key: 'razorpayOrderId' },
-              { id: 'modalRazorpayPaymentId', key: 'razorpayPaymentId' }
-            ]
-          }
-        };
+        // ---------- Payment Modal ----------
         document.querySelectorAll('.payment-details-btn').forEach(btn => {
           btn.addEventListener('click', () => {
-            const type = 'payment';
-            const data = JSON.parse(btn.dataset[type]);
-            const modal = modals[type];
-            document.getElementById('paymentModalOrderId').textContent = btn.dataset.orderId || data.orderId;
-            modal.fields.forEach(({ id, key }) => {
-              const element = document.getElementById(id);
-              element.textContent = data[key] || 'N/A';
-            });
+            const data = JSON.parse(btn.dataset.payment);
+            document.getElementById('paymentModalOrderId').textContent = data.orderId;
+            document.getElementById('modalPaymentMethod').textContent = data.paymentMethod || 'N/A';
+            document.getElementById('modalRazorpayOrderId').textContent = data.razorpayOrderId || 'N/A';
+            document.getElementById('modalRazorpayPaymentId').textContent = data.razorpayPaymentId || 'N/A';
           });
         });
+
+        // ---------- Generic Action Handler ----------
         const handleAction = async (url, data, successMsg, errorMsg, updateFn) => {
           const result = await Swal.fire({
             title: data.title || 'Confirm Action',
@@ -431,215 +336,152 @@
               await Swal.fire({ title: 'Error', text: response.data.error || errorMsg, icon: 'error', confirmButtonColor: '#0d6efd' });
             }
           } catch (error) {
-            console.error(`Error in ${url}:`, error);
-            await Swal.fire({ title: 'Error', text: `An error occurred while ${errorMsg.toLowerCase()}`, icon: 'error', confirmButtonColor: '#0d6efd' });
+            console.error(error);
+            await Swal.fire({ title: 'Error', text: `An error occurred while ${errorMsg.toLowerCase()}`, icon: 'error' });
           }
         };
+
+        // ---------- Cancel Whole Order ----------
         document.querySelectorAll('.cancel-order-btn').forEach(btn => {
           btn.addEventListener('click', () => {
             const orderId = btn.dataset.orderId;
             const paymentMethod = btn.dataset.paymentMethod;
-            // Prepare items array with variantId and current itemStatus (default to 'Pending' if not set)
             const items = orderData.items
-              .filter(item => (item.itemStatus || 'pending').toLowerCase() !== 'cancelled') // Only non-cancelled items
-              .map(item => ({
-                variantId: item.variantId,
-                status: item.itemStatus || 'Pending' // Use current itemStatus, default to 'Pending'
-              }));
+              .filter(i => (i.itemStatus || 'pending').toLowerCase() !== 'cancelled')
+              .map(i => ({ variantId: i.variantId, status: i.itemStatus || 'Pending' }));
+
             handleAction('/account/orders/cancel', {
               title: 'Cancel Entire Order',
               text: `Cancel the entire order ${orderId}? This action cannot be undone.`,
               input: {
                 input: 'textarea',
                 inputLabel: 'Reason for Cancellation',
-                inputPlaceholder: 'Enter reason for cancellation...',
-                inputAttributes: { 'aria-label': 'Cancellation reason' },
-                inputValidator: value => !value ? 'Provide a reason!' : value.trim().split(/\s+/).length > 50 ? `Reason must not exceed 50 words.` : null
+                inputPlaceholder: 'Enter reason...',
+                inputValidator: v => !v ? 'Reason required!' : v.trim().split(/\s+/).length > 50 ? 'Max 50 words' : null
               },
-              payload: { 
-                orderId, 
-                paymentMethod,
-                items // Include the array of item data
-              }
+              payload: { orderId, paymentMethod, items }
             }, {
               title: 'Order Cancelled!',
               text: 'Your order has been cancelled successfully.'
-            }, 'Failed to cancel the order', () => {
-              location.reload(); // Reload to reflect changes
-            });
+            }, 'cancelling the order', () => location.reload());
           });
         });
+
+        // ---------- Cancel Single Item ----------
         document.querySelectorAll('.cancel-item-btn').forEach(btn => {
           btn.addEventListener('click', () => {
             const [orderId, variantId, status, paymentMethod] = btn.dataset.cancelItem.split('_');
             handleAction('/account/orders/cancel-item', {
               title: 'Cancel Item',
-              text: `Cancel this item in order ${orderId}? This action cannot be undone.`,
+              text: `Cancel this item in order ${orderId}?`,
               input: {
                 input: 'textarea',
                 inputLabel: 'Reason for Cancellation',
-                inputPlaceholder: 'Enter reason for cancellation...',
-                inputAttributes: { 'aria-label': 'Cancellation reason' },
-                inputValidator: value => !value ? 'Provide a reason!' : value.trim().split(/\s+/).length > 50 ? `Reason must not exceed 50 words.` : null
+                inputPlaceholder: 'Enter reason...',
+                inputValidator: v => !v ? 'Reason required!' : v.trim().split(/\s+/).length > 50 ? 'Max 50 words' : null
               },
-              payload: { 
-                orderId, 
-                paymentMethod,
-                items: [{ variantId, status }] // Wrap single item in array format
-              }
+              payload: { orderId, paymentMethod, items: [{ variantId, status }] }
             }, {
               title: 'Item Cancelled!',
               text: 'The item has been cancelled.'
-            }, 'Failed to cancel the item', (response) => {
-              const row = btn.closest('tr');
-              row.querySelector('.badge-status').className = 'badge badge-status cancelled';
-              row.querySelector('.badge-status').textContent = 'Item Cancelled';
-              btn.remove();
-              if (response.data.updatedTotal) {
-                document.querySelector('.fs-5.fw-bold').textContent = `${parseFloat(response.data.updatedTotal).toFixed(2)}/-`;
-              }
-              location.reload(); // Reload to reflect changes
-            });
+            }, 'cancelling the item', () => location.reload());
           });
         });
-const userId = "<%= image._id %>";
+
+        // ---------- Return Item ----------
+        const userId = "<%= user._id %>";
         document.querySelectorAll('.return-item-btn').forEach(btn => {
           btn.addEventListener('click', () => {
             const [orderId, variantId, productId] = btn.dataset.returnItem.split('_');
             handleAction('/account/orders/return-item', {
-              text: `Request return for item in order ${orderId}? ⚠️ Delivery Charge will not be refunded.`,
+              text: `Request return for this item? Delivery charge will not be refunded.`,
               input: {
                 input: 'textarea',
                 inputLabel: 'Reason for Return',
-                inputPlaceholder: 'Enter reason for return...',
-                inputAttributes: { 'aria-label': 'Return reason' },
-                inputValidator: value => !value ? 'Provide a reason!' : value.trim().split(/\s+/).length > 50 ? `Reason must not exceed 50 words.` : null
+                inputPlaceholder: 'Enter reason...',
+                inputValidator: v => !v ? 'Reason required!' : v.trim().split(/\s+/).length > 50 ? 'Max 50 words' : null
               },
-              payload: { orderId, variantId, productId, itemReturn: 'Pending',userId },
+              payload: { orderId, variantId, productId, itemReturn: 'Pending', userId },
               confirmColor: '#ffc107',
               confirmText: 'Submit Return'
             }, {
               title: 'Return Requested!',
-              text: `Your item return request has been submitted.`
-            }, `Failed to submit return request`, () => {
-              location.reload(); // Reload to reflect changes
-            });
+              text: 'Your return request has been submitted.'
+            }, 'submitting return request', () => location.reload());
           });
         });
-        <% if (order.paymentMethod === 'online' && order.paymentStatus && order.paymentStatus.toLowerCase() === 'pending') { %>
-          // Add repeat payment button if applicable
+
+        // ---------- Repeat Payment Button (Only when payment is pending) ----------
+        if (showRepeatPayment) {
           const repeatBtn = document.createElement('button');
-          repeatBtn.className = 'btn repeat-payment-btn';
+          repeatBtn.className = 'btn repeat-payment-btn me-2';
           repeatBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i> Repeat Payment';
           repeatBtn.dataset.orderId = '<%= order.orderId %>';
           repeatBtn.addEventListener('click', async () => {
             const orderId = repeatBtn.dataset.orderId;
-            const confirmResult = await Swal.fire({
+            const confirm = await Swal.fire({
               title: 'Repeat Payment',
-              text: `Initiate payment again for order ${orderId}? This will open the payment gateway.`,
+              text: `Pay again for order ${orderId}?`,
               icon: 'question',
               showCancelButton: true,
               confirmButtonColor: '#ffc107',
-              cancelButtonColor: '#6c757d',
-              confirmButtonText: 'Yes, Pay Now',
-              cancelButtonText: 'Cancel'
+              confirmButtonText: 'Yes, Pay Now'
             });
-            if (!confirmResult.isConfirmed) return;
+            if (!confirm.isConfirmed) return;
+
             try {
-              const response = await axios.post('/account/orders/repeat-payment', { orderId });
-              if (response.data.success) {
-                const { id, amount, currency, orderId: respOrderId } = response.data;
-                await Swal.fire({
-                  title: 'Redirecting to Payment...',
-                  text: 'Opening secure payment gateway.',
-                  icon: 'info',
-                  timer: 1500,
-                  showConfirmButton: false
-                });
+              const res = await axios.post('/account/orders/repeat-payment', { orderId });
+              if (res.data.success) {
+                const { id, amount, currency } = res.data;
                 if (typeof Razorpay === 'undefined') {
                   const script = document.createElement('script');
                   script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-                  script.async = true;
-                  script.onload = () => openRazorpayCheckout(id, amount, currency, respOrderId);
+                  script.onload = () => openRazorpay(id, amount, currency, orderId);
                   document.head.appendChild(script);
                 } else {
-                  openRazorpayCheckout(id, amount, currency, respOrderId);
+                  openRazorpay(id, amount, currency, orderId);
                 }
               } else {
-                await Swal.fire({
-                  title: 'Error',
-                  text: response.data.error || 'Failed to initiate repeat payment.',
-                  icon: 'error',
-                  confirmButtonColor: '#0d6efd'
-                });
+                Swal.fire('Error', res.data.error || 'Could not initiate payment', 'error');
               }
-            } catch (error) {
-              await Swal.fire({
-                title: 'Error',
-                text: 'An error occurred while initiating payment. Please try again.',
-                icon: 'error',
-                confirmButtonColor: '#0d6efd'
-              });
+            } catch (err) {
+              Swal.fire('Error', 'Something went wrong. Try again.', 'error');
             }
           });
-          document.querySelector('.order-actions').insertBefore(repeatBtn, document.querySelector('.order-actions .btn-outline-primary'));
-        <% } %>
-        function openRazorpayCheckout(order_id, amount, currency, orderId) {
+
+          const actionsContainer = document.querySelector('.order-actions');
+          // Insert at the beginning (before any other button)
+          actionsContainer.insertBefore(repeatBtn, actionsContainer.firstElementChild);
+        }
+
+        function openRazorpay(order_id, amount, currency, orderId) {
           const options = {
             key: '<%= process.env.RAZORPAY_KEY_ID %>',
-            amount: amount / 100,
+            amount: amount,
             currency: currency,
             name: 'Your Store Name',
             description: `Payment for Order ${orderId}`,
             order_id: order_id,
-            handler: async function (razorpayResponse) {
+            handler: async (response) => {
               try {
-                const verifyResponse = await axios.post('/order/verifyPayment', {
-                  razorpayPaymentId: razorpayResponse.razorpay_payment_id,
-                  razorpayOrderId: razorpayResponse.razorpay_order_id,
-                  razorpaySignature: razorpayResponse.razorpay_signature,
+                const verify = await axios.post('/order/verifyPayment', {
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpaySignature: response.razorpay_signature,
                   dbOrderId: orderId
                 });
-                if (verifyResponse.data.success) {
-                  await Swal.fire({
-                    title: 'Payment Successful!',
-                    text: 'Order confirmed. Reloading page...',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                  });
-                  location.reload();
+                if (verify.data.success) {
+                  Swal.fire('Success!', 'Payment completed.', 'success').then(() => location.reload());
                 } else {
-                  await Swal.fire({
-                    title: 'Payment Verified Failed',
-                    text: verifyResponse.data.message || 'Please contact support.',
-                    icon: 'error'
-                  });
+                  Swal.fire('Failed', verify.data.message || 'Verification failed', 'error');
                 }
-              } catch (error) {
-                await Swal.fire({
-                  title: 'Verification Error',
-                  text: 'Payment may have succeeded, but verification failed. Contact support.',
-                  icon: 'error'
-                });
+              } catch (e) {
+                Swal.fire('Error', 'Payment verification failed', 'error');
               }
             },
-            prefill: {
-              name: '',
-              email: '',
-              contact: ''
-            },
-            theme: {
-              color: '#0d6efd'
-            },
-            modal: {
-              ondismiss: function () {
-                console.log('Payment modal dismissed');
-              }
-            }
+            theme: { color: '#0d6efd' }
           };
-          const rzp = new Razorpay(options);
-          rzp.open();
+          new Razorpay(options).open();
         }
       });
     </script>

@@ -39,7 +39,8 @@ exports.viewProfile = async (req, res) => {
     let data = await userModel.userCheck(query)
 
     return res.render('user-pages/profile.ejs', {
-      user, image: data || null
+      user, image: data || null,
+      user: req.session.user
     })
   }
 
@@ -103,11 +104,11 @@ exports.viewAdress = async (req, res) => {
     }
     let data = await userModel.userCheck(query)
     return res.render('user-pages/address.ejs', {
-      user: { addresses: address || [] }, image: data || null
+      user: { ...req.session.user,addresses: address || [] }, image: data || null,
     })
   }
   res.render('user-pages/address.ejs', {
-    user: { addresses: address || [] }
+    user: {  ...req.session.user,addresses: address || [] }
   })
 }
 //updateAddress
@@ -415,8 +416,12 @@ exports.viewOrder = async (req, res) => {
         _id: new ObjectId(id)
       }
       let imagedata = await userModel.userCheck(query)
+      user = {
+        user,
+      ...req.session.user
+      }
       return res.render("user-pages/order.ejs", {
-        orders: data, user, image: imagedata || null
+        orders: data, user, image: imagedata || null,
       })
     }
 
@@ -607,7 +612,7 @@ exports.invoice = async (req, res) => {
         .text(`${item.processor} / ${item.ram} / ${item.storage}`, descX + 5, y + 5, { width: 190, ellipsis: true })
         .text(item.quantity, qtyX + 5, y + 5, { align: 'center', width: 50 })
         .text(`₹${Number(item.variantPrice).toLocaleString('en-IN')}`, priceX + 5, y + 5, { align: 'right', width: 50 })
-        .text(`₹${(item.quantity * item.variantPrice).toLocaleString('en-IN')}`, totalX + 5, y + 5, { align: 'right', width: 60 });
+        .text(`${(item.quantity * item.variantPrice).toLocaleString('en-IN')}`, totalX + 5, y + 5, { align: 'right', width: 60 });
 
       doc
         .rect(itemX, y, tableWidth, rowHeight)
@@ -627,9 +632,9 @@ exports.invoice = async (req, res) => {
       .font('Helvetica-Bold')
       .fontSize(10)
       .fillColor('black')
-      .text(`Subtotal: ₹${Number(order.subtotal).toLocaleString('en-IN')}`, 350, totalsTop, { align: 'right' })
-      .text(`Delivery: ₹${Number(order.deliveryCharge).toLocaleString('en-IN')}`, 350, totalsTop + 30, { align: 'right' })
-      .text(`Grand Total: ₹${Number(order.total).toLocaleString('en-IN')}`, 350, totalsTop + 45, { align: 'right' });
+      .text(`Subtotal: ${Number(order.subtotal).toLocaleString('en-IN')}`, 350, totalsTop, { align: 'right' })
+      .text(`Delivery: ${Number(order.deliveryCharge).toLocaleString('en-IN')}`, 350, totalsTop + 30, { align: 'right' })
+      .text(`Grand Total: ${Number(order.total).toLocaleString('en-IN')}`, 350, totalsTop + 45, { align: 'right' });
 
     doc
       .lineWidth(1)
@@ -733,7 +738,7 @@ exports.couponLogic = async (req, res) => {
     if (subTotalNum < coupon.minimumPurchase) {
       return res.json({
         success: false,
-        message: `Minimum purchase of ₹${coupon.minimumPurchase} required for this coupon`,
+        message: `Minimum purchase of ${coupon.minimumPurchase} required for this coupon`,
       });
     }
 

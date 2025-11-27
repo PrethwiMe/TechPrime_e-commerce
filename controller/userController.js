@@ -466,6 +466,7 @@ exports.sortAndSearchProducts = async (req, res) => {
       products: paginatedProducts,
       currentPage: page,
       totalPages,
+      user: req.session.user
     });
 
   } catch (error) {
@@ -487,7 +488,8 @@ let filteredProducts = products.filter(product => {
 
 
     let categories = await productModel.getAllCategories()
-    res.render("user-pages/productDetails.ejs", { relatedProducts:filteredProducts,categories, product: result[0], products: products, query: req.query.q || "" });
+    res.render("user-pages/productDetails.ejs", { relatedProducts:filteredProducts,categories, product: result[0],
+       products: products, query: req.query.q || "",user: req.session.user });
   } catch (error) {
     console.log(error);
   }
@@ -622,7 +624,7 @@ exports.viewCart = async (req, res) => {
       cartOriginal,
       cartDiscount,
       cartSubtotal,
-    });
+       user: req.session.user});
   } catch (error) {
     console.error("Error in viewCart:", error);
     res.status(500).send("Internal Server Error");
@@ -690,7 +692,7 @@ exports.whishList = async (req, res) => {
 exports.whishListCall = async (req,res) => {
   const id = req.session.user.userId
   let wishlist = await userModel.viewWishList(id);
-  res.render('user-pages/whishlist.ejs',{wishlist})
+  res.render('user-pages/whishlist.ejs',{wishlist,user: req.session.user})
 }
 //delete from wishlist
 exports.deleteWishList = async (req, res) => {
