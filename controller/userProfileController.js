@@ -181,8 +181,7 @@ exports.userImage = async (req, res) => {
       console.log(error)
       return res.status(400).json({
         success: false,
-        message: "Validation error",
-        errors: error.details.map((err) => err.message),
+        message: error.details[0].message,
       });
     }
 
