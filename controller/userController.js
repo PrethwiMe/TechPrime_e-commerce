@@ -401,6 +401,7 @@ exports.searchProduct = async (req, res) => {
       categories,
       currentPage: page,
       totalPages,
+      user:req.session.user || null
     });
   } catch (error) {
     console.error(error);
@@ -466,7 +467,7 @@ exports.sortAndSearchProducts = async (req, res) => {
       products: paginatedProducts,
       currentPage: page,
       totalPages,
-      user: req.session.user
+      user: req.session.user || null
     });
 
   } catch (error) {

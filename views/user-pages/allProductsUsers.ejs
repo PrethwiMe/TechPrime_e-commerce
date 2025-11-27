@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TechCart - Products</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <style>
     body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; min-height: 100vh; }
@@ -16,39 +17,36 @@
 
     .sort-bar { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
     .sort-bar a { text-decoration: none; color: #555; font-weight: 500; transition: color 0.2s; cursor: pointer; }
-    .sort-bar a:hover, .sort-bar .active { color: #000; }
+    .sort-bar a:hover, .sort-bar .active { color: #000; font-weight: 600; }
 
     .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; }
-    .product-card { background-color: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 3px 12px rgba(0,0,0,0.05); transition: transform 0.3s ease, box-shadow 0.3s ease; text-align: center; padding-bottom: 15px; }
+    .product-card { background-color: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 3px 12px rgba(0,0,0,0.05); transition: all 0.3s ease; text-align: center; padding-bottom: 15px; }
     .product-card:hover { transform: translateY(-6px); box-shadow: 0 8px 25px rgba(0,0,0,0.12); }
     .product-card img { width: 100%; height: 200px; object-fit: contain; margin-top: 15px; }
-    .product-card h6 { font-size: 1rem; margin: 12px 0 6px 0; font-weight: 600; }
-    .price { font-weight: bold; color: #dc3545; }
+    .product-card h6 { font-size: 1rem; margin: 12px 0 6px; font-weight: 600; }
+    .price { font-weight: bold; color: #dc3545; font-size: 1.1rem; }
     .old-price { text-decoration: line-through; color: gray; font-size: 0.85rem; margin-left: 6px; }
-    .star { color: orange; font-size: 0.85rem; margin-top: 5px; }
-    .btn-custom { background-color: #1a1a1a; color: #fff; border: 1px solid #000; font-weight: 500; padding: 6px 12px; border-radius: 6px; font-size: 0.9rem; transition: all 0.3s ease; }
-    .btn-custom:hover { background-color: #333; border-color: #111; transform: translateY(-2px); color: #fff; }
+    .star { color: #ffc107; margin: 5px 0; }
+    .btn-custom { background-color: #1a1a1a; color: #fff; border: none; font-weight: 500; padding: 8px 16px; border-radius: 6px; font-size: 0.9rem; transition: all 0.3s ease; }
+    .btn-custom:hover { background-color: #333; transform: translateY(-2px); }
+    .btn-custom.wishlist { padding: 8px 12px; font-size: 1.2rem; }
 
-    .pagination { display: flex; justify-content: center; margin-top: 25px; gap: 6px; flex-wrap: wrap; }
-    .pagination .page-link { color: #1a1a1a; cursor: pointer; padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px; }
+    .pagination { display: flex; justify-content: center; margin-top: 40px; gap: 8px; }
+    .pagination .page-link { color: #1a1a1a; padding: 8px 14px; border: 1px solid #ddd; border-radius: 6px; }
     .pagination .page-item.active .page-link { background-color: #1a1a1a; border-color: #1a1a1a; color: #fff; }
-    .pagination .page-item.disabled .page-link { color: #ccc; cursor: default; }
-
-    @media (max-width: 768px) { .filters { margin-bottom: 20px; } }
   </style>
 </head>
 <body>
   <%- include('partials/header') %>
 
   <main class="container my-5">
-    <!-- Breadcrumbs -->
     <nav aria-label="breadcrumb" class="mb-4">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">Home</a></li>
         <% if (query && query.trim() !== '') { %>
-          <li class="breadcrumb-item active" aria-current="page">Search: "<%= query %>"</li>
+          <li class="breadcrumb-item active">Search: "<%= query %>"</li>
         <% } else { %>
-          <li class="breadcrumb-item active" aria-current="page">All Products</li>
+          <li class="breadcrumb-item active">All Products</li>
         <% } %>
       </ol>
     </nav>
@@ -59,42 +57,40 @@
         <div class="filters">
           <h5>Filters</h5>
 
-          <!-- Categories -->
-          <div>
+          <div class="mb-4">
             <strong>Categories</strong>
-            <% categories.forEach(type => { %>
-              <label class="mt-3">
-                <input type="checkbox" value="<%= type._id %>" class="filter-category"/> <%= type.name %>
+            <% categories.forEach(cat => { %>
+              <label class="d-block mt-2">
+                <input type="checkbox" class="filter-category" value="<%= cat._id %>"> <%= cat.name %>
               </label>
-            <% }); %>
+            <% }) %>
           </div>
 
-          <!-- Price -->
-          <div class="mt-4">
+          <div>
             <strong>Price Range</strong>
-            <div class="d-flex align-items-center mt-2">
-              <input type="number" id="minPrice" class="form-control me-2" placeholder="Min ₹">
+            <div class="d-flex gap-2 mt-2">
+              <input type="number" id="minPrice" class="form-control" placeholder="Min ₹">
               <input type="number" id="maxPrice" class="form-control" placeholder="Max ₹">
             </div>
-            <button id="applyPriceFilter" class="btn btn-sm btn-dark mt-2 w-100">Apply</button>
+            <button id="applyPriceFilter" class="btn btn-dark btn-sm w-100 mt-2">Apply</button>
           </div>
         </div>
       </div>
 
       <!-- PRODUCTS -->
       <div class="col-lg-9">
-        <div class="mb-4">
-          <a href="/" class="btn btn-secondary">&larr; Back to Home</a>
+        <div class="mb-3">
+          <a href="/" class="btn btn-secondary btn-sm">&larr; Back to Home</a>
         </div>
 
-        <div class="sort-bar mb-4">
+        <div class="sort-bar">
           <span>Sort By:</span>
           <a class="sort-link active" data-sort="popularity">Popularity</a>
           <a class="sort-link" data-sort="newest">Newest First</a>
-          <a class="sort-link" data-sort="low-high">Price Low - High</a>
-          <a class="sort-link" data-sort="high-low">Price High - Low</a>
-            <a class="sort-link" data-sort="a-z">Name A - Z</a>
-  <a class="sort-link" data-sort="z-a">Name Z - A</a>
+          <a class="sort-link" data-sort="low-high">Price: Low → High</a>
+          <a class="sort-link" data-sort="high-low">Price: High → Low</a>
+          <a class="sort-link" data-sort="a-z">Name A-Z</a>
+          <a class="sort-link" data-sort="z-a">Name Z-A</a>
         </div>
 
         <div class="product-grid" id="product-grid"></div>
@@ -105,388 +101,217 @@
 
   <%- include('partials/footer') %>
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const grid = document.getElementById("product-grid");
-  const pagination = document.getElementById("pagination");
-  const sortLinks = document.querySelectorAll(".sort-link");
-  const categoryCheckboxes = document.querySelectorAll(".filter-category");
-  const minPrice = document.getElementById("minPrice");
-  const maxPrice = document.getElementById("maxPrice");
-  const applyPriceBtn = document.getElementById("applyPriceFilter");
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const grid = document.getElementById("product-grid");
+      const pagination = document.getElementById("pagination");
+      const sortLinks = document.querySelectorAll(".sort-link");
+      const categoryCheckboxes = document.querySelectorAll(".filter-category");
+      const minPriceInput = document.getElementById("minPrice");
+      const maxPriceInput = document.getElementById("maxPrice");
+      const applyPriceBtn = document.getElementById("applyPriceFilter");
+      const searchBox = document.getElementById("searchBox");
 
-  // 🔑 add reference to search box in header (if exists)
-  const searchBox = document.getElementById("searchBox");
+      // Check if user is logged in (from EJS)
+      const isLoggedIn = <%= user ? 'true' : 'false' %>;
 
-  let filters = {
-    sort: "popularity",
-    categories: [],
-    minPrice: null,
-    maxPrice: null,
-    page: 1,
-    limit: 6,
-    searchKey: "<%= query || '' %>" // initial value from server render
-  };
+      let filters = {
+        sort: "popularity",
+        categories: [],
+        minPrice: null,
+        maxPrice: null,
+        page: 1,
+        limit: 6,
+        searchKey: "<%= query || '' %>".trim()
+      };
 
-  // ===== Render products =====
-  function renderProducts(products) {
-    if (!products || products.length === 0) {
-      grid.innerHTML = "<p>No products found.</p>";
-      return;
-    }
+      const postData = async (url, data) => {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        return res.json();
+      };
 
-    grid.innerHTML = products.map(p => `
-      <div class="product-card">
-        <a href="/all-product/product-details/${p._id}" class="text-decoration-none text-dark">
-          <img src="${p.images?.[0] || '/images/default.png'}" alt="${p.name || ''}" />
-          <h6>${p.name || ''}</h6>
-          <span class="price">₹${p.originalPrice || 0}</span>
-${p.fullProduct?.[0]?.price && p.fullProduct?.[0]?.price !== p.originalPrice 
-  ? `<span class="old-price">₹${p.fullProduct[0].price}</span>` : ''}
+      const renderProducts = (products) => {
+        if (!products || products.length === 0) {
+          grid.innerHTML = `<p class="text-center text-muted fs-5">No products found.</p>`;
+          return;
+        }
 
-          <div class="star">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-          <div class="mt-2 d-flex justify-content-center gap-2">
-            <button class="btn-custom">Add to Cart</button>
-            <button class="btn-custom">&#9829;</button>
+        grid.innerHTML = products.map(p => `
+          <div class="product-card">
+            <a href="/all-product/product-details/${p._id}" class="text-decoration-none text-dark">
+              <img src="${p.images?.[0] || '/images/default.png'}" alt="${p.name}" />
+              <h6 class="px-3">${p.name}</h6>
+              <div class="px-3">
+                <span class="price">₹${p.fullProduct?.[0]?.price || p.originalPrice || 0}</span>
+                ${p.originalPrice && p.fullProduct?.[0]?.price < p.originalPrice 
+                  ? `<span class="old-price">₹${p.originalPrice}</span>` : ''}
+              </div>
+              <div class="star">★★★★★</div>
+            </a>
+            <div class="mt-2 d-flex justify-content-center gap-2 px-3">
+              <button class="btn-custom add-to-cart"
+                data-id="${p._id}"
+                data-variant="${p.fullProduct?.[0]?._id || ''}"
+                data-name="${p.name}">Add to Cart</button>
+              <button class="btn-custom wishlist add-to-wishlist"
+                data-id="${p._id}"
+                data-name="${p.name}">♥</button>
+            </div>
           </div>
-        </a>
-      </div>
-    `).join("");
-  }
+        `).join("");
 
-  // ===== Render pagination =====
-  function renderPagination(totalPages) {
-    pagination.innerHTML = "";
-    if (totalPages <= 1) return;
+        bindCartWishlistButtons();
+      };
 
-    const prevLi = document.createElement("li");
-    prevLi.className = "page-item" + (filters.page === 1 ? " disabled" : "");
-    prevLi.innerHTML = `<span class="page-link">&laquo; Prev</span>`;
-    prevLi.addEventListener("click", () => { if (filters.page > 1) goToPage(filters.page - 1); });
-    pagination.appendChild(prevLi);
+      const renderPagination = (totalPages) => {
+        pagination.innerHTML = "";
+        if (totalPages <= 1) return;
 
-    for (let i = 1; i <= totalPages; i++) {
-      const li = document.createElement("li");
-      li.className = "page-item" + (i === filters.page ? " active" : "");
-      li.innerHTML = `<span class="page-link">${i}</span>`;
-      li.addEventListener("click", () => { if (i !== filters.page) goToPage(i); });
-      pagination.appendChild(li);
-    }
+        const createPageItem = (text, page, disabled = false) => {
+          const li = document.createElement("li");
+          li.className = `page-item ${disabled ? 'disabled' : ''} ${page === filters.page ? 'active' : ''}`;
+          li.innerHTML = `<span class="page-link">${text}</span>`;
+          if (!disabled && page !== filters.page) {
+            li.addEventListener("click", () => goToPage(page));
+          }
+          return li;
+        };
 
-    const nextLi = document.createElement("li");
-    nextLi.className = "page-item" + (filters.page === totalPages ? " disabled" : "");
-    nextLi.innerHTML = `<span class="page-link">Next &raquo;</span>`;
-    nextLi.addEventListener("click", () => { if (filters.page < totalPages) goToPage(filters.page + 1); });
-    pagination.appendChild(nextLi);
-  }
+        pagination.appendChild(createPageItem("Previous", filters.page - 1, filters.page === 1));
+        for (let i = 1; i <= totalPages; i++) {
+          pagination.appendChild(createPageItem(i, i));
+        }
+        pagination.appendChild(createPageItem("Next", filters.page + 1, filters.page === totalPages));
+      };
 
-  function goToPage(page) {
-    filters.page = page;
-    fetchProducts();
-  }
+      const goToPage = (page) => {
+        filters.page = page;
+        fetchProducts();
+      };
 
-  // ===== Fetch products (POST) =====
-  async function fetchProducts() {
-    try {
-      // 🔑 always update searchKey dynamically from search box (if available)
-      if (searchBox) {
-        filters.searchKey = searchBox.value.trim();
-      }
-
-      console.log("Frontend filters before fetch:", filters);
-
-      const res = await fetch("/search/data", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(filters)
-      });
-
-      const data = await res.json();
-      renderProducts(data.products);
-      renderPagination(data.totalPages || 1);
-    } catch (err) {
-      console.error(err);
-      grid.innerHTML = "<p class='text-danger'>Error loading products.</p>";
-    }
-  }
-
-  // Sort links
-  sortLinks.forEach(link => {
-    link.addEventListener("click", e => {
-      e.preventDefault();
-      sortLinks.forEach(l => l.classList.remove("active"));
-      link.classList.add("active");
-      filters.sort = link.dataset.sort;
-      filters.page = 1;
-      fetchProducts();
-    });
-  });
-
-  // Category filters
-  categoryCheckboxes.forEach(cb => {
-    cb.addEventListener("change", () => {
-      filters.categories = Array.from(categoryCheckboxes)
-        .filter(c => c.checked)
-        .map(c => c.value);
-      filters.page = 1;
-      fetchProducts();
-    });
-  });
-
-  // Price filter
-  applyPriceBtn.addEventListener("click", () => {
-    filters.minPrice = minPrice.value || null;
-    filters.maxPrice = maxPrice.value || null;
-    filters.page = 1;
-    fetchProducts();
-  });
-
-  // Initial fetch
-  fetchProducts();
-});
-</script>
-
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const grid = document.getElementById("product-grid");
-  const pagination = document.getElementById("pagination");
-  const sortLinks = document.querySelectorAll(".sort-link");
-  const categoryCheckboxes = document.querySelectorAll(".filter-category");
-  const minPrice = document.getElementById("minPrice");
-  const maxPrice = document.getElementById("maxPrice");
-  const applyPriceBtn = document.getElementById("applyPriceFilter");
-
-  // 🔑 add reference to search box in header (if exists)
-  const searchBox = document.getElementById("searchBox");
-
-  let filters = {
-    sort: "popularity",
-    categories: [],
-    minPrice: null,
-    maxPrice: null,
-    page: 1,
-    limit: 6,
-    searchKey: "<%= query || '' %>" // initial value from server render
-  };
-
-  // ===== Helper: POST =====
-  async function postData(url = "", data = {}) {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    return response.json();
-  }
-
-  // ===== Render products =====
-  function renderProducts(products) {
-    if (!products || products.length === 0) {
-      grid.innerHTML = "<p>No products found.</p>";
-      return;
-    }
-
-    grid.innerHTML = products.map(p => `
-      <div class="product-card">
-        <a href="/all-product/product-details/${p._id}" class="text-decoration-none text-dark">
-          <img src="${p.images?.[0] || '/images/default.png'}" alt="${p.name || ''}" />
-          <h6>${p.name || ''}</h6>
-          <div>
-            <span class="price">₹${p.fullProduct?.[0]?.price || p.originalPrice || 0}</span>
-            ${p.originalPrice && p.fullProduct?.[0]?.price !== p.originalPrice 
-              ? `<span class="old-price">₹${p.originalPrice}</span>` : ''}
-          </div>
-          <div class="star">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        </a>
-        <div class="mt-2 d-flex justify-content-center gap-2">
-          <button class="btn-custom add-to-cart" 
-            data-id="${p._id}" 
-            data-variant="${p.fullProduct?.[0]?._id || ''}" 
-            data-name="${p.name || ''}">Add to Cart</button>
-          <button class="btn-custom add-to-wishlist" 
-            data-id="${p._id}" 
-            data-name="${p.name || ''}">&#9829;</button>
-        </div>
-      </div>
-    `).join("");
-
-    // re-bind cart + wishlist after rendering
-    bindCartWishlistButtons();
-  }
-
-  // ===== Render pagination =====
-  function renderPagination(totalPages) {
-    pagination.innerHTML = "";
-    if (totalPages <= 1) return;
-
-    const prevLi = document.createElement("li");
-    prevLi.className = "page-item" + (filters.page === 1 ? " disabled" : "");
-    prevLi.innerHTML = `<span class="page-link">&laquo; Prev</span>`;
-    prevLi.addEventListener("click", () => { if (filters.page > 1) goToPage(filters.page - 1); });
-    pagination.appendChild(prevLi);
-
-    for (let i = 1; i <= totalPages; i++) {
-      const li = document.createElement("li");
-      li.className = "page-item" + (i === filters.page ? " active" : "");
-      li.innerHTML = `<span class="page-link">${i}</span>`;
-      li.addEventListener("click", () => { if (i !== filters.page) goToPage(i); });
-      pagination.appendChild(li);
-    }
-
-    const nextLi = document.createElement("li");
-    nextLi.className = "page-item" + (filters.page === totalPages ? " disabled" : "");
-    nextLi.innerHTML = `<span class="page-link">Next &raquo;</span>`;
-    nextLi.addEventListener("click", () => { if (filters.page < totalPages) goToPage(filters.page + 1); });
-    pagination.appendChild(nextLi);
-  }
-
-  function goToPage(page) {
-    filters.page = page;
-    fetchProducts();
-  }
-
-  // ===== Fetch products (POST) =====
-  async function fetchProducts() {
-    try {
-      if (searchBox) {
-        filters.searchKey = searchBox.value.trim();
-      }
-
-      const res = await fetch("/search/data", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(filters)
-      });
-
-      const data = await res.json();
-      renderProducts(data.products);
-      renderPagination(data.totalPages || 1);
-    } catch (err) {
-      console.error(err);
-      grid.innerHTML = "<p class='text-danger'>Error loading products.</p>";
-    }
-  }
-
-  // ====== Add to Cart + Wishlist binding (same as home page) ======
-  function bindCartWishlistButtons() {
-    document.querySelectorAll(".add-to-cart").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const productId = btn.dataset.id;
-        const variantId = btn.dataset.variant;
-        const productName = btn.dataset.name;
+      const fetchProducts = async () => {
+        if (searchBox) filters.searchKey = searchBox.value.trim();
 
         try {
-          const res = await postData("/cart/add", { productId, variantId, productName });
-
-          if (res.success) {
-            Swal.fire({
-              icon: "success",
-              title: "Added to Cart",
-              text: res.message || "Product added successfully!",
-              confirmButtonText: "Go to Cart",
-              showCancelButton: true,
-              cancelButtonText: "Continue Shopping"
-            }).then((result) => {
-              if (result.isConfirmed) window.location.href = "/cart";
-            });
-          } else if (res.loginRequired) {
-            Swal.fire({
-              icon: "warning",
-              title: "Login Required",
-              text: res.message || "Please login to continue.",
-              confirmButtonText: "Login"
-            }).then((result) => {
-              if (result.isConfirmed) window.location.href = "/login";
-            });
-          } else {
-            Swal.fire({
-              icon: "error",
-              title: "Failed",
-              text: res.message || "Could not add product to cart."
-            });
-          }
+          const res = await fetch("/search/data", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(filters)
+          });
+          const data = await res.json();
+          renderProducts(data.products);
+          renderPagination(data.totalPages || 1);
         } catch (err) {
-          Swal.fire({ icon: "warning", title: "Oops...", text: "Login to continue..!" });
+          grid.innerHTML = `<p class="text-danger text-center">Error loading products.</p>`;
         }
+      };
+
+      // Main Fix: Smart Cart & Wishlist (No "Login to continue" for logged-in users)
+      const bindCartWishlistButtons = () => {
+        document.querySelectorAll(".add-to-cart, .add-to-wishlist").forEach(btn => {
+          btn.onclick = async () => {
+            const isCart = btn.classList.contains("add-to-cart");
+            const payload = isCart
+              ? { productId: btn.dataset.id, variantId: btn.dataset.variant, productName: btn.dataset.name }
+              : { productId: btn.dataset.id, productName: btn.dataset.name };
+
+            const endpoint = isCart ? "/cart/add" : "/wishlist";
+
+            try {
+              const res = await postData(endpoint, payload);
+
+              if (res.success) {
+                if (isCart) {
+                  Swal.fire({
+                    icon: "success",
+                    title: "Added to Cart!",
+                    text: res.message || `${btn.dataset.name} added successfully.`,
+                    showCancelButton: true,
+                    confirmButtonText: "Go to Cart",
+                    cancelButtonText: "Continue Shopping"
+                  }).then(r => r.isConfirmed && (location.href = "/cart"));
+                } else {
+                  Swal.fire({
+                    icon: "success",
+                    title: "Added to Wishlist!",
+                    text: res.message || "Saved for later!",
+                    timer: 1500,
+                    showConfirmButton: false
+                  });
+                }
+                return;
+              }
+
+              // Only show login prompt if NOT logged in
+              if (res.loginRequired && !isLoggedIn) {
+                Swal.fire({
+                  icon: "warning",
+                  title: "Login Required",
+                  text: "Please login to add items to cart or wishlist.",
+                  confirmButtonText: "Login Now"
+                }).then(r => r.isConfirmed && (location.href = "/login"));
+                return;
+              }
+
+              // Other errors
+              Swal.fire({
+                icon: "info",
+                title: isCart ? "Not Added to Cart" : "Not Added to Wishlist",
+                text: res.message || "Something went wrong."
+              });
+
+            } catch (err) {
+              if (!isLoggedIn) {
+                Swal.fire({
+                  icon: "warning",
+                  title: "Login Required",
+                  text: "You need to be logged in.",
+                  confirmButtonText: "Login"
+                }).then(r => r.isConfirmed && (location.href = "/login"));
+              } else {
+                Swal.fire("Error", "Please try again later.", "error");
+              }
+            }
+          };
+        });
+      };
+
+      // Event Listeners
+      sortLinks.forEach(link => {
+        link.onclick = (e) => {
+          e.preventDefault();
+          sortLinks.forEach(l => l.classList.remove("active"));
+          link.classList.add("active");
+          filters.sort = link.dataset.sort;
+          filters.page = 1;
+          fetchProducts();
+        };
       });
-    });
 
-    document.querySelectorAll(".add-to-wishlist").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const productId = btn.dataset.id;
-        const productName = btn.dataset.name;
-
-        try {
-          const res = await postData("/wishlist/add", { productId, productName });
-
-          if (res.success) {
-            Swal.fire({
-              icon: "success",
-              title: "Added to Wishlist",
-              text: res.message || "Product added successfully!",
-              showConfirmButton: false,
-              timer: 1500
-            });
-          } else if (res.loginRequired) {
-            Swal.fire({
-              icon: "warning",
-              title: "Login Required",
-              text: res.message || "Please login to continue.",
-              confirmButtonText: "Login"
-            }).then((result) => {
-              if (result.isConfirmed) window.location.href = "/login";
-            });
-          } else {
-            Swal.fire({
-              icon: "error",
-              title: "Failed",
-              text: res.message || "Could not add to wishlist."
-            });
-          }
-        } catch (err) {
-          Swal.fire({ icon: "warning", title: "Oops...", text: "Login to continue..!" });
-        }
+      categoryCheckboxes.forEach(cb => {
+        cb.onchange = () => {
+          filters.categories = Array.from(categoryCheckboxes)
+            .filter(c => c.checked)
+            .map(c => c.value);
+          filters.page = 1;
+          fetchProducts();
+        };
       });
-    });
-  }
 
-  // Sort links
-  sortLinks.forEach(link => {
-    link.addEventListener("click", e => {
-      e.preventDefault();
-      sortLinks.forEach(l => l.classList.remove("active"));
-      link.classList.add("active");
-      filters.sort = link.dataset.sort;
-      filters.page = 1;
+      applyPriceBtn.onclick = () => {
+        filters.minPrice = minPriceInput.value ? Number(minPriceInput.value) : null;
+        filters.maxPrice = maxPriceInput.value ? Number(maxPriceInput.value) : null;
+        filters.page = 1;
+        fetchProducts();
+      };
+
+      // Initial Load
       fetchProducts();
     });
-  });
-
-  // Category filters
-  categoryCheckboxes.forEach(cb => {
-    cb.addEventListener("change", () => {
-      filters.categories = Array.from(categoryCheckboxes)
-        .filter(c => c.checked)
-        .map(c => c.value);
-      filters.page = 1;
-      fetchProducts();
-    });
-  });
-
-  // Price filter
-  applyPriceBtn.addEventListener("click", () => {
-    filters.minPrice = minPrice.value || null;
-    filters.maxPrice = maxPrice.value || null;
-    filters.page = 1;
-    fetchProducts();
-  });
-
-  // Initial fetch
-  fetchProducts();
-});
-</script>
-
+  </script>
 </body>
 </html>
