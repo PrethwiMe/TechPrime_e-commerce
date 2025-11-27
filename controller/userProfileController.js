@@ -125,10 +125,12 @@ exports.viewUserEditpage = async (req, res) => {
   const email = req.session.user.email
   let data = await userModel.fetchUser(email)
   console.log(data)
-if(data.password == null) return res.status(Status.BAD_REQUEST).json({status:Status.BAD_REQUEST,message:"google users can not edit data"})
+  const canEditAll = !!data.password;
+
   res.render('user-pages/editUserData.ejs', {
     user: data || null,
-    image: data || null
+    image: data || null,
+    canEditAll
   });
 
 }
@@ -176,6 +178,7 @@ exports.userImage = async (req, res) => {
   try {
     const { error } = joi.userProfileValidation(req.body);
     if (error) {
+      console.log(error)
       return res.status(400).json({
         success: false,
         message: "Validation error",

@@ -292,12 +292,8 @@ const userProfileValidation = (data) => {
       }),
 
     lastName: Joi.string()
-      .min(2)
-      .max(30)
-      .optional()
-      .messages({
-        "string.min": "Last name must have at least 2 characters",
-      }),
+      .optional().
+      allow('', null),
 
     phone: Joi.string()
       .pattern(/^[6-9]\d{9}$/)
